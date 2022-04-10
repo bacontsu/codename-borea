@@ -165,11 +165,6 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 		g = 0;
 		b = 0;
 	}
-
-	if( gHUD.isNightVisionOn() )
-	{
-		gHUD.getNightVisionHudItemColor( r, g, b );
-	}
 #endif 
 }
 
@@ -216,18 +211,15 @@ int CHudHealth::Draw(float flTime)
 		HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
 		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
 
-		y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-		x = CrossWidth /2;
+		//x = (CrossWidth /2);
 
-		if( gHUD.isNightVisionOn() )
-		{
-			gHUD.getNightVisionHudItemColor( r, g, b );
-		}
+		//SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
+		//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
 
-		SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
-		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
+		//x = CrossWidth + HealthWidth / 2;
 
-		x = CrossWidth + HealthWidth / 2;
+		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
 
 		//Reserve space for 3 digits by default, but allow it to expand
 		x += gHUD.GetHudNumberWidth(m_iHealth, 3, DHN_DRAWZERO);
@@ -243,18 +235,13 @@ int CHudHealth::Draw(float flTime)
 
 		int barR, barG, barB;
 
-		if( gHUD.isNightVisionOn() )
-		{
-			gHUD.getNightVisionHudItemColor( barR, barG, barB );
-		}
-		else
-		{
-			barR = giR;
-			barG = giG;
-			barB = giB;
-		}
+		
+		barR = giR;
+		barG = giG;
+		barB = giB;
+		
 
-		FillRGBA(x, y, iWidth, iHeight, barR, barG, barB, a);
+		//FillRGBA(x, y, iWidth, iHeight, barR, barG, barB, a);
 	}
 
 	DrawDamage(flTime);

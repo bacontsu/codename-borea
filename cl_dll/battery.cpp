@@ -87,81 +87,13 @@ int CHudBattery::Draw(float flTime)
 	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH )
 		return 1;
 
-	int r, g, b, x, y, a;
-	wrect_t rc;
+	int x, y, scale;
 
-	rc = *m_prc2;
+	x = 100 + +gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+	y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
+	scale = m_iBat * 1.3f;
 
-#if defined( _TFC )
-	float fScale = 0.0;
-	
-	if ( m_iBatMax > 0 )
-		fScale = 1.0 / (float)m_iBatMax;
-
-	rc.top  += m_iHeight * ((float)(m_iBatMax-(V_min(m_iBatMax,m_iBat))) * fScale); // battery can go from 0 to m_iBatMax so * fScale goes from 0 to 1
-#else
-	rc.top  += m_iHeight * ((float)(100-(V_min(100,m_iBat))) * 0.01);	// battery can go from 0 to 100 so * 0.01 goes from 0 to 1
-#endif
-
-	if( gHUD.isNightVisionOn() )
-	{
-		gHUD.getNightVisionHudItemColor( r, g, b );
-	}
-	else
-	{
-		r = giR;
-		g = giG;
-		b = giB;
-	}
-
-	if (!(gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)) ))
-		return 1;
-
-	// Has health changed? Flash the health #
-	if (m_fFade)
-	{
-		if (m_fFade > FADE_TIME)
-			m_fFade = FADE_TIME;
-
-		m_fFade -= (gHUD.m_flTimeDelta * 20);
-		if (m_fFade <= 0)
-		{
-			a = 128;
-			m_fFade = 0;
-		}
-
-		// Fade the health number back to dim
-
-		a = MIN_ALPHA +  (m_fFade/FADE_TIME) * 128;
-
-	}
-	else
-		a = MIN_ALPHA;
-
-	ScaleColors(r, g, b, a );
-	
-	int iOffset = (m_prc1->bottom - m_prc1->top)/6;
-
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-	x = ScreenWidth/4;
-
-	// make sure we have the right sprite handles
-	if ( !m_hSprite1 )
-		m_hSprite1 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_empty" ) );
-	if ( !m_hSprite2 )
-		m_hSprite2 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_full" ) );
-
-	SPR_Set(m_hSprite1, r, g, b );
-	SPR_DrawAdditive( 0,  x, y - iOffset, m_prc1);
-
-	if (rc.bottom > rc.top)
-	{
-		SPR_Set(m_hSprite2, r, g, b );
-		SPR_DrawAdditive( 0, x, y - iOffset + (rc.top - m_prc2->top), &rc);
-	}
-
-	x += (m_prc1->right - m_prc1->left);
-	x = gHUD.DrawHudNumber(x, y, DHN_3DIGITS | DHN_DRAWZERO, m_iBat, r, g, b);
+	FillRGBA(x, y, scale, 20, 251, 177, 43, 255);
 
 	return 1;
 }
