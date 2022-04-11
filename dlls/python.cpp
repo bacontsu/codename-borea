@@ -180,7 +180,7 @@ void CPython::PrimaryAttack()
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 
 #ifndef CLIENT_DLL
-	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 0.05f, 0);
+	FranUtils::EmitDlight(m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 6, 16, { 255, 255, 160 }, 0.05f, 0);
 #endif
 
 	// player "shoot" animation
