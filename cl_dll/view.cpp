@@ -539,6 +539,9 @@ extern void ClearToFogColor(); //LRC
 
 void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 {
+	gHUD.playerSpeed = pparams->simvel;
+	//gEngfuncs.Con_Printf("player speed is %f", gHUD.playerSpeed.Length2D());
+
 	cl_entity_t *ent, *view;
     int i;
     Vector angles;

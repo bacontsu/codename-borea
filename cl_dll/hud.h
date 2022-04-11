@@ -768,6 +768,8 @@ public:
 	float		velz;
 	float		bobValue[2];
 
+	Vector		playerSpeed;
+
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int DrawHudString(int x, int y, int iMaxX, char *szString, int r, int g, int b );
