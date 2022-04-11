@@ -353,13 +353,14 @@ public:
 	int VidInit() override;
 	int Draw(float flTime) override;
 	int MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf );
+
+	int	  m_iBat;
 	
 private:
 	HL_HSPRITE m_hSprite1;
 	HL_HSPRITE m_hSprite2;
 	wrect_t *m_prc1;
-	wrect_t *m_prc2;
-	int	  m_iBat;	
+	wrect_t *m_prc2;	
 	int	  m_iBatMax;
 	float m_fFade;
 	int	  m_iHeight;		// width of the battery innards

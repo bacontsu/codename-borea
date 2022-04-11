@@ -24,6 +24,9 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "triangleapi.h"
+#include "r_studioint.h"
+#include "com_model.h"
 #include <string.h>
 
 
@@ -50,6 +53,36 @@ int giDmgFlags[NUM_DMG_TYPES] =
 	DMG_CONCUSS,
 	DMG_HALLUC
 };
+
+void DrawBackground(float xmin, float ymin, float xmax, float ymax)
+{
+	//setup
+	gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
+	gEngfuncs.pTriAPI->Brightness(1.0f);
+	gEngfuncs.pTriAPI->Color4ub(251, 177, 43, 255);
+	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/healthback.spr")), 4);
+
+	//start drawing
+	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
+
+	//top left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymin, 0);
+	//bottom left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymax, 0);
+	//bottom right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymax, 0);
+	//top right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymin, 0);
+
+	//end
+	gEngfuncs.pTriAPI->End();
+	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+}
 
 int CHudHealth::Init()
 {
@@ -211,37 +244,24 @@ int CHudHealth::Draw(float flTime)
 		HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
 		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
 
-		//x = (CrossWidth /2);
+		// draw background
+		x = 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
 
-		//SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
-		//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
+		DrawBackground(x, y, x + 300, y + 100);
 
-		//x = CrossWidth + HealthWidth / 2;
-
+		// draw health
 		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
 
-		//Reserve space for 3 digits by default, but allow it to expand
-		x += gHUD.GetHudNumberWidth(m_iHealth, 3, DHN_DRAWZERO);
+		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
 
-		gHUD.DrawHudNumberReverse(x, y, m_iHealth, DHN_DRAWZERO, r, g, b);
+		// draw battery
+		x = 120 + +gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
+		int scale = gHUD.m_Battery.m_iBat * 1.3f;
 
-		//x = gHUD.DrawHudNumber(x, y, DHN_3DIGITS | DHN_DRAWZERO, m_iHealth, r, g, b);
-
-		x += HealthWidth/2;
-
-		int iHeight = gHUD.m_iFontHeight;
-		int iWidth = HealthWidth/10;
-
-		int barR, barG, barB;
-
-		
-		barR = giR;
-		barG = giG;
-		barB = giB;
-		
-
-		//FillRGBA(x, y, iWidth, iHeight, barR, barG, barB, a);
+		FillRGBA(x, y, scale, 20, 251, 177, 43, 255);
 	}
 
 	DrawDamage(flTime);

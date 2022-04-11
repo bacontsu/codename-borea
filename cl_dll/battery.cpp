@@ -87,6 +87,7 @@ int CHudBattery::Draw(float flTime)
 	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH )
 		return 1;
 
+	/*
 	int x, y, scale;
 
 	x = 100 + +gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
@@ -94,6 +95,7 @@ int CHudBattery::Draw(float flTime)
 	scale = m_iBat * 1.3f;
 
 	FillRGBA(x, y, scale, 20, 251, 177, 43, 255);
+	*/
 
 	return 1;
 }
