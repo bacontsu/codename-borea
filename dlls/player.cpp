@@ -187,6 +187,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, isRunning, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, playerStamina, FIELD_INTEGER),
 
+	DEFINE_FIELD(CBasePlayer, isScoping, FIELD_BOOLEAN),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -2156,7 +2158,7 @@ void CBasePlayer::PreThink()
 	// running mechanism
 	UTIL_MakeVectors(pev->v_angle);
 	if (pev->button & IN_FORWARD && pev->button & IN_RUN && !(pev->button & IN_DUCK) && pev->flags & FL_ONGROUND && 
-		!(pev->button & IN_JUMP) && playerStamina != 0)
+		!(pev->button & IN_JUMP) && playerStamina != 0 && !isScoping)
 	{
 		isRunning = true;
 		targetFov = 10;
@@ -2179,7 +2181,7 @@ void CBasePlayer::PreThink()
 			pev->velocity = pev->velocity.Normalize() * 500;
 		}
 	}
-	else
+	else if (isRunning)
 	{
 		//this->m_iFOV = 0;
 		isRunning = false;
@@ -2207,7 +2209,7 @@ void CBasePlayer::PreThink()
 		nextStaminaDecrease = gpGlobals->time + 0.05f;
 	} // player stamina - END
 
-	ALERT(at_console, "player stamina %i", playerStamina);
+	//ALERT(at_console, "player stamina %i", playerStamina);
 
 
 

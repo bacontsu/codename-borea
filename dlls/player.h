@@ -206,6 +206,8 @@ public:
 
 	int playerStamina;
 
+	bool isScoping;
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

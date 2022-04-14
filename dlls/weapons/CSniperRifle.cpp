@@ -89,7 +89,7 @@ void CSniperRifle::Holster( int skiplocal )
 {
 	m_fInReload = false;// cancel any reload in progress.
 
-	if (m_pPlayer->m_iFOV != 0)
+	if (m_pPlayer->targetFov != 0)
 	{
 		SecondaryAttack();
 	}
@@ -184,7 +184,7 @@ void CSniperRifle::Reload()
 {
 	if( m_pPlayer->ammo_762 > 0 )
 	{
-		if( m_pPlayer->m_iFOV != 0)
+		if( m_pPlayer->targetFov != 0)
 		{
 			ToggleZoom();
 		}
@@ -242,13 +242,17 @@ void CSniperRifle::IncrementAmmo(CBasePlayer* pPlayer)
 
 void CSniperRifle::ToggleZoom()
 {
-	if( m_pPlayer->m_iFOV == 0 )
+	if (m_pPlayer->isRunning) return;
+
+	if( m_pPlayer->targetFov == 0 )
 	{
-		m_pPlayer->m_iFOV = 18;
+		m_pPlayer->targetFov = -72;
+		m_pPlayer->isScoping = true;
 	}
 	else
 	{
-		m_pPlayer->m_iFOV = 0;
+		m_pPlayer->targetFov = 0;
+		m_pPlayer->isScoping = false;
 	}
 }
 

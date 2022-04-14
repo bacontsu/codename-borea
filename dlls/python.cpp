@@ -118,7 +118,7 @@ void CPython::Holster( int skiplocal /* = 0 */ )
 {
 	m_fInReload = FALSE;// cancel any reload in progress.
 
-	if (m_pPlayer->m_iFOV != 0)
+	if (m_pPlayer->targetFov != 0)
 	{
 		SecondaryAttack();
 	}
@@ -130,22 +130,17 @@ void CPython::Holster( int skiplocal /* = 0 */ )
 
 void CPython::SecondaryAttack()
 {
-#ifdef CLIENT_DLL
-	if ( !bIsMultiplayer() )
-#else
-	if ( !g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		return;
-	}
+	if (m_pPlayer->isRunning) return;
 
-	if ( m_pPlayer->m_iFOV != 0 )
+	if ( m_pPlayer->targetFov != 0 )
 	{
-		m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
+		m_pPlayer->targetFov = 0;  // 0 means reset to default fov
+		m_pPlayer->isScoping = false;
 	}
-	else if ( m_pPlayer->m_iFOV != 40 )
+	else if ( m_pPlayer->targetFov != -50 )
 	{
-		m_pPlayer->m_iFOV = 40;
+		m_pPlayer->targetFov = -50;
+		m_pPlayer->isScoping = true;
 	}
 
 	m_flNextSecondaryAttack = 0.5;
@@ -218,9 +213,9 @@ void CPython::Reload()
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	if ( m_pPlayer->m_iFOV != 0 )
+	if ( m_pPlayer->targetFov != 0 )
 	{
-		m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
+		m_pPlayer->targetFov = 0;  // 0 means reset to default fov
 	}
 
 	int bUseScope = FALSE;
