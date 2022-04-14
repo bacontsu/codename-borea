@@ -96,6 +96,7 @@ int gmsgStatsPlayer = 0;
 int gmsgTeamFull = 0;
 int gmsgOldWeapon = 0;
 int gmsgCustomIcon = 0;
+int gmsgStamina = 0;
 
 void LinkUserMessages()
 {
@@ -111,6 +112,7 @@ void LinkUserMessages()
 	gmsgFlashlight = REG_USER_MSG("Flashlight", 2);
 	gmsgFlashBattery = REG_USER_MSG("FlashBat", 1);
 	gmsgHealth = REG_USER_MSG("Health", 2);
+	gmsgStamina = REG_USER_MSG("Stamina", -1);
 	gmsgDamage = REG_USER_MSG("Damage", 12);
 	gmsgBattery = REG_USER_MSG("Battery", 2);
 	gmsgTrain = REG_USER_MSG("Train", 1);

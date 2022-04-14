@@ -444,7 +444,7 @@ void IN_MoverightUp()
 	KeyUp(&in_moveright);
 	gHUD.m_Spectator.HandleButtonsUp( IN_MOVERIGHT );
 }
-void IN_SpeedDown() {KeyDown(&in_speed);}
+void IN_SpeedDown() { KeyDown(&in_speed); gHUD.m_Spectator.HandleButtonsDown(IN_RUN); }
 void IN_SpeedUp() {KeyUp(&in_speed);}
 void IN_StrafeDown() {KeyDown(&in_strafe);}
 void IN_StrafeUp() {KeyUp(&in_strafe);}
@@ -652,6 +652,7 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	float	speed;
 	float	up, down;
 	
+	/*
 	if (in_speed.state & 1)
 	{
 		speed = frametime * cl_anglespeedkey->value;
@@ -660,6 +661,9 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	{
 		speed = frametime;
 	}
+	*/
+
+	speed = frametime;
 
 	if (!(in_strafe.state & 1))
 	{
@@ -741,6 +745,7 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 			cmd->forwardmove -= cl_backspeed->value * CL_KeyState (&in_back);
 		}	
 
+		/*
 		// adjust for speed key
 		if ( in_speed.state & 1 )
 		{
@@ -748,6 +753,7 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 			cmd->sidemove *= cl_movespeedkey->value;
 			cmd->upmove *= cl_movespeedkey->value;
 		}
+		*/
 
 		// clip to maxspeed
 		spd = gEngfuncs.GetClientMaxspeed();
@@ -911,6 +917,12 @@ int CL_ButtonBits( int bResetState )
 		bits |= IN_SCORE;
 	}
 
+	if (in_speed.state & 3)
+	{
+		//gEngfuncs.Con_Printf("shift pressed!");
+		bits |= IN_RUN;
+	}
+
 	// Dead or in intermission? Shore scoreboard, too
 	if ( CL_IsDead() || gHUD.m_iIntermission )
 	{
@@ -933,6 +945,7 @@ int CL_ButtonBits( int bResetState )
 		in_reload.state &= ~2;
 		in_alt1.state &= ~2;
 		in_score.state &= ~2;
+		in_speed.state &= ~2;
 	}
 
 	return bits;

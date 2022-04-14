@@ -32,6 +32,7 @@
 
 DECLARE_MESSAGE(m_Health, Health )
 DECLARE_MESSAGE(m_Health, Damage )
+DECLARE_MESSAGE(m_Health, Stamina)
 
 #define PAIN_NAME "sprites/%d_pain.spr"
 #define DAMAGE_NAME "sprites/%d_dmg.spr"
@@ -88,6 +89,7 @@ int CHudHealth::Init()
 {
 	HOOK_MESSAGE(Health);
 	HOOK_MESSAGE(Damage);
+	HOOK_MESSAGE(Stamina);
 	m_iHealth = 100;
 	m_fFade = 0;
 	m_iFlags = 0;
@@ -170,6 +172,17 @@ int CHudHealth:: MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf )
 	return 1;
 }
 
+int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
+{
+	// TODO: update local health data
+	BEGIN_READ( pbuf, iSize );
+	m_iStamina = READ_SHORT();
+
+	
+	
+	return 1;
+}
+
 
 // Returns back a color from the
 // Green <-> Yellow <-> Red ramp
@@ -206,6 +219,7 @@ int CHudHealth::Draw(float flTime)
 	int r, g, b;
 	int a = 0, x, y;
 	int HealthWidth;
+	int scale;
 
 	if ( (gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH) || gEngfuncs.IsSpectateOnly() )
 		return 1;
@@ -256,12 +270,33 @@ int CHudHealth::Draw(float flTime)
 
 		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
 
-		// draw battery
-		x = 120 + +gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		// draw battery empty bar
+		x = 120 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
-		int scale = gHUD.m_Battery.m_iBat * 1.3f;
+		scale = (100 - gHUD.m_Battery.m_iBat) * 1.3f;
 
-		FillRGBA(x, y, scale, 20, 251, 177, 43, 255);
+		FillRGBA(x, y, scale, 15, 144, 144, 144, 100);
+
+		// draw battery
+		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
+		scale = gHUD.m_Battery.m_iBat * 1.3f;
+
+		FillRGBA(x, y, scale, 15, 251, 177, 43, 255);
+
+		// draw stamina empty bar
+		x = 120 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50;
+		int stamina = (100-m_iStamina) * 1.3f;
+
+		FillRGBA(x, y, stamina, 5, 144, 144, 144, 100);
+
+		// draw stamina
+		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50;
+		stamina = m_iStamina * 1.3f;
+
+		FillRGBA(x, y, stamina, 5, 249, 111, 45, 255);
 	}
 
 	DrawDamage(flTime);

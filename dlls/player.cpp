@@ -178,6 +178,15 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, Rain_endFade, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayer, Rain_nextFadeUpdate, FIELD_TIME ),
 
+	// running
+	DEFINE_FIELD(CBasePlayer, nextStaminaRegen, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, nextStaminaDecrease, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, nextFovUpdate, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, targetFov, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, currFov, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, isRunning, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, playerStamina, FIELD_INTEGER),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -2144,6 +2153,84 @@ void CBasePlayer::PreThink()
 	else
 		pev->flags &= ~FL_ONTRAIN;
 
+	// running mechanism
+	UTIL_MakeVectors(pev->v_angle);
+	if (pev->button & IN_FORWARD && pev->button & IN_RUN && !(pev->button & IN_DUCK) && pev->flags & FL_ONGROUND && 
+		!(pev->button & IN_JUMP) && playerStamina != 0)
+	{
+		isRunning = true;
+		targetFov = 10;
+		
+		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
+		pev->velocity = pev->velocity + gpGlobals->v_forward * 10;
+
+		if (pev->button & IN_MOVERIGHT)
+		{
+			pev->velocity = pev->velocity + gpGlobals->v_right * 5;
+		}
+
+		if (pev->button & IN_MOVELEFT)
+		{
+			pev->velocity = pev->velocity - gpGlobals->v_right * 5;
+		}
+
+		if (pev->velocity.Length2D() > 500)
+		{
+			pev->velocity = pev->velocity.Normalize() * 500;
+		}
+	}
+	else
+	{
+		//this->m_iFOV = 0;
+		isRunning = false;
+		targetFov = 0;
+	}
+
+	// player stamina mechanism
+	if (nextStaminaRegen < gpGlobals->time && !isRunning && !(pev->button & IN_RUN))
+	{
+		if (playerStamina < 100) playerStamina++;
+
+		if (pev->velocity.Length2D() == 0) //player is idle, recharge faster!
+		{
+			nextStaminaRegen = gpGlobals->time + 0.02f;
+		}
+		else //player is walking
+		{
+			nextStaminaRegen = gpGlobals->time + 0.05f;
+		}
+	}
+
+	if (nextStaminaDecrease < gpGlobals->time && isRunning)
+	{
+		if (playerStamina > 0) playerStamina--;
+		nextStaminaDecrease = gpGlobals->time + 0.05f;
+	} // player stamina - END
+
+	ALERT(at_console, "player stamina %i", playerStamina);
+
+
+
+	// animated fov stuff
+	currFov = CVAR_GET_FLOAT("default_fov");
+
+	if (m_iFOV == 0)
+		m_iFOV = currFov;
+
+	if (nextFovUpdate < gpGlobals->time)
+	{
+		if (targetFov + currFov != m_iFOV)
+		{
+			if (targetFov + currFov < m_iFOV) m_iFOV--;
+			if (targetFov + currFov > m_iFOV) m_iFOV++;
+		}
+
+		nextFovUpdate = gpGlobals->time + 0.01f;
+	}
+	// animated fov - END
+
+
+
 	//We're on a rope. - Solokiller
 	if( m_afPhysicsFlags & PFLAG_ONROPE && m_pRope )
 	{
@@ -3346,6 +3433,7 @@ void CBasePlayer::Spawn()
 	m_bitsDamageType	= 0;
 	m_afPhysicsFlags	= 0;
 	m_fLongJump			= FALSE;// no longjump module.
+	playerStamina		= 100;
 /*	Rain_dripsPerSecond = 0;
 	Rain_windX = 0;
 	Rain_windY = 0;
@@ -4758,6 +4846,11 @@ void CBasePlayer :: UpdateClientData()
 			WRITE_SHORT( (int)pev->armorvalue);
 		MESSAGE_END();
 	}
+
+	//stamina
+	MESSAGE_BEGIN(MSG_ONE, gmsgStamina, nullptr, pev);
+	WRITE_SHORT(playerStamina);
+	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
 	{

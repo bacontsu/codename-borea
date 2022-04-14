@@ -195,6 +195,17 @@ public:
 	int			m_iFOV;			// field of view
 	int			m_iClientFOV;	// client's known FOV
 
+	// new additions 
+	float nextStaminaRegen; // timer used to update player stamina
+	float nextStaminaDecrease;
+	float nextFovUpdate;
+
+	float targetFov;
+	float currFov; // prints default_fov value
+	bool isRunning;
+
+	int playerStamina;
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;
