@@ -906,7 +906,27 @@ public:
 		b = 255;
 	}
 
+	// viewmodel
+	entity_state_t m_prevstate;
+
 };
+
+typedef struct viewinfo_s
+{
+	Vector attachment_forward[4];
+	Vector attachment_right[4];
+	Vector attachment_up[4];
+
+	Vector bonepos[MAXSTUDIOBONES];
+	Vector boneangles[MAXSTUDIOBONES];
+
+	Vector prevbonepos[MAXSTUDIOBONES];
+	Vector prevboneangles[MAXSTUDIOBONES];
+
+	studiohdr_t* phdr;
+} vminfo_t;
+
+extern viewinfo_s g_viewinfo;
 
 extern CHud gHUD;
 
