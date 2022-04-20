@@ -189,6 +189,10 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 
 	DEFINE_FIELD(CBasePlayer, isScoping, FIELD_BOOLEAN),
 
+	// climbing
+	DEFINE_FIELD(CBasePlayer, isClimbing, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, canClimb, FIELD_BOOLEAN),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -2155,6 +2159,100 @@ void CBasePlayer::PreThink()
 	else
 		pev->flags &= ~FL_ONTRAIN;
 
+	//===========================================================================================
+	// CLIMBING START
+	// climbing mechanism - using four tracelines which is probably bad for performance
+	//===========================================================================================
+	UTIL_MakeVectors(pev->angles);
+
+	// trace starts
+	Vector headSrc = pev->origin + gpGlobals->v_up * 30;
+	Vector vecSrc2 = pev->origin + gpGlobals->v_up * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+
+	// trace ends
+	Vector headEnd = headSrc + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+	Vector vecEnd2 = vecSrc2 - gpGlobals->v_up * 60;
+	
+
+	// detect if we can actually climb something
+	if (!isClimbing)
+	{
+		UTIL_TraceLine(headSrc, headEnd, ignore_monsters, ENT(pev), &headTr);
+		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
+		
+		Vector vecSrc1 = Vector(pev->origin.x, pev->origin.y, climbTr2.vecEndPos.z);
+		Vector vecEnd1 = vecSrc1 + gpGlobals->v_forward * 40;
+
+		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
+	}
+
+	if (headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1)
+	{
+		canClimb = true;
+	}
+	else
+	{
+		canClimb = false;
+	}
+
+	// detect jump button
+	if (pev->button & IN_JUMP && canClimb && !isClimbing)
+	{
+		isClimbing = true;
+
+	}
+	
+	// climbing stage 1
+	if (isClimbing)
+	{
+		pev->movetype = MOVETYPE_FLY;
+
+		// starts climbing
+		Vector endTarget;
+
+		endTarget.x = climbTr1.vecEndPos.x;
+		endTarget.y = climbTr1.vecEndPos.y;
+		endTarget.z = climbTr2.vecEndPos.z + 20;
+
+		// player location
+		float distanceX = climbTr1.vecEndPos.x - pev->origin.x;
+		float distanceY = climbTr1.vecEndPos.y - pev->origin.y;
+
+		// normalize
+		if (abs(distanceX) > abs(distanceY))
+		{
+			endTarget.y = pev->origin.y;
+		}
+		else
+		{
+			endTarget.x = pev->origin.x;
+		}
+		
+		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300/(1 / gpGlobals->frametime)) /5;
+		
+		// trace until infront of player is clear, and under the player is filled
+		TraceResult under, forward;
+		UTIL_TraceLine(pev->origin, pev->origin + gpGlobals->v_forward * 40, ignore_monsters, ENT(pev), &forward);
+		UTIL_TraceLine(pev->origin, pev->origin - gpGlobals->v_up * 40, ignore_monsters, ENT(pev), &under);
+
+
+		if(under.flFraction != 1 && forward.flFraction == 1)
+		{
+			// climbing is finished
+			pev->movetype = MOVETYPE_WALK;
+			isClimbing = false;
+		}
+
+	}
+
+	//===========================================================================================
+	// CLIMBING END
+	//===========================================================================================
+
+
+	//===========================================================================================
+	// RUNNING START
+	//===========================================================================================
 	// running mechanism
 	UTIL_MakeVectors(pev->v_angle);
 	if (pev->button & IN_FORWARD && pev->button & IN_RUN && !(pev->button & IN_DUCK) && pev->flags & FL_ONGROUND && 
@@ -2164,16 +2262,16 @@ void CBasePlayer::PreThink()
 		targetFov = 10;
 		
 		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
-		pev->velocity = pev->velocity + gpGlobals->v_forward * 10;
+		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
 
 		if (pev->button & IN_MOVERIGHT)
 		{
-			pev->velocity = pev->velocity + gpGlobals->v_right * 5;
+			pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
 		}
 
 		if (pev->button & IN_MOVELEFT)
 		{
-			pev->velocity = pev->velocity - gpGlobals->v_right * 5;
+			pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
 		}
 
 		if (pev->velocity.Length2D() > 500)
@@ -2209,7 +2307,9 @@ void CBasePlayer::PreThink()
 		nextStaminaDecrease = gpGlobals->time + 0.05f;
 	} // player stamina - END
 
-	//ALERT(at_console, "player stamina %i", playerStamina);
+	//===========================================================================================
+	// RUNNING END
+	//===========================================================================================
 
 
 

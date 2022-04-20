@@ -208,6 +208,11 @@ public:
 
 	bool isScoping;
 
+	// climbing
+	bool canClimb;
+	bool isClimbing;
+	TraceResult climbTr1, climbTr2, headTr;
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;
