@@ -547,7 +547,14 @@ void V_CamAnims(struct ref_params_s* pparams, cl_entity_s* view)
 			l_campos[i] = lerp(l_campos[i], result2[i] * 1.2, pparams->frametime * 17.0f);
 
 			pparams->viewangles[i] += l_camangles[i] / 25;
-			pparams->vieworg[i] += l_campos[i] / 10;
+			//pparams->vieworg[i] += l_campos[i] / 10;
+
+			//gEngfuncs.Con_Printf("x: %f y: %f", l_camangles[0], l_camangles[1]);
+			
+			if (i < 2)
+			{
+				gHUD.camValue[i] = l_camangles[i];
+			}
 		}
 		
 	}

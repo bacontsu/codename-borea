@@ -259,41 +259,41 @@ int CHudHealth::Draw(float flTime)
 		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
 
 		// draw background
-		x = 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
+		x = 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
 		DrawBackground(x, y, x + 300, y + 100);
 
 		// draw health
-		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
+		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
 		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
 
 		// draw battery empty bar
-		x = 120 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
+		x = 120 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = (100 - gHUD.m_Battery.m_iBat) * 1.3f;
 
 		FillRGBA(x, y, scale, 15, 144, 144, 144, 100);
 
 		// draw battery
-		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70;
+		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = gHUD.m_Battery.m_iBat * 1.3f;
 
 		FillRGBA(x, y, scale, 15, 251, 177, 43, 255);
 
 		// draw stamina empty bar
-		x = 120 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50;
+		x = 120 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		int stamina = (100-m_iStamina) * 1.3f;
 
 		FillRGBA(x, y, stamina, 5, 144, 144, 144, 100);
 
 		// draw stamina
-		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3;
-		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50;
+		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		stamina = m_iStamina * 1.3f;
 
 		FillRGBA(x, y, stamina, 5, 249, 111, 45, 255);

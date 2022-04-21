@@ -767,6 +767,7 @@ public:
 	float		mouse_y;
 	float		velz;
 	float		bobValue[2];
+	float		camValue[2];
 
 	Vector		playerSpeed;
 
