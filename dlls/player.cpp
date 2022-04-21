@@ -2203,7 +2203,7 @@ void CBasePlayer::PreThink()
 	}
 
 	// cancel climbing
-	if (pev->button & IN_BACK && isClimbing)
+	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing))
 	{
 		// climbing is canceled
 		pev->movetype = MOVETYPE_WALK;
