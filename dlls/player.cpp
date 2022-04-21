@@ -2196,10 +2196,18 @@ void CBasePlayer::PreThink()
 	}
 
 	// detect jump button
-	if (pev->button & IN_JUMP && canClimb && !isClimbing)
+	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK))
 	{
 		isClimbing = true;
 
+	}
+
+	// cancel climbing
+	if (pev->button & IN_BACK && isClimbing)
+	{
+		// climbing is canceled
+		pev->movetype = MOVETYPE_WALK;
+		isClimbing = false;
 	}
 	
 	// climbing stage 1
