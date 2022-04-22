@@ -2196,7 +2196,7 @@ void CBasePlayer::PreThink()
 	}
 
 	// detect jump button
-	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK))
+	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK) && !this->IsOnLadder())
 	{
 		isClimbing = true;
 
@@ -2236,7 +2236,8 @@ void CBasePlayer::PreThink()
 			endTarget.x = pev->origin.x;
 		}
 		
-		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300/(1 / gpGlobals->frametime)) /5;
+		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300/(1 / gpGlobals->frametime)) /7;
+		pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
 		
 		// trace until infront of player is clear, and under the player is filled
 		TraceResult under, forward;
