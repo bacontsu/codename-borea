@@ -40,7 +40,31 @@ HL_HSPRITE LoadSprite(const char *pszName)
 	return SPR_Load(sz);
 }
 
+void GetFallbackDir(char* falldir)
+{
+    char *pfile, *pfile2;
+    pfile = pfile2 = (char*)gEngfuncs.COM_LoadFile("liblist.gam", 5, NULL);
+    char token[1024];
+
+    if (pfile == nullptr)
+    {
+        return;
+    }
+
+    while (pfile = gEngfuncs.COM_ParseFile(pfile, token))
+    {
+        if (!stricmp(token, "fallback_dir"))
+        {
+            pfile = gEngfuncs.COM_ParseFile(pfile, token);
+            strcpy(falldir, token);
+            break;
+        }
+    }
+
+    gEngfuncs.COM_FreeFile(pfile2);
+    pfile = pfile2 = nullptr;
+}
+
 // stub functions
 void SET_MODEL(edict_t* e, const char* model) {}
 int PRECACHE_MODEL(const char* s) { return 0; }
-void GetFallbackDir(char* falldir) {};

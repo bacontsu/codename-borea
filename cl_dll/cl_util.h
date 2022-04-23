@@ -169,3 +169,5 @@ void VectorInverse ( float *v );
 #pragma warning( disable: 4305 )
 
 HL_HSPRITE LoadSprite(const char *pszName);
+
+void GetFallbackDir(char* falldir);
