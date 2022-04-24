@@ -213,6 +213,9 @@ public:
 	bool isClimbing;
 	TraceResult climbTr1, climbTr2, headTr;
 
+	// water
+	float nextSplashTime;
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

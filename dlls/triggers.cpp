@@ -3901,6 +3901,7 @@ void CChangeLevel :: ChangeLevelNow( CBaseEntity *pActivator )
 		pActualPlayer->nextFovUpdate = 0;
 		pActualPlayer->nextStaminaDecrease = 0;
 		pActualPlayer->nextStaminaRegen = 0;
+		pActualPlayer->nextSplashTime = 0;
 	}
 
 	m_hActivator = pActivator;
