@@ -26,6 +26,9 @@
 #include "func_break.h"
 #include "decals.h"
 #include "explode.h"
+#include "player.h"
+#include "weapons.h"
+
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -1014,7 +1017,10 @@ public:
     int		Restore( CRestore &restore ) override;
 
 	inline float MaxSpeed() { return m_maxSpeed; }
-	
+
+	void EXPORT AddGravity(void);
+	void	Killed(entvars_t* pevAttacker, int iGib) override;
+
 	// breakables use an overridden takedamage
     int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType ) override;
 	
@@ -1024,6 +1030,9 @@ public:
 	int		m_lastSound;	// no need to save/restore, just keeps the same sound from playing twice in a row
 	float	m_maxSpeed;
 	float	m_soundTime;
+
+	CBasePlayer* m_pPlayer = nullptr;
+	float usedTime = 0.0f;
 };
 
 TYPEDESCRIPTION	CPushable::m_SaveData[] = 
@@ -1068,6 +1077,12 @@ void CPushable :: Spawn()
 	// Multiply by area of the box's cross-section (assume 1000 units^3 standard volume)
 	pev->skin = ( pev->skin * (pev->maxs.x - pev->mins.x) * (pev->maxs.y - pev->mins.y) ) * 0.0005;
 	m_soundTime = 0;
+
+	if (!pev->gravity) pev->gravity = 0.5;
+	else pev->gravity = pev->gravity * 0.5;
+
+	SetThink(&CPushable::AddGravity);
+	pev->nextthink = pev->ltime + 0.1;
 }
 
 
@@ -1122,17 +1137,57 @@ void CPushable :: KeyValue( KeyValueData *pkvd )
 // Pull the func_pushable
 void CPushable :: Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	if ( !pActivator || !pActivator->IsPlayer() )
+	if (!pActivator || !pActivator->IsPlayer())
 	{
-		if ( pev->spawnflags & SF_PUSH_BREAKABLE )
-			this->CBreakable::Use( pActivator, pCaller, useType, value );
+		if ((pev->spawnflags & SF_PUSH_BREAKABLE) != 0)
+			this->CBreakable::Use(pActivator, pCaller, useType, value);
 		return;
 	}
 
-	if ( pev->spawnflags & SF_PUSH_NOPULL ) return; //LRC: a non-pullable pushable.
+	// experimental pull feature
+	if (pActivator->pev->flags & FL_ONGROUND && VARS(pActivator->pev->groundentity) != this->pev)
+	{
+		UTIL_MakeVectors(pActivator->pev->v_angle);
+		Vector vecSrc = pActivator->pev->origin + gpGlobals->v_up * 36;
+		TraceResult tr;
+		float length = (abs(pev->maxs.x - pev->mins.x)) / 2;
+		float width = (abs(pev->maxs.y - pev->mins.y)) / 2;
+		Vector realOrigin = pev->origin + (pev->maxs + pev->mins) / 2;
+		edict_t* pentIgnore;
+		pentIgnore = ENT(pActivator->pev);
 
-	if ( pActivator->pev->velocity != g_vecZero )
-		Move( pActivator, 0 );
+		// player location
+		float distanceX = abs(realOrigin.x - pActivator->pev->origin.x);
+		float distanceY = abs(realOrigin.y - pActivator->pev->origin.y);
+
+		if (distanceY < distanceX)// Pick the longest side as offset
+		{
+			UTIL_TraceLine(vecSrc, vecSrc + gpGlobals->v_forward * 2 * length, dont_ignore_monsters, pentIgnore, &tr);
+			CBaseEntity* pEntity = CBaseEntity::Instance(tr.pHit);
+			if (pEntity->pev == this->pev)// hits itself, continue tracing
+			{
+				pentIgnore = ENT(this->pev);
+				UTIL_TraceLine(tr.vecEndPos, tr.vecEndPos + gpGlobals->v_forward * 2 * length * (1 - tr.flFraction), dont_ignore_monsters, pentIgnore, &tr);
+			}
+		}
+		else
+		{
+			UTIL_TraceLine(vecSrc, vecSrc + gpGlobals->v_forward * 2 * width, dont_ignore_monsters, pentIgnore, &tr);
+			CBaseEntity* pEntity = CBaseEntity::Instance(tr.pHit);
+			if (pEntity->pev == this->pev)// hits itself, continue tracing
+			{
+				pentIgnore = ENT(this->pev);
+				UTIL_TraceLine(tr.vecEndPos, tr.vecEndPos + gpGlobals->v_forward * 2 * width * (1 - tr.flFraction), dont_ignore_monsters, pentIgnore, &tr);
+			}
+		}
+
+		pev->velocity.x = (tr.vecEndPos.x - realOrigin.x) * 5;
+		pev->velocity.y = (tr.vecEndPos.y - realOrigin.y) * 5;
+		pev->velocity.z += 0.1f; // slightly lift it up due to fraction
+
+		m_pPlayer = static_cast<CBasePlayer*>(pActivator);
+		usedTime = gpGlobals->time;
+	}
 }
 
 
@@ -1144,6 +1199,16 @@ void CPushable :: Touch( CBaseEntity *pOther )
 	Move( pOther, 1 );
 }
 
+void CPushable::Killed(entvars_t* pevAttacker, int iGib)
+{
+	if (m_pPlayer)
+	{
+		m_pPlayer->pev->maxspeed = 0;
+		m_pPlayer = nullptr;
+	}
+
+	CBreakable::Killed(pevAttacker, iGib);
+}
 
 void CPushable :: Move( CBaseEntity *pOther, int push )
 {
@@ -1260,4 +1325,24 @@ void CPushable::DoRespawn(){	//AJH Fix for respawnable breakable pushables (BY H
 	pev->solid = SOLID_BBOX;
 	pev->origin.z += 1;
 	UTIL_SetOrigin( this, pev->origin ); 
+}
+
+void CPushable::AddGravity(void)
+{
+	pev->velocity.z -= (pev->gravity * CVAR_GET_FLOAT("sv_gravity") * gpGlobals->frametime);
+	pev->velocity.z += (pev->basevelocity.z * gpGlobals->frametime);
+	pev->basevelocity.z = 0.0;
+	pev->nextthink = pev->ltime + 0.1;
+
+	// limit player's speed
+	if (m_pPlayer)
+	{
+		if (usedTime < gpGlobals->time)
+		{
+			m_pPlayer->pev->maxspeed = 0;
+			m_pPlayer = nullptr;
+		}
+		else
+			m_pPlayer->pev->maxspeed = 70;
+	}
 }
