@@ -266,6 +266,20 @@ int CHudHealth::Draw(float flTime)
 	GetPainColor( r, g, b );
 	ScaleColors(r, g, b, a );
 
+	// find heartbeat speed
+	if (m_iHealth > 70)
+	{
+		animSpeed = 0.05f;
+	}
+	else if (m_iHealth <= 70 && m_iHealth > 15)
+	{
+		animSpeed = 0.08f;
+	}
+	else
+	{
+		animSpeed = 0.15f;
+	}
+
 	// beating heart logic
 	if (nextBeatUpdate < gHUD.m_flTime)
 	{
@@ -282,7 +296,7 @@ int CHudHealth::Draw(float flTime)
 		{
 			beatSequence = 0;
 		}
-		nextBeatUpdate = gHUD.m_flTime + 0.05f;
+		nextBeatUpdate = gHUD.m_flTime + animSpeed;
 	}
 
 	// Only draw health if we have the suit.

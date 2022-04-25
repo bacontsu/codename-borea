@@ -61,6 +61,7 @@ public:
 	int heartScaler;
 	int beatSequence;
 	float nextBeatUpdate;
+	float animSpeed;
 
 private:
 	HL_HSPRITE m_hSprite;

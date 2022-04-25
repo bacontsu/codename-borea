@@ -24,6 +24,8 @@
 
 #include "postprocess.h"
 
+void HUD_DrawBloodOverlay(void);
+
 #define MAX_LOGO_FRAMES 56
 
 int grgLogoFrame[MAX_LOGO_FRAMES] = 
@@ -104,6 +106,8 @@ int CHud :: Redraw( float flTime, int intermission )
 	//RENDERERS START
 	gPostProcess.ApplyPostEffects(); //PostProcessing
 	//RENDERERS END
+
+	HUD_DrawBloodOverlay();
 
 	m_fOldTime = m_flTime;	// save time of previous redraw
 	m_flTime = flTime;
