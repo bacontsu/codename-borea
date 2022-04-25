@@ -29,6 +29,17 @@
 #include "com_model.h"
 #include <string.h>
 
+// sprites
+#define BACKGROUND_SPRITE "sprites/healthback.spr"
+#define HEALTH_SPRITE "sprites/healthlogo.spr"
+#define LOW_HEALTH_SPRITE "sprites/lowhealth.spr"
+#define LOW_ARMOR_SPRITE "sprites/lowarmor.spr"
+
+// sprites color
+#define BACKGROUND_COLOR Vector( 251, 177, 43)
+#define HEALTH_COLOR Vector( 251, 177, 43)
+#define INFO_COLOR Vector( 15, 251, 177)
+
 
 DECLARE_MESSAGE(m_Health, Health )
 DECLARE_MESSAGE(m_Health, Damage )
@@ -55,14 +66,14 @@ int giDmgFlags[NUM_DMG_TYPES] =
 	DMG_HALLUC
 };
 
-void DrawBackground(float xmin, float ymin, float xmax, float ymax)
+void DrawBackground(float xmin, float ymin, float xmax, float ymax, char* sprite, Vector color, int mode)
 {
 	//setup
-	gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
+	gEngfuncs.pTriAPI->RenderMode(mode);
 	gEngfuncs.pTriAPI->Brightness(1.0f);
-	gEngfuncs.pTriAPI->Color4ub(251, 177, 43, 255);
+	gEngfuncs.pTriAPI->Color4ub(color.x, color.y, color.z, 255);
 	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
-	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/healthback.spr")), 4);
+	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), 4);
 
 	//start drawing
 	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
@@ -128,6 +139,9 @@ int CHudHealth::VidInit()
 
 	giDmgHeight = gHUD.GetSpriteRect(m_HUD_dmg_bio).right - gHUD.GetSpriteRect(m_HUD_dmg_bio).left;
 	giDmgWidth = gHUD.GetSpriteRect(m_HUD_dmg_bio).bottom - gHUD.GetSpriteRect(m_HUD_dmg_bio).top;
+
+	// reset when level change
+	nextBeatUpdate = 0;
 	return 1;
 }
 
@@ -252,6 +266,25 @@ int CHudHealth::Draw(float flTime)
 	GetPainColor( r, g, b );
 	ScaleColors(r, g, b, a );
 
+	// beating heart logic
+	if (nextBeatUpdate < gHUD.m_flTime)
+	{
+		beatSequence++;
+		if (beatSequence < 5)
+		{
+			heartScaler = beatSequence;
+		}
+		else if (beatSequence >= 5 && beatSequence < 10)
+		{
+			heartScaler = 10 - beatSequence;
+		}
+		else if (beatSequence == 10)
+		{
+			beatSequence = 0;
+		}
+		nextBeatUpdate = gHUD.m_flTime + 0.05f;
+	}
+
 	// Only draw health if we have the suit.
 	if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
 	{
@@ -262,37 +295,43 @@ int CHudHealth::Draw(float flTime)
 		x = 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
-		DrawBackground(x, y, x + 300, y + 100);
+		DrawBackground(x, y, x + 350, y + 100, BACKGROUND_SPRITE, BACKGROUND_COLOR, kRenderTransTexture);
 
 		// draw health
-		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 190 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
 		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
 
+		// draw health logo
+		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 78 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
+
+		DrawBackground(x - heartScaler*2, y - heartScaler*2, x + 80 + heartScaler*2, y + 80 + heartScaler * 2, HEALTH_SPRITE, HEALTH_COLOR, kRenderTransAdd);
+
 		// draw battery empty bar
-		x = 120 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 200 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = (100 - gHUD.m_Battery.m_iBat) * 1.3f;
 
 		FillRGBA(x, y, scale, 15, 144, 144, 144, 100);
 
 		// draw battery
-		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = gHUD.m_Battery.m_iBat * 1.3f;
 
 		FillRGBA(x, y, scale, 15, 251, 177, 43, 255);
 
 		// draw stamina empty bar
-		x = 120 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 200 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		int stamina = (100-m_iStamina) * 1.3f;
 
 		FillRGBA(x, y, stamina, 5, 144, 144, 144, 100);
 
 		// draw stamina
-		x = 120 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		stamina = m_iStamina * 1.3f;
 

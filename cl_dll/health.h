@@ -58,6 +58,9 @@ public:
 	void GetPainColor( int &r, int &g, int &b );
 	float m_fFade;
 	int m_iStamina;
+	int heartScaler;
+	int beatSequence;
+	float nextBeatUpdate;
 
 private:
 	HL_HSPRITE m_hSprite;
