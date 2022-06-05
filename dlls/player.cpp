@@ -2184,7 +2184,14 @@ void CBasePlayer::PreThink()
 		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
 		
 		Vector vecSrc1 = Vector(pev->origin.x, pev->origin.y, climbTr2.vecEndPos.z);
-		Vector vecEnd1 = vecSrc1 + gpGlobals->v_forward * 40;
+
+		// angle filtering
+		Vector realForward;
+		VectorCopy(gpGlobals->v_forward, realForward);
+		realForward.z = 0; // ignore this axis
+		VectorNormalize(realForward);
+
+		Vector vecEnd1 = vecSrc1 + realForward * 40;
 
 		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
 	}
@@ -2206,7 +2213,7 @@ void CBasePlayer::PreThink()
 	}
 
 	// cancel climbing
-	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing))
+	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVERIGHT && isClimbing))
 	{
 		// climbing is canceled
 		pev->movetype = MOVETYPE_WALK;
@@ -2241,6 +2248,12 @@ void CBasePlayer::PreThink()
 		
 		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300/(1 / gpGlobals->frametime)) /7;
 		pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
+
+		// cap player climbing speed
+		if (pev->velocity.Length() > 300.0f)
+		{
+			pev->velocity = pev->velocity.Normalize() * 300.0f;
+		}
 		
 		// trace until infront of player is clear, and under the player is filled
 		TraceResult under, forward;
