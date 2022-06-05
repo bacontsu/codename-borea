@@ -1,10 +1,16 @@
-Merged version of My Spirinty Repo and Solokiller's OP4 Repo. Unfinished for now.
+# Codename Bor3λ Source Code
 
-Differences:
-- Spirit's m_iHUDColor removed
-- Spirit's Placeholder A B C Factions are removed (for re-implementing later)
-- Removed AJH Custom Menu
+[My own mod](https://www.moddb.com/mods/codename-borea) that im currently working on very slowly, mostly steals features from other people. Use on your own risk (unfinished codebase)
 
+## Credits:
+* [Spirinity](https://github.com/edgarbarney/halflife-planckepoch) - Codebase that this mod is working on
+* [Spirit of Half-Life](https://github.com/LogicAndTrick/halflife-updated/tree/spirit/spirit-1.8-bug-fixes) - Spirit version that being combinated with Trinity
+* [Trinity Rendering Engine](https://www.moddb.com/mods/half-life-episode-two/downloads/trinity-rendering-engine-v308f) - Renderer that replaces Half-Life's original engine renderer
+
+## Gallery:
+![image](https://user-images.githubusercontent.com/62763382/172050105-61a6a605-fe25-4e72-9949-44a388f0f1f0.png)
+![image](https://user-images.githubusercontent.com/62763382/172050144-53198bc5-8291-4273-ad8e-b21896063ac6.png)
+------------
 Half Life 1 SDK LICENSE
 ======================
 
