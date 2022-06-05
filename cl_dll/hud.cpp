@@ -1051,3 +1051,33 @@ void CHud::setNightVisionState( bool state )
 {
 	mNightVisionState = state;
 }
+
+void CHud::DrawBackground(float xmin, float ymin, float xmax, float ymax, char* sprite, Vector color, int mode)
+{
+	//setup
+	gEngfuncs.pTriAPI->RenderMode(mode);
+	gEngfuncs.pTriAPI->Brightness(1.0f);
+	gEngfuncs.pTriAPI->Color4ub(color.x, color.y, color.z, 255);
+	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), 4);
+
+	//start drawing
+	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
+
+	//top left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymin, 0);
+	//bottom left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymax, 0);
+	//bottom right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymax, 0);
+	//top right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymin, 0);
+
+	//end
+	gEngfuncs.pTriAPI->End();
+	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+}

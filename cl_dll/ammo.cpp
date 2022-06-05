@@ -29,6 +29,12 @@
 #include "ammohistory.h"
 #include "vgui_TeamFortressViewport.h"
 
+// sprites
+#define BACKGROUND_SPRITE "sprites/healthback.spr"
+
+// sprites color
+#define BACKGROUND_COLOR Vector( 251, 177, 43)
+
 WEAPON *gpActiveSel;	// NULL means off, 1 means just the menu bar, otherwise
 						// this points to the active weapon menu item
 WEAPON *gpLastSel;		// Last weapon menu selection 
@@ -902,17 +908,25 @@ int CHudAmmo::Draw(float flTime)
 	// Does this weapon have a clip?
 	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight/2;
 
+	// draw background
+	x = ScreenWidth - 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+	y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
+	gHUD.DrawBackground(x, y, x - 350, y + 100, BACKGROUND_SPRITE, BACKGROUND_COLOR, kRenderTransTexture);
+
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
 	{
+
 		int iIconWidth = m_pWeapon->rcAmmo.right - m_pWeapon->rcAmmo.left;
 		
 		if (pw->iClip >= 0)
 		{
 			// room for the number and the '|' and the current ammo
 			
-			x = ScreenWidth - (8 * AmmoWidth) - iIconWidth;
+			x = ScreenWidth - 350 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+			y = ScreenHeight - 30 + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, pw->iClip, r, g, b);
+
 
 			wrect_t rc;
 			rc.top = 0;
@@ -922,27 +936,30 @@ int CHudAmmo::Draw(float flTime)
 
 			int iBarWidth =  AmmoWidth/10;
 
-			x += AmmoWidth/2;
+			x = ScreenWidth - 280 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+			y = ScreenHeight - 20 + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
 			r = giR;
 			g = giG;
 			b = giB;
 
 			// draw the | bar
-			FillRGBA(x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a);
+			// FillRGBA(x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a);
 
-			x += iBarWidth + AmmoWidth/2;
+			//x = ScreenWidth - 350 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 
 			// GL Seems to need this
 			ScaleColors(r, g, b, a );
-			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);		
+			// x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);	
+			x = gHUD.DrawHudString(x, y, 512, (char*)std::to_string(gWR.CountAmmo(pw->iAmmoType)).c_str(), r, g, b);
 
 
 		}
 		else
 		{
 			// SPR_Draw a bullets only line
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
+			x = ScreenWidth - 350 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+			y = ScreenHeight - 30 + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);
 		}
 
@@ -960,9 +977,9 @@ int CHudAmmo::Draw(float flTime)
 		// Do we have secondary ammo?
 		if ((pw->iAmmo2Type != 0) && (gWR.CountAmmo(pw->iAmmo2Type) > 0))
 		{
-			y -= gHUD.m_iFontHeight + gHUD.m_iFontHeight/4;
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
-			x = gHUD.DrawHudNumber(x, y, iFlags|DHN_3DIGITS, gWR.CountAmmo(pw->iAmmo2Type), r, g, b);
+			x = ScreenWidth - 280 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+			y = ScreenHeight - 40 + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
+			x = gHUD.DrawHudString(x, y, 512, (char*)std::to_string(gWR.CountAmmo(pw->iAmmo2Type)).c_str(), r, g, b);
 
 			// Draw the ammo Icon
 			SPR_Set(m_pWeapon->hAmmo2, r, g, b);

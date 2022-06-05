@@ -24,10 +24,6 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
-#include "triangleapi.h"
-#include "r_studioint.h"
-#include "com_model.h"
-#include <string.h>
 
 // sprites
 #define BACKGROUND_SPRITE "sprites/healthback.spr"
@@ -65,36 +61,6 @@ int giDmgFlags[NUM_DMG_TYPES] =
 	DMG_CONCUSS,
 	DMG_HALLUC
 };
-
-void DrawBackground(float xmin, float ymin, float xmax, float ymax, char* sprite, Vector color, int mode)
-{
-	//setup
-	gEngfuncs.pTriAPI->RenderMode(mode);
-	gEngfuncs.pTriAPI->Brightness(1.0f);
-	gEngfuncs.pTriAPI->Color4ub(color.x, color.y, color.z, 255);
-	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
-	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), 4);
-
-	//start drawing
-	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
-
-	//top left
-	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
-	gEngfuncs.pTriAPI->Vertex3f(xmin, ymin, 0);
-	//bottom left
-	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
-	gEngfuncs.pTriAPI->Vertex3f(xmin, ymax, 0);
-	//bottom right
-	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
-	gEngfuncs.pTriAPI->Vertex3f(xmax, ymax, 0);
-	//top right
-	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
-	gEngfuncs.pTriAPI->Vertex3f(xmax, ymin, 0);
-
-	//end
-	gEngfuncs.pTriAPI->End();
-	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
-}
 
 int CHudHealth::Init()
 {
@@ -309,7 +275,7 @@ int CHudHealth::Draw(float flTime)
 		x = 50 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
-		DrawBackground(x, y, x + 350, y + 100, BACKGROUND_SPRITE, BACKGROUND_COLOR, kRenderTransTexture);
+		gHUD.DrawBackground(x, y, x + 350, y + 100, BACKGROUND_SPRITE, BACKGROUND_COLOR, kRenderTransTexture);
 
 		// draw health
 		x = 190 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
@@ -321,7 +287,7 @@ int CHudHealth::Draw(float flTime)
 		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 78 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
-		DrawBackground(x - heartScaler*2, y - heartScaler*2, x + 80 + heartScaler*2, y + 80 + heartScaler * 2, HEALTH_SPRITE, HEALTH_COLOR, kRenderTransAdd);
+		gHUD.DrawBackground(x - heartScaler*2, y - heartScaler*2, x + 80 + heartScaler*2, y + 80 + heartScaler * 2, HEALTH_SPRITE, HEALTH_COLOR, kRenderTransAdd);
 
 		// draw battery empty bar
 		x = 200 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;

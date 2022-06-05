@@ -34,6 +34,10 @@
 #include "wrect.h"
 #include "cl_dll.h"
 #include "ammo.h"
+#include "triangleapi.h"
+#include "r_studioint.h"
+#include "com_model.h"
+#include <string.h>
 
 #include <SDL2/SDL.h>
 
@@ -780,6 +784,7 @@ public:
 	int viewEntityIndex; // for trigger_viewset
 	int viewFlags;
 	int numMirrors;
+	void DrawBackground(float xmin, float ymin, float xmax, float ymax, char* sprite, Vector color, int mode);
 
 	int GetHudNumberWidth(int number, int width, int flags);
 	int DrawHudNumberReverse(int x, int y, int number, int flags, int r, int g, int b);
