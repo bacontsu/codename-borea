@@ -3898,10 +3898,10 @@ void CChangeLevel :: ChangeLevelNow( CBaseEntity *pActivator )
 	if (pPlayer && pPlayer->IsPlayer())
 	{
 		CBasePlayer* pActualPlayer = static_cast<CBasePlayer*>(pPlayer);
-		pActualPlayer->nextFovUpdate = 0;
-		pActualPlayer->nextStaminaDecrease = 0;
-		pActualPlayer->nextStaminaRegen = 0;
-		pActualPlayer->nextSplashTime = 0;
+		//pActualPlayer->nextFovUpdate = 0;
+		//pActualPlayer->nextStaminaDecrease = 0;
+		//pActualPlayer->nextStaminaRegen = 0;
+		//pActualPlayer->nextSplashTime = 0;
 	}
 
 	m_hActivator = pActivator;
