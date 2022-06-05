@@ -1721,10 +1721,10 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (flDistance * tr.flFraction) / 64.0 );
+		FireBulletsWater(vecSrc, tr.vecEndPos);
 	}
 	ApplyMultiDamage(pev, pevAttacker);
 }
-
 
 void CBaseEntity::FireBulletsWater(Vector vecSrc, Vector vecEnd)
 {
