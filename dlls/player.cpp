@@ -179,9 +179,9 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, Rain_nextFadeUpdate, FIELD_TIME ),
 
 	// running
-	DEFINE_FIELD(CBasePlayer, nextStaminaRegen, FIELD_FLOAT),
-	DEFINE_FIELD(CBasePlayer, nextStaminaDecrease, FIELD_FLOAT),
-	DEFINE_FIELD(CBasePlayer, nextFovUpdate, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, nextStaminaRegen, FIELD_TIME),
+	DEFINE_FIELD(CBasePlayer, nextStaminaDecrease, FIELD_TIME),
+	DEFINE_FIELD(CBasePlayer, nextFovUpdate, FIELD_TIME),
 	DEFINE_FIELD(CBasePlayer, targetFov, FIELD_FLOAT),
 	DEFINE_FIELD(CBasePlayer, currFov, FIELD_FLOAT),
 	DEFINE_FIELD(CBasePlayer, isRunning, FIELD_BOOLEAN),
@@ -194,7 +194,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, canClimb, FIELD_BOOLEAN),
 
 	// water
-	DEFINE_FIELD(CBasePlayer, nextSplashTime, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, nextSplashTime, FIELD_TIME),
 
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
@@ -2162,239 +2162,12 @@ void CBasePlayer::PreThink()
 	else
 		pev->flags &= ~FL_ONTRAIN;
 
-	//===========================================================================================
-	// CLIMBING START
-	// climbing mechanism - using four tracelines which is probably bad for performance
-	//===========================================================================================
-	UTIL_MakeVectors(pev->angles);
-
-	// trace starts
-	Vector headSrc = pev->origin + gpGlobals->v_up * 30;
-	Vector vecSrc2 = pev->origin + gpGlobals->v_up * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
-
-	// trace ends
-	Vector headEnd = headSrc + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
-	Vector vecEnd2 = vecSrc2 - gpGlobals->v_up * 60;
 	
+	ClimbingPhysics(); // bacontsu - wall climbing function
 
-	// detect if we can actually climb something
-	if (!isClimbing)
-	{
-		UTIL_TraceLine(headSrc, headEnd, ignore_monsters, ENT(pev), &headTr);
-		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
-		
-		Vector vecSrc1 = Vector(pev->origin.x, pev->origin.y, climbTr2.vecEndPos.z);
+	RunningThink(); // bacontsu - running function
 
-		// angle filtering
-		Vector realForward;
-		VectorCopy(gpGlobals->v_forward, realForward);
-		realForward.z = 0; // ignore this axis
-		VectorNormalize(realForward);
-
-		Vector vecEnd1 = vecSrc1 + realForward * 40;
-
-		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
-	}
-
-	if (headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1)
-	{
-		canClimb = true;
-	}
-	else
-	{
-		canClimb = false;
-	}
-
-	// detect jump button
-	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK) && !this->IsOnLadder())
-	{
-		isClimbing = true;
-
-	}
-
-	// cancel climbing
-	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVERIGHT && isClimbing))
-	{
-		// climbing is canceled
-		pev->movetype = MOVETYPE_WALK;
-		isClimbing = false;
-	}
-	
-	// climbing stage 1
-	if (isClimbing)
-	{
-		pev->movetype = MOVETYPE_FLY;
-
-		// starts climbing
-		Vector endTarget;
-
-		endTarget.x = climbTr1.vecEndPos.x;
-		endTarget.y = climbTr1.vecEndPos.y;
-		endTarget.z = climbTr2.vecEndPos.z + 20;
-
-		// player location
-		float distanceX = climbTr1.vecEndPos.x - pev->origin.x;
-		float distanceY = climbTr1.vecEndPos.y - pev->origin.y;
-
-		// normalize
-		if (abs(distanceX) > abs(distanceY))
-		{
-			endTarget.y = pev->origin.y;
-		}
-		else
-		{
-			endTarget.x = pev->origin.x;
-		}
-		
-		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300/(1 / gpGlobals->frametime)) /7;
-		pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
-
-		// cap player climbing speed
-		if (pev->velocity.Length() > 300.0f)
-		{
-			pev->velocity = pev->velocity.Normalize() * 300.0f;
-		}
-		
-		// trace until infront of player is clear, and under the player is filled
-		TraceResult under, forward;
-		UTIL_TraceLine(pev->origin, pev->origin + gpGlobals->v_forward * 40, ignore_monsters, ENT(pev), &forward);
-		UTIL_TraceLine(pev->origin, pev->origin - gpGlobals->v_up * 40, ignore_monsters, ENT(pev), &under);
-
-
-		if(under.flFraction != 1 && forward.flFraction == 1)
-		{
-			// climbing is finished
-			pev->movetype = MOVETYPE_WALK;
-			isClimbing = false;
-		}
-
-	}
-
-	//===========================================================================================
-	// CLIMBING END
-	//===========================================================================================
-
-
-	//===========================================================================================
-	// RUNNING START
-	//===========================================================================================
-	// running mechanism
-	UTIL_MakeVectors(pev->v_angle);
-	if (pev->button & IN_FORWARD && pev->button & IN_RUN && !(pev->button & IN_DUCK) && pev->flags & FL_ONGROUND && 
-		!(pev->button & IN_JUMP) && playerStamina != 0 && !isScoping)
-	{
-		isRunning = true;
-		targetFov = 10;
-		
-		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
-		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
-
-		if (pev->button & IN_MOVERIGHT)
-		{
-			pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
-		}
-
-		if (pev->button & IN_MOVELEFT)
-		{
-			pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
-		}
-
-		if (pev->velocity.Length2D() > 500)
-		{
-			pev->velocity = pev->velocity.Normalize() * 500;
-		}
-	}
-	else if (isRunning)
-	{
-		//this->m_iFOV = 0;
-		isRunning = false;
-		targetFov = 0;
-	}
-
-	// player stamina mechanism
-	if (nextStaminaRegen < gpGlobals->time && !isRunning && !(pev->button & IN_RUN))
-	{
-		if (playerStamina < 100) playerStamina++;
-
-		if (pev->velocity.Length2D() == 0) //player is idle, recharge faster!
-		{
-			nextStaminaRegen = gpGlobals->time + 0.02f;
-		}
-		else //player is walking
-		{
-			nextStaminaRegen = gpGlobals->time + 0.05f;
-		}
-	}
-
-	if (nextStaminaDecrease < gpGlobals->time && isRunning)
-	{
-		if (playerStamina > 0) playerStamina--;
-		nextStaminaDecrease = gpGlobals->time + 0.05f;
-	} // player stamina - END
-
-	//===========================================================================================
-	// RUNNING END
-	//===========================================================================================
-
-	//===========================================================================================
-	// WATER STEP START
-	//===========================================================================================
-	if (pev->waterlevel == 1 && pev->velocity.Length() > 0)
-	{
-
-		if (nextSplashTime < gpGlobals->time)
-		{
-			TraceResult tr;
-			Vector vecSrc = pev->origin;
-			Vector vecEnd = vecSrc - Vector(0, 0, 8192);
-			int traceContent;
-
-			UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
-			traceContent = UTIL_PointContents(tr.vecEndPos);
-
-			if (traceContent == CONTENTS_WATER)
-			{
-				vecSrc = tr.vecEndPos;
-				vecEnd = vecSrc + Vector(0, 0, 1);
-
-				UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
-				traceContent = UTIL_PointContents(tr.vecEndPos);
-
-				while (traceContent == CONTENTS_WATER)
-				{
-					vecEnd = vecEnd + Vector(0, 0, 1);
-					UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
-					traceContent = UTIL_PointContents(tr.vecEndPos);
-				}
-
-				if (traceContent != CONTENTS_WATER)
-				{
-					// particle
-					UTIL_Particle("water_shoot_cluster.txt", tr.vecEndPos + Vector(0, 0, 1), Vector(0, 0, 2), 1);
-
-					// play sound
-					switch (RANDOM_LONG(1, 3))
-					{
-					case 1:
-						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash1.wav", 1, ATTN_NORM, 0, 100);
-						break;
-					case 2:
-						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash2.wav", 1, ATTN_NORM, 0, 100);
-						break;
-					case 3:
-						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash3.wav", 1, ATTN_NORM, 0, 100);
-						break;
-					}
-				}
-
-				nextSplashTime = gpGlobals->time + 1.0f;
-			}
-		}
-	}
-
-	//===========================================================================================
-	// WATER STEP END
-	//===========================================================================================
+	WaterThink(); // bacontsu - water steps function
 
 
 	// animated fov stuff
@@ -6220,6 +5993,246 @@ void CBasePlayer::SetPrefsFromUserinfo(char* infobuffer)
 		m_iAutoWepSwitch = 1;
 	}
 }
+
+//===========================================================================================
+// RUNNING START
+//===========================================================================================
+void CBasePlayer::RunningThink()
+{
+	// running mechanism
+	UTIL_MakeVectors(pev->v_angle);
+	if (pev->button & IN_FORWARD && pev->button & IN_RUN && !(pev->button & IN_DUCK) && pev->flags & FL_ONGROUND &&
+		!(pev->button & IN_JUMP) && playerStamina != 0 && !isScoping)
+	{
+		isRunning = true;
+		targetFov = 10;
+
+		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
+		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
+
+		if (pev->button & IN_MOVERIGHT)
+		{
+			pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+		}
+
+		if (pev->button & IN_MOVELEFT)
+		{
+			pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+		}
+
+		if (pev->velocity.Length2D() > 500)
+		{
+			pev->velocity = pev->velocity.Normalize() * 500;
+		}
+	}
+	else if (isRunning)
+	{
+		//this->m_iFOV = 0;
+		isRunning = false;
+		targetFov = 0;
+	}
+
+	// player stamina mechanism
+	if (nextStaminaRegen < gpGlobals->time && !isRunning && !(pev->button & IN_RUN))
+	{
+		if (playerStamina < 100) playerStamina++;
+
+		if (pev->velocity.Length2D() == 0) //player is idle, recharge faster!
+		{
+			nextStaminaRegen = gpGlobals->time + 0.02f;
+		}
+		else //player is walking
+		{
+			nextStaminaRegen = gpGlobals->time + 0.05f;
+		}
+	}
+
+	if (nextStaminaDecrease < gpGlobals->time && isRunning)
+	{
+		if (playerStamina > 0) playerStamina--;
+		nextStaminaDecrease = gpGlobals->time + 0.05f;
+	} // player stamina - END
+}
+//===========================================================================================
+// RUNNING END
+//===========================================================================================
+
+//===========================================================================================
+// WATER STEP START
+//===========================================================================================
+void CBasePlayer::WaterThink()
+{
+	if (pev->waterlevel == 1 && pev->velocity.Length() > 0)
+	{
+
+		if (nextSplashTime < gpGlobals->time)
+		{
+			TraceResult tr;
+			Vector vecSrc = pev->origin;
+			Vector vecEnd = vecSrc - Vector(0, 0, 8192);
+			int traceContent;
+
+			UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
+			traceContent = UTIL_PointContents(tr.vecEndPos);
+
+			if (traceContent == CONTENTS_WATER)
+			{
+				vecSrc = tr.vecEndPos;
+				vecEnd = vecSrc + Vector(0, 0, 1);
+
+				UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
+				traceContent = UTIL_PointContents(tr.vecEndPos);
+
+				while (traceContent == CONTENTS_WATER)
+				{
+					vecEnd = vecEnd + Vector(0, 0, 1);
+					UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
+					traceContent = UTIL_PointContents(tr.vecEndPos);
+				}
+
+				if (traceContent != CONTENTS_WATER)
+				{
+					// particle
+					UTIL_Particle("water_shoot_cluster.txt", tr.vecEndPos + Vector(0, 0, 1), Vector(0, 0, 2), 1);
+
+					// play sound
+					switch (RANDOM_LONG(1, 3))
+					{
+					case 1:
+						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash1.wav", 1, ATTN_NORM, 0, 100);
+						break;
+					case 2:
+						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash2.wav", 1, ATTN_NORM, 0, 100);
+						break;
+					case 3:
+						UTIL_EmitAmbientSound(ENT(0), tr.vecEndPos + Vector(0, 0, 1), "items/water_splash/water_splash3.wav", 1, ATTN_NORM, 0, 100);
+						break;
+					}
+				}
+
+				nextSplashTime = gpGlobals->time + 1.0f;
+			}
+		}
+	}
+}
+//===========================================================================================
+// WATER STEP END
+//===========================================================================================
+
+//===========================================================================================
+// CLIMBING START
+// climbing mechanism - using four tracelines which is probably bad for performance
+//===========================================================================================
+void CBasePlayer::ClimbingPhysics()
+{
+	UTIL_MakeVectors(pev->angles);
+
+	// trace starts
+	Vector headSrc = pev->origin + gpGlobals->v_up * 30;
+	Vector vecSrc2 = pev->origin + gpGlobals->v_up * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+
+	// trace ends
+	Vector headEnd = headSrc + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+	Vector vecEnd2 = vecSrc2 - gpGlobals->v_up * 60;
+
+
+	// detect if we can actually climb something
+	if (!isClimbing)
+	{
+		UTIL_TraceLine(headSrc, headEnd, ignore_monsters, ENT(pev), &headTr);
+		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
+
+		Vector vecSrc1 = Vector(pev->origin.x, pev->origin.y, climbTr2.vecEndPos.z);
+
+		// angle filtering
+		Vector realForward;
+		VectorCopy(gpGlobals->v_forward, realForward);
+		realForward.z = 0; // ignore this axis
+		VectorNormalize(realForward);
+
+		Vector vecEnd1 = vecSrc1 + realForward * 40;
+
+		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
+	}
+
+	if (headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1)
+	{
+		canClimb = true;
+	}
+	else
+	{
+		canClimb = false;
+	}
+
+	// detect jump button
+	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK) && !this->IsOnLadder())
+	{
+		isClimbing = true;
+
+	}
+
+	// cancel climbing
+	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVERIGHT && isClimbing))
+	{
+		// climbing is canceled
+		pev->movetype = MOVETYPE_WALK;
+		isClimbing = false;
+	}
+
+	// climbing stage 1
+	if (isClimbing)
+	{
+		pev->movetype = MOVETYPE_FLY;
+
+		// starts climbing
+		Vector endTarget;
+
+		endTarget.x = climbTr1.vecEndPos.x;
+		endTarget.y = climbTr1.vecEndPos.y;
+		endTarget.z = climbTr2.vecEndPos.z + 20;
+
+		// player location
+		float distanceX = climbTr1.vecEndPos.x - pev->origin.x;
+		float distanceY = climbTr1.vecEndPos.y - pev->origin.y;
+
+		// normalize
+		if (abs(distanceX) > abs(distanceY))
+		{
+			endTarget.y = pev->origin.y;
+		}
+		else
+		{
+			endTarget.x = pev->origin.x;
+		}
+
+		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300 / (1 / gpGlobals->frametime)) / 7;
+		pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
+
+		// cap player climbing speed
+		if (pev->velocity.Length() > 300.0f)
+		{
+			pev->velocity = pev->velocity.Normalize() * 300.0f;
+		}
+
+		// trace until infront of player is clear, and under the player is filled
+		TraceResult under, forward;
+		UTIL_TraceLine(pev->origin, pev->origin + gpGlobals->v_forward * 40, ignore_monsters, ENT(pev), &forward);
+		UTIL_TraceLine(pev->origin, pev->origin - gpGlobals->v_up * 40, ignore_monsters, ENT(pev), &under);
+
+
+		if (under.flFraction != 1 && forward.flFraction == 1)
+		{
+			// climbing is finished
+			pev->movetype = MOVETYPE_WALK;
+			isClimbing = false;
+		}
+
+	}
+}
+//===========================================================================================
+// CLIMBING END
+//===========================================================================================
+
 
 //=========================================================
 // Dead HEV suit prop

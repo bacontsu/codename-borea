@@ -195,26 +195,28 @@ public:
 	int			m_iFOV;			// field of view
 	int			m_iClientFOV;	// client's known FOV
 
-	// new additions 
-	float nextStaminaRegen; // timer used to update player stamina
-	float nextStaminaDecrease;
+	// fov related
 	float nextFovUpdate;
-
 	float targetFov;
 	float currFov; // prints default_fov value
-	bool isRunning;
-
-	int playerStamina;
-
 	bool isScoping;
 
+	// running
+	bool isRunning;
+	int playerStamina;
+	float nextStaminaRegen; // timer used to update player stamina
+	float nextStaminaDecrease;
+	void RunningThink();
+	
 	// climbing
 	bool canClimb;
 	bool isClimbing;
 	TraceResult climbTr1, climbTr2, headTr;
+	void ClimbingPhysics();
 
 	// water
 	float nextSplashTime;
+	void WaterThink();
 
 	// Opposing Force specific
 
