@@ -2169,6 +2169,8 @@ void CBasePlayer::PreThink()
 
 	WaterThink(); // bacontsu - water steps function
 
+	WallrunThink(); // bacontsu - running in special walls
+
 
 	// animated fov stuff
 	currFov = CVAR_GET_FLOAT("default_fov");
@@ -6233,6 +6235,89 @@ void CBasePlayer::ClimbingPhysics()
 // CLIMBING END
 //===========================================================================================
 
+//===========================================================================================
+// WALLRUN START
+//===========================================================================================
+void CBasePlayer::WallrunThink()
+{
+	UTIL_MakeVectors(pev->angles);
+	Vector realRight = gpGlobals->v_right;
+	
+	realRight.z = 0; // ignore z-axis
+	VectorNormalize(realRight); // turn onto angle vector
+
+	Vector vecSrc = pev->origin;
+	Vector vecRight = vecSrc + realRight * 30;
+	Vector vecLeft = vecSrc - realRight * 30;
+
+	UTIL_TraceLine(vecSrc, vecRight, ignore_monsters, ENT(pev), &wallRightTr);
+	UTIL_TraceLine(vecSrc, vecLeft, ignore_monsters, ENT(pev), &wallLeftTr);
+
+	// left traceline
+	if (wallLeftTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
+	{
+		CBaseEntity* pEntity = CBaseEntity::Instance(wallLeftTr.pHit);
+
+		if (FClassnameIs(pEntity->pev, "func_wallrun"))
+		{
+			pev->movetype = MOVETYPE_FLY;
+			pev->velocity.z = 0;
+
+			Vector wallAngles, wallRight;
+			VectorAngles(wallLeftTr.vecPlaneNormal, wallAngles);
+
+			// ALERT(at_console, "hits walllrun trigger on left side angle diff: %f ", pev->angles.y);
+
+			AngleVectors(wallAngles, nullptr, &wallRight, nullptr);
+
+			pev->velocity = pev->velocity - wallRight * 10 * (300 / (1 / gpGlobals->frametime));
+
+			// cap player climbing speed
+			if (pev->velocity.Length() > 350.0f)
+			{
+				pev->velocity = pev->velocity.Normalize() * 350.0f;
+			}
+
+
+		}
+	}
+
+	// right traceline
+	else if (wallRightTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
+	{
+		CBaseEntity* pEntity = CBaseEntity::Instance(wallRightTr.pHit);
+
+		if (FClassnameIs(pEntity->pev, "func_wallrun"))
+		{
+			pev->movetype = MOVETYPE_FLY;
+			pev->velocity.z = 0;
+
+			Vector wallAngles, wallRight;
+			VectorAngles(wallRightTr.vecPlaneNormal, wallAngles);
+
+			// ALERT(at_console, "hits walllrun trigger on right side angle diff: %f ", pev->angles.y);
+
+			AngleVectors(wallAngles, nullptr, &wallRight, nullptr);
+
+			pev->velocity = pev->velocity + wallRight * 10 * (300 / (1 / gpGlobals->frametime));
+
+			// cap player climbing speed
+			if (pev->velocity.Length() > 350.0f)
+			{
+				pev->velocity = pev->velocity.Normalize() * 350.0f;
+			}
+		}
+	}
+
+	// hits nothing
+	else if (!IsOnLadder())
+	{
+		pev->movetype = MOVETYPE_WALK;
+	}
+}
+//===========================================================================================
+// WALLRUN END
+//===========================================================================================
 
 //=========================================================
 // Dead HEV suit prop

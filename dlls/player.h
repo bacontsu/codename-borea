@@ -218,6 +218,11 @@ public:
 	float nextSplashTime;
 	void WaterThink();
 
+	// wallrunning
+	bool isOnWall;
+	void WallrunThink();
+	TraceResult wallRightTr, wallLeftTr;
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

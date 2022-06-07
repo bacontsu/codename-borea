@@ -69,6 +69,8 @@ public:
 
 LINK_ENTITY_TO_CLASS( func_wall, CFuncWall );
 
+LINK_ENTITY_TO_CLASS(func_wallrun, CFuncWall);
+
 void CFuncWall :: Spawn()
 {
 	// If it can't move/go away, it's really part of the world
