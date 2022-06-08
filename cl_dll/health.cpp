@@ -157,7 +157,8 @@ int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	// TODO: update local health data
 	BEGIN_READ( pbuf, iSize );
 	m_iStamina = READ_SHORT();
-
+	gHUD.wallType = READ_SHORT();
+	gHUD.isClimbing = READ_SHORT();
 	
 	
 	return 1;

@@ -906,6 +906,28 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	//view->angles[ROLL]  -= bob * 1;
 	//view->angles[PITCH] -= bob * 0.3;
 
+	// wallrun offsetting
+	float target;
+
+	if(gHUD.wallType == 1)
+		target = 60;
+	else if (gHUD.wallType == 2)
+		target = -60;
+
+	gHUD.lerpedRoll = (target * 0.03f) + (gHUD.lerpedRoll * (1.0 - 0.1f));
+	view->angles[ROLL] += gHUD.lerpedRoll;
+
+	// climbing viewmodel holstering
+	float pitchTarget;
+
+	if (gHUD.isClimbing)
+		pitchTarget = -200;
+	else
+		pitchTarget = 0;
+
+	gHUD.lerpedPitch = (pitchTarget * 0.03f) + (gHUD.lerpedPitch * (1.0 - 0.1f));
+	view->angles[PITCH] += gHUD.lerpedPitch;
+
 	VectorCopy(view->angles, view->curstate.angles);
 	
 	pparams->viewangles[ROLL] += bobRight * 0.15;

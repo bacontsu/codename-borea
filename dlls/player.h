@@ -222,6 +222,7 @@ public:
 	bool isOnWall;
 	void WallrunThink();
 	TraceResult wallRightTr, wallLeftTr;
+	int wallType; // 0 - none	1 - left	2 - right
 
 	// Opposing Force specific
 

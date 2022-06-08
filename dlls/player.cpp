@@ -4811,6 +4811,8 @@ void CBasePlayer :: UpdateClientData()
 	//stamina
 	MESSAGE_BEGIN(MSG_ONE, gmsgStamina, nullptr, pev);
 	WRITE_SHORT(playerStamina);
+	WRITE_SHORT(wallType);
+	WRITE_SHORT(isClimbing);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -6273,12 +6275,13 @@ void CBasePlayer::WallrunThink()
 			pev->velocity = pev->velocity - wallRight * 10 * (300 / (1 / gpGlobals->frametime));
 
 			// cap player climbing speed
-			if (pev->velocity.Length() > 350.0f)
+			if (pev->velocity.Length() > 400.0f)
 			{
-				pev->velocity = pev->velocity.Normalize() * 350.0f;
+				pev->velocity = pev->velocity.Normalize() * 400.0f;
 			}
 
-
+			isOnWall = true;
+			wallType = 1;
 		}
 	}
 
@@ -6302,17 +6305,22 @@ void CBasePlayer::WallrunThink()
 			pev->velocity = pev->velocity + wallRight * 10 * (300 / (1 / gpGlobals->frametime));
 
 			// cap player climbing speed
-			if (pev->velocity.Length() > 350.0f)
+			if (pev->velocity.Length() > 400.0f)
 			{
-				pev->velocity = pev->velocity.Normalize() * 350.0f;
+				pev->velocity = pev->velocity.Normalize() * 400.0f;
 			}
+
+			isOnWall = true;
+			wallType = 2;
 		}
 	}
 
 	// hits nothing
-	else if (!IsOnLadder())
+	else if (!IsOnLadder() && isOnWall)
 	{
 		pev->movetype = MOVETYPE_WALK;
+		wallType = 0;
+		isOnWall = false;
 	}
 }
 //===========================================================================================

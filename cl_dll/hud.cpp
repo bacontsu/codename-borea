@@ -538,6 +538,7 @@ void CHud :: Init()
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
 	
 	CVAR_CREATE("cl_animbone", "1", FCVAR_ARCHIVE);
+	CVAR_CREATE("cl_camoffset", "0", FCVAR_ARCHIVE);
 
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );

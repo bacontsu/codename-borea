@@ -774,6 +774,10 @@ public:
 	float		camValue[2];
 
 	Vector		playerSpeed;
+	int			wallType;
+	float		lerpedRoll;
+	bool		isClimbing;
+	float		lerpedPitch;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );
