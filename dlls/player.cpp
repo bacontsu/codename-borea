@@ -6210,7 +6210,7 @@ void CBasePlayer::ClimbingPhysics()
 		}
 
 		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300 / (1 / gpGlobals->frametime)) / 7;
-		pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
+		// pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
 
 		// cap player climbing speed
 		if (pev->velocity.Length() > 300.0f)

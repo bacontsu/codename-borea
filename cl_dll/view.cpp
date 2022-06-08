@@ -916,12 +916,13 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	gHUD.lerpedRoll = (target * 0.03f) + (gHUD.lerpedRoll * (1.0 - 0.1f));
 	view->angles[ROLL] += gHUD.lerpedRoll;
+	pparams->viewangles[ROLL] += gHUD.lerpedRoll / 5;
 
 	// climbing viewmodel holstering
 	float pitchTarget;
 
 	if (gHUD.isClimbing)
-		pitchTarget = -200;
+		pitchTarget = -120;
 	else
 		pitchTarget = 0;
 
