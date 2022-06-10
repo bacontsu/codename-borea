@@ -910,11 +910,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	float target;
 
 	if(gHUD.wallType == 1)
-		target = 60;
+		target = 30;
 	else if (gHUD.wallType == 2)
-		target = -60;
+		target = -30;
 
-	gHUD.lerpedRoll = (target * 0.03f) + (gHUD.lerpedRoll * (1.0 - 0.1f));
+	gHUD.lerpedRoll = (target * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (gHUD.lerpedRoll * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
 	view->angles[ROLL] += gHUD.lerpedRoll;
 	pparams->viewangles[ROLL] += gHUD.lerpedRoll / 5;
 
@@ -922,11 +922,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	float pitchTarget;
 
 	if (gHUD.isClimbing)
-		pitchTarget = -120;
+		pitchTarget = -100;
 	else
 		pitchTarget = 0;
 
-	gHUD.lerpedPitch = (pitchTarget * 0.03f) + (gHUD.lerpedPitch * (1.0 - 0.1f));
+	gHUD.lerpedPitch = (pitchTarget * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (gHUD.lerpedPitch * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
 	view->angles[PITCH] += gHUD.lerpedPitch;
 
 	VectorCopy(view->angles, view->curstate.angles);

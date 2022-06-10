@@ -158,6 +158,8 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_flLastClimbTime, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayer, m_bIsClimbing, FIELD_BOOLEAN ),
 
+
+
 	//Vanilla Op4 doesn't restore this. Not a big deal but it can cause you to teleport to the wrong area after a restore
 	DEFINE_FIELD( CBasePlayer, m_DisplacerReturn, FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( CBasePlayer, m_flDisplacerSndRoomtype, FIELD_FLOAT ),
@@ -195,6 +197,10 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 
 	// water
 	DEFINE_FIELD(CBasePlayer, nextSplashTime, FIELD_TIME),
+
+	// wallrun
+	DEFINE_FIELD(CBasePlayer, isOnWall, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, wallType, FIELD_INTEGER),
 
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
@@ -6242,6 +6248,10 @@ void CBasePlayer::ClimbingPhysics()
 //===========================================================================================
 void CBasePlayer::WallrunThink()
 {
+	if (isClimbing) return; // if we're climbing a wall, dont init wallrun
+
+	if (pev->velocity.Length2D() < 100) return; // atleast 100u/s speed to init wallrun
+
 	UTIL_MakeVectors(pev->angles);
 	Vector realRight = gpGlobals->v_right;
 	
