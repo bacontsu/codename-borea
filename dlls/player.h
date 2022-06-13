@@ -224,6 +224,13 @@ public:
 	TraceResult wallRightTr, wallLeftTr;
 	int wallType; // 0 - none	1 - left	2 - right
 
+	// slowmotion
+	bool isSlowmo;
+	float nextSlowmoUpdate;
+	int slowmoCounter;
+	void SlowmoPhysics();
+
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

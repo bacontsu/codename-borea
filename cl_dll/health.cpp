@@ -159,7 +159,8 @@ int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	m_iStamina = READ_SHORT();
 	gHUD.wallType = READ_SHORT();
 	gHUD.isClimbing = READ_SHORT();
-	
+	gHUD.slowmoBar = READ_SHORT();
+	gHUD.isSlowmo = READ_SHORT();
 	
 	return 1;
 }
@@ -317,6 +318,18 @@ int CHudHealth::Draw(float flTime)
 		stamina = m_iStamina * 1.3f;
 
 		FillRGBA(x, y, stamina, 5, 249, 111, 45, 255);
+
+		// draw slowmo bar
+		x = (ScreenWidth - gHUD.slowmoBar * 1.3f) / 2;
+		y = 200;
+		int slowmo = gHUD.slowmoBar * 1.3f;
+
+		if (gHUD.isSlowmo)
+		{
+			FillRGBA(x, y, slowmo, 5, 249, 111, 45, 255);
+			gHUD.DrawHudString(x, y - 20, 512, "Slowmo!", 249, 111, 45);
+		}
+
 	}
 
 	DrawDamage(flTime);

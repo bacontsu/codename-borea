@@ -196,6 +196,12 @@ void CShotgun::PrimaryAttack()
 
 void CShotgun::SecondaryAttack()
 {
+	if (!m_pPlayer->isSlowmo)
+	{
+		m_pPlayer->isSlowmo = true;
+	}
+
+	/*
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
@@ -272,6 +278,7 @@ void CShotgun::SecondaryAttack()
 		m_flTimeWeaponIdle = 1.5;
 
 	m_fInSpecialReload = 0;
+	*/
 
 }
 

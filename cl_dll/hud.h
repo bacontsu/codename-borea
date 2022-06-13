@@ -778,6 +778,8 @@ public:
 	float		lerpedRoll;
 	bool		isClimbing;
 	float		lerpedPitch;
+	int			slowmoBar;
+	bool		isSlowmo;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );

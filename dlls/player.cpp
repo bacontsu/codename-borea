@@ -202,6 +202,11 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, isOnWall, FIELD_BOOLEAN),
 	DEFINE_FIELD(CBasePlayer, wallType, FIELD_INTEGER),
 
+	// slowmo
+	DEFINE_FIELD(CBasePlayer, isSlowmo, FIELD_BOOLEAN),
+	DEFINE_FIELD(CBasePlayer, slowmoCounter, FIELD_INTEGER),
+	DEFINE_FIELD(CBasePlayer, nextSlowmoUpdate, FIELD_TIME),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -2176,6 +2181,8 @@ void CBasePlayer::PreThink()
 	WaterThink(); // bacontsu - water steps function
 
 	WallrunThink(); // bacontsu - running in special walls
+
+	SlowmoPhysics(); // bacontsu - slowmotion handler
 
 
 	// animated fov stuff
@@ -4819,6 +4826,8 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_SHORT(playerStamina);
 	WRITE_SHORT(wallType);
 	WRITE_SHORT(isClimbing);
+	WRITE_SHORT(slowmoCounter);
+	WRITE_SHORT(isSlowmo);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -6335,6 +6344,38 @@ void CBasePlayer::WallrunThink()
 }
 //===========================================================================================
 // WALLRUN END
+//===========================================================================================
+
+//===========================================================================================
+// SLOWMO START
+//===========================================================================================
+void CBasePlayer::SlowmoPhysics()
+{
+	if (isSlowmo)
+	{
+		if (nextSlowmoUpdate < gpGlobals->time && slowmoCounter != 0)
+		{
+			CVAR_SET_FLOAT("host_framerate", 0.005f);
+			slowmoCounter--;
+			nextSlowmoUpdate = gpGlobals->time + 0.01f;
+		}
+
+		if (slowmoCounter == 0)
+		{
+			CVAR_SET_FLOAT("host_framerate", 0);
+			isSlowmo = false;
+		}
+	}
+	else
+	{
+		if(CVAR_GET_FLOAT("host_framerate") == 0.005f)
+			CVAR_SET_FLOAT("host_framerate", 0);
+		slowmoCounter = 500;
+
+	}
+}
+//===========================================================================================
+// SLOWMO END
 //===========================================================================================
 
 //=========================================================

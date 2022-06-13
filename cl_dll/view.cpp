@@ -922,7 +922,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	float pitchTarget;
 
 	if (gHUD.isClimbing)
-		pitchTarget = -100;
+		pitchTarget = -80;
 	else
 		pitchTarget = 0;
 
