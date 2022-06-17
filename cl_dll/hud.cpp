@@ -33,6 +33,7 @@
 #include "demo_api.h"
 #include "vgui_ScorePanel.h"
 #include "rain.h"
+#include "blur.h"
 
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
@@ -540,6 +541,10 @@ void CHud :: Init()
 	CVAR_CREATE("cl_animbone", "1", FCVAR_ARCHIVE);
 	CVAR_CREATE("cl_camoffset", "0", FCVAR_ARCHIVE);
 
+	CVAR_CREATE("r_blur", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("r_blur_strength", "1", FCVAR_ARCHIVE);
+
+
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( LightStyle );
@@ -727,6 +732,8 @@ void CHud :: VidInit()
 	m_hsprLogo = 0;	
 	m_hsprCursor = 0;
 	numMirrors = 0;
+	gBlur.InitScreen();
+
 
 	if (ScreenWidth < 640)
 		m_iRes = 320;

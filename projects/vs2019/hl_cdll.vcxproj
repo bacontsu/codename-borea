@@ -117,6 +117,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\cl_dll\ammohistory.cpp" />
     <ClCompile Include="..\..\cl_dll\ammo_secondary.cpp" />
     <ClCompile Include="..\..\cl_dll\battery.cpp" />
+    <ClCompile Include="..\..\cl_dll\blur.cpp" />
     <ClCompile Include="..\..\cl_dll\bsprenderer.cpp" />
     <ClCompile Include="..\..\cl_dll\cdll_int.cpp" />
     <ClCompile Include="..\..\cl_dll\com_weapons.cpp" />
@@ -225,6 +226,7 @@ EXIT /B 0</Command>
   <ItemGroup>
     <ClInclude Include="..\..\cl_dll\ammo.h" />
     <ClInclude Include="..\..\cl_dll\ammohistory.h" />
+    <ClInclude Include="..\..\cl_dll\blur.h" />
     <ClInclude Include="..\..\cl_dll\bsprenderer.h" />
     <ClInclude Include="..\..\cl_dll\camera.h" />
     <ClInclude Include="..\..\cl_dll\cl_dll.h" />
@@ -290,6 +292,7 @@ EXIT /B 0</Command>
     <ClInclude Include="..\..\common\parsemsg.h" />
     <ClInclude Include="..\..\common\particledef.h" />
     <ClInclude Include="..\..\common\Platform.h" />
+    <ClInclude Include="..\..\common\PlatformHeaders.h" />
     <ClInclude Include="..\..\dlls\weapons\CDisplacer.h" />
     <ClInclude Include="..\..\dlls\weapons\CEagle.h" />
     <ClInclude Include="..\..\dlls\weapons\CGrapple.h" />

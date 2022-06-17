@@ -36,6 +36,7 @@ extern CGameStudioModelRenderer g_StudioRenderer;
 #include "tri.h"
 
 #include "glInclude.h"
+#include "blur.h"
 
 extern int g_iWaterLevel;
 extern Vector v_origin;
@@ -112,6 +113,9 @@ void DLLEXPORT HUD_DrawTransparentTriangles( void )
 #endif
 
 	BlackFog();
+
+    gBlur.DrawBlur();
+
 
 	// LRC: find out the time elapsed since the last redraw
 	static float fOldTime, fTime;

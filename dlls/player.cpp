@@ -6356,6 +6356,7 @@ void CBasePlayer::SlowmoPhysics()
 		if (nextSlowmoUpdate < gpGlobals->time && slowmoCounter != 0)
 		{
 			CVAR_SET_FLOAT("sys_timescale", 0.25f);
+			CVAR_SET_FLOAT("r_blur", 1);
 			slowmoCounter--;
 			nextSlowmoUpdate = gpGlobals->time + 0.01f;
 		}
@@ -6363,6 +6364,7 @@ void CBasePlayer::SlowmoPhysics()
 		if (slowmoCounter == 0)
 		{
 			CVAR_SET_FLOAT("sys_timescale", 1);
+			CVAR_SET_FLOAT("r_blur", 0);
 			isSlowmo = false;
 		}
 	}
@@ -6370,6 +6372,9 @@ void CBasePlayer::SlowmoPhysics()
 	{
 		if(CVAR_GET_FLOAT("sys_timescale") == 0.25f)
 			CVAR_SET_FLOAT("sys_timescale", 1);
+
+		if (CVAR_GET_FLOAT("r_blur") == 1)
+			CVAR_SET_FLOAT("r_blur", 0);
 		slowmoCounter = 180;
 
 	}

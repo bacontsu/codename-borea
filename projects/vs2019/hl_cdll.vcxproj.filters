@@ -396,6 +396,9 @@
     <ClCompile Include="..\..\cl_dll\postprocess.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\blur.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cl_dll\kbutton.h">
@@ -742,6 +745,12 @@
     </ClInclude>
     <ClInclude Include="..\..\pm_shared\pm_structs.h">
       <Filter>Header Files\pm_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\PlatformHeaders.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\blur.h">
+      <Filter>Header Files\cl_dll</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
