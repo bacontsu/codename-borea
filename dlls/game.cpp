@@ -68,6 +68,12 @@ cvar_t	*g_psv_aim = nullptr;
 cvar_t	*g_footsteps = nullptr;
 cvar_t* g_psv_cheats = nullptr;
 
+cvar_t* g_fps_max = NULL;
+cvar_t* g_host_framerate = NULL;
+cvar_t* g_gl_vsync = NULL;
+cvar_t* g_sys_timescale = nullptr;
+bool using_sys_timescale = false;
+
 //Macros to make skill cvars easier to define
 #define DECLARE_SKILL_CVARS( name )					\
 cvar_t	sk_##name##1 = { "sk_" #name "1", "0" };	\
@@ -623,6 +629,28 @@ void GameDLLInit()
 	g_psv_aim = CVAR_GET_POINTER( "sv_aim" );
 	g_footsteps = CVAR_GET_POINTER( "mp_footsteps" );
 	g_psv_cheats = CVAR_GET_POINTER("sv_cheats");
+
+	g_fps_max = CVAR_GET_POINTER("fps_max");
+	g_host_framerate = CVAR_GET_POINTER("host_framerate");
+	g_gl_vsync = CVAR_GET_POINTER("gl_vsync");
+
+	// sys_timescale was always here, just 36 bytes back
+	// Thanks a lot to SoloKiller for hinting towards sys_timescale existence and locating it in memory
+	// https://github.com/ValveSoftware/halflife/issues/1749
+
+	g_sys_timescale = (cvar_t*)((char*)CVAR_GET_POINTER("fps_max") - 36);
+
+	bool pointingToGarbage = abs(g_sys_timescale->name - g_fps_max->name) > 1024; // heuristic
+	if (!pointingToGarbage) {
+		using_sys_timescale = memcmp(g_sys_timescale->name, "sys_timescale", 14) == 0;
+	}
+
+	if (using_sys_timescale) {
+		CVAR_REGISTER(g_sys_timescale);
+	}
+	else {
+		g_engfuncs.pfnServerPrint("Failed to register sys_timescale cvar, falling back to old slowmotion implementation\n");
+	}
 
 	CVAR_REGISTER (&displaysoundlist);
 	CVAR_REGISTER( &allow_spectators );

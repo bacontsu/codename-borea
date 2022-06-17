@@ -6355,22 +6355,22 @@ void CBasePlayer::SlowmoPhysics()
 	{
 		if (nextSlowmoUpdate < gpGlobals->time && slowmoCounter != 0)
 		{
-			CVAR_SET_FLOAT("host_framerate", 0.005f);
+			CVAR_SET_FLOAT("sys_timescale", 0.25f);
 			slowmoCounter--;
 			nextSlowmoUpdate = gpGlobals->time + 0.01f;
 		}
 
 		if (slowmoCounter == 0)
 		{
-			CVAR_SET_FLOAT("host_framerate", 0);
+			CVAR_SET_FLOAT("sys_timescale", 1);
 			isSlowmo = false;
 		}
 	}
 	else
 	{
-		if(CVAR_GET_FLOAT("host_framerate") == 0.005f)
-			CVAR_SET_FLOAT("host_framerate", 0);
-		slowmoCounter = 500;
+		if(CVAR_GET_FLOAT("sys_timescale") == 0.25f)
+			CVAR_SET_FLOAT("sys_timescale", 1);
+		slowmoCounter = 180;
 
 	}
 }
