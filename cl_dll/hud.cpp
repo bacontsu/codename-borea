@@ -733,6 +733,8 @@ void CHud :: VidInit()
 	m_hsprCursor = 0;
 	numMirrors = 0;
 	gBlur.InitScreen();
+	slowmoUpdate = 0;
+	slowmoStrength = 0.5f;
 
 
 	if (ScreenWidth < 640)

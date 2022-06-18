@@ -780,6 +780,9 @@ public:
 	float		lerpedPitch;
 	int			slowmoBar;
 	bool		isSlowmo;
+	float		slowmoUpdate;
+	float		slowmoStrength;
+	int		slowmoMode;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );

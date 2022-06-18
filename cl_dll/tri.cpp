@@ -165,6 +165,56 @@ void DrawBloodOverlay()
         gEngfuncs.pTriAPI->RenderMode(kRenderNormal); //return to normal
     }
 
+    if (gHUD.isSlowmo)
+    {
+        gEngfuncs.pTriAPI->RenderMode(kRenderTransAdd); //additive
+        gEngfuncs.pTriAPI->Color4f(1, 1, 1, 1); //set 
+
+        //calculate opacity
+        gEngfuncs.pTriAPI->Brightness(gHUD.slowmoStrength);
+
+        //gEngfuncs.Con_Printf("scale :  %f health : %i", scale, gHUD.m_Health.m_iHealth);
+
+        gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)
+            gEngfuncs.GetSpritePointer(SPR_Load("sprites/slowmo.spr")), 4);
+        gEngfuncs.pTriAPI->CullFace(TRI_NONE); //no culling
+        gEngfuncs.pTriAPI->Begin(TRI_QUADS); //start our quad
+
+        //top left
+        gEngfuncs.pTriAPI->TexCoord2f(0.0f, 1.0f);
+        gEngfuncs.pTriAPI->Vertex3f(0, 0, 0);
+
+        //bottom left
+        gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
+        gEngfuncs.pTriAPI->Vertex3f(0, ScreenHeight, 0);
+
+        //bottom right
+        gEngfuncs.pTriAPI->TexCoord2f(1.0f, 0.0f);
+        gEngfuncs.pTriAPI->Vertex3f(ScreenWidth, ScreenHeight, 0);
+
+        //top right
+        gEngfuncs.pTriAPI->TexCoord2f(1.0f, 1.0f);
+        gEngfuncs.pTriAPI->Vertex3f(ScreenWidth, 0, 0);
+
+        gEngfuncs.pTriAPI->End(); //end our list of vertexes
+        gEngfuncs.pTriAPI->RenderMode(kRenderNormal); //return to normal
+    }
+
+    if (gHUD.slowmoUpdate < gHUD.m_flTime)
+    {
+        if (gHUD.slowmoStrength <= 0.5f)
+            gHUD.slowmoMode = 1;
+        else if (gHUD.slowmoStrength >= 1.0f)
+            gHUD.slowmoMode = 2;
+
+        if(gHUD.slowmoMode == 1)
+            gHUD.slowmoStrength += 0.05f;
+        else if (gHUD.slowmoMode == 2)
+            gHUD.slowmoStrength -= 0.05f;
+
+        gHUD.slowmoUpdate = gHUD.m_flTime + 0.01f;
+    }
+
 }
 
 void HUD_DrawBloodOverlay(void)

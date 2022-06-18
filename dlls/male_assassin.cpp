@@ -41,6 +41,7 @@
 #include	"soundent.h"
 #include	"effects.h"
 #include	"customentity.h"
+#include	"FranUtils.hpp"
 
 extern DLL_GLOBAL int		g_iSkillLevel;
 
@@ -812,6 +813,9 @@ void CMOFAssassin :: Shoot ()
 	}
 
 	pev->effects |= EF_MUZZLEFLASH;
+	// Teh_Freak: World Lighting!
+	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 2.0f, 100);
+	// Teh_Freak: World Lighting!
 	
 	m_cAmmoLoaded--;// take away a bullet!
 
