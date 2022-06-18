@@ -52,6 +52,9 @@ void VectorAngles( const float *forward, float *angles );
 #include "com_model.h"
 #include "kbutton.h"
 
+// FGW
+#include "bumpmap.h"
+
 extern engine_studio_api_t IEngineStudio;
 
 extern kbutton_t	in_mlook;
@@ -1161,6 +1164,19 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		
 		pparams->nextView = 1;
 	}
+
+
+	// FGW
+	if (CVAR_GET_FLOAT("bm_enable") != 0 && !g_BumpmapMgr.m_bFailedInit)
+	{
+		pparams->nextView = 1;
+	}
+	else
+	pparams->nextView = 0;
+
+	// FGW
+	g_BumpmapMgr.Render(1 - pparams->nextView);
+
 }
 
 void V_SmoothInterpolateAngles( float * startAngle, float * endAngle, float * finalAngle, float degreesPerSec )

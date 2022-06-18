@@ -97,6 +97,8 @@ int gmsgTeamFull = 0;
 int gmsgOldWeapon = 0;
 int gmsgCustomIcon = 0;
 int gmsgStamina = 0;
+// FGW
+int gmsgBumpLight = 0;
 
 void LinkUserMessages()
 {
@@ -170,6 +172,9 @@ void LinkUserMessages()
 	gmsgViewmodelSkin = REG_USER_MSG("WpnSkn", -1);
 	//RENDERERS END
 
+	// FGW
+	gmsgBumpLight = REG_USER_MSG("BumpLight", -1);
+
 	gmsgSpectator = g_engfuncs.pfnRegUserMsg("Spectator", 2);
 	gmsgStatusIcon = g_engfuncs.pfnRegUserMsg("StatusIcon", -1);
 	gmsgPlayerBrowse = g_engfuncs.pfnRegUserMsg("PlyrBrowse", -1);
@@ -186,4 +191,6 @@ void LinkUserMessages()
 	gmsgTeamFull = g_engfuncs.pfnRegUserMsg("TeamFull", 1);
 	gmsgOldWeapon = g_engfuncs.pfnRegUserMsg("OldWeapon", 1);
 	gmsgCustomIcon = g_engfuncs.pfnRegUserMsg("CustomIcon", -1);
+
+
 }

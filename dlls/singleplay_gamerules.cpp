@@ -25,6 +25,9 @@
 #include	"items.h"
 #include "UserMessages.h"
 
+// FGW
+#include "bumplight.h"
+
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 
@@ -125,6 +128,27 @@ void CHalfLifeRules :: PlayerSpawn( CBasePlayer *pPlayer )
 	if (g_startSuit){
 		pPlayer->pev->weapons |= (1<<WEAPON_SUIT);
 	}
+
+	// FGW
+
+	edict_t* pFind;
+
+	pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "light_bump");
+
+	while (!FNullEnt(pFind))
+	{
+		CBaseEntity* pEnt = CBaseEntity::Instance(pFind);
+		CBumpLight* pLight = (CBumpLight*)pEnt;
+
+		if (pLight)
+		{
+			pLight->CreateOnClient();
+		}
+
+		pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "light_bump");
+	}
+
+	// END FGW
 
 // LRC what's wrong with allowing "game_player_equip" entities in single player? (The
 // level designer is God: if he wants the player to start with a weapon, we should allow it!)

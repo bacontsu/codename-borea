@@ -93,5 +93,6 @@ extern int gmsgTeamFull;
 extern int gmsgOldWeapon;
 extern int gmsgCustomIcon;
 extern int gmsgStamina;
+extern int gmsgBumpLight;
 
 void LinkUserMessages();

@@ -91,7 +91,7 @@ EXIT /B 0</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>OPFOR;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;CLIENT_DLL;CLIENT_WEAPONS;HL_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\dlls;..\..\cl_dll;..\..\public;..\..\common;..\..\pm_shared;..\..\engine;..\..\utils\vgui\include;..\..\game_shared;..\..\external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\dlls;..\..\cl_dll;..\..\public;..\..\common;..\..\pm_shared;..\..\engine;..\..\utils\vgui\include;..\..\game_shared;..\..\external;..\..\external\cgshader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalOptions>/Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -102,9 +102,10 @@ EXIT /B 0</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\..\utils\vgui\lib\win32_vc6\vgui.lib;wsock32.lib;..\..\lib\public\sdl2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\utils\vgui\lib\win32_vc6\vgui.lib;wsock32.lib;..\..\lib\public\sdl2.lib;opengl32.lib;"C:\Program Files (x86)\NVIDIA Corporation\Cg\lib\cg.lib";"C:\Program Files (x86)\NVIDIA Corporation\Cg\lib\cgGL.lib";glu32.lib;..\..\lib\public\glaux.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <BaseAddress>
       </BaseAddress>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -119,6 +120,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\cl_dll\battery.cpp" />
     <ClCompile Include="..\..\cl_dll\blur.cpp" />
     <ClCompile Include="..\..\cl_dll\bsprenderer.cpp" />
+    <ClCompile Include="..\..\cl_dll\bumpmap.cpp" />
     <ClCompile Include="..\..\cl_dll\cdll_int.cpp" />
     <ClCompile Include="..\..\cl_dll\com_weapons.cpp" />
     <ClCompile Include="..\..\cl_dll\death.cpp" />
@@ -228,6 +230,7 @@ EXIT /B 0</Command>
     <ClInclude Include="..\..\cl_dll\ammohistory.h" />
     <ClInclude Include="..\..\cl_dll\blur.h" />
     <ClInclude Include="..\..\cl_dll\bsprenderer.h" />
+    <ClInclude Include="..\..\cl_dll\bumpmap.h" />
     <ClInclude Include="..\..\cl_dll\camera.h" />
     <ClInclude Include="..\..\cl_dll\cl_dll.h" />
     <ClInclude Include="..\..\cl_dll\cl_util.h" />
@@ -329,6 +332,13 @@ EXIT /B 0</Command>
     <ClInclude Include="..\..\engine\progs.h" />
     <ClInclude Include="..\..\engine\shake.h" />
     <ClInclude Include="..\..\engine\studio.h" />
+    <ClInclude Include="..\..\external\cgshader\Cg\cg.h" />
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D10.h" />
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D11.h" />
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D9.h" />
+    <ClInclude Include="..\..\external\cgshader\Cg\cgGL.h" />
+    <ClInclude Include="..\..\external\cgshader\GL\GLAux.h" />
+    <ClInclude Include="..\..\external\cgshader\GL\glut.h" />
     <ClInclude Include="..\..\game_shared\vgui_scrollbar2.h" />
     <ClInclude Include="..\..\game_shared\vgui_slider2.h" />
     <ClInclude Include="..\..\game_shared\voice_banmgr.h" />

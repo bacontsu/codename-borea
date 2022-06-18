@@ -31,6 +31,9 @@
 #include "bsprenderer.h"
 // RENDERER END 
 
+// FGW
+#include "bumpmap.h"
+
 //
 // Override the StudioModelRender virtual member functions here to implement custom bone
 // setup, blending, etc.
@@ -88,8 +91,13 @@ int R_StudioDrawModel( int flags )
 	// This line may be unnecessary	
 	g_StudioRenderer.m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 // RENDERER END 
+// 
+	// FGW
+	g_BumpmapMgr.RenderStudioModel(true);
+	int ret = g_StudioRenderer.StudioDrawModel(flags);
+	g_BumpmapMgr.RenderStudioModel(false);
 
-	return g_StudioRenderer.StudioDrawModel( flags );
+	return ret;
 }
 
 /*

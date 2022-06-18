@@ -70,6 +70,9 @@
     <Filter Include="Header Files\engine">
       <UniqueIdentifier>{ebcb0f66-49b6-4e55-9a97-f6720cade9ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\cl_dll\cgshader">
+      <UniqueIdentifier>{bee0dd12-309c-4c52-94fb-28a26ac19be1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -397,6 +400,9 @@
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\blur.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\bumpmap.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
   </ItemGroup>
@@ -751,6 +757,30 @@
     </ClInclude>
     <ClInclude Include="..\..\cl_dll\blur.h">
       <Filter>Header Files\cl_dll</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\bumpmap.h">
+      <Filter>Header Files\cl_dll</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\Cg\cg.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D10.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D11.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\Cg\cgD3D9.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\Cg\cgGL.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\GL\glut.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\cgshader\GL\GLAux.h">
+      <Filter>Header Files\cl_dll\cgshader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

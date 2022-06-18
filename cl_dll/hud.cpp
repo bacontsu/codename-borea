@@ -55,6 +55,9 @@ extern CGameStudioModelRenderer g_StudioRenderer;
 extern engine_studio_api_t IEngineStudio;
 //RENDERERS END
 
+// FGW
+#include "bumpmap.h"
+
 int giR, giG, giB;
 
 extern int giOldWeapons;
@@ -390,6 +393,77 @@ int __MsgFunc_AllowSpec(const char *pszName, int iSize, void *pbuf)
 		return gViewPort->MsgFunc_AllowSpec( pszName, iSize, pbuf );
 	return 0;
 }
+// FGW
+int __MsgFunc_BumpLight(const char* pszName, int iSize, void* pbuf)
+{
+	float rad, strength;
+	Vector pos, col;
+	int moveWithEnt;
+	bool enabled;
+	char* targetname;
+	bool moveWithExtraInfo = false;
+	Vector moveWithPos, moveWithAngles;
+	int style;
+
+	BEGIN_READ(pbuf, iSize);
+
+	int msgtype = READ_BYTE();
+
+	if (msgtype == 0)
+	{
+		// create a new light
+
+		targetname = READ_STRING();
+
+		pos.x = READ_COORD();
+		pos.y = READ_COORD();
+		pos.z = READ_COORD();
+
+		rad = READ_COORD();
+		strength = READ_COORD();
+		col.x = READ_BYTE() / 255.0f;
+		col.y = READ_BYTE() / 255.0f;
+		col.z = READ_BYTE() / 255.0f;
+
+		style = READ_BYTE();
+
+		enabled = (READ_BYTE() ? true : false);
+
+		moveWithEnt = READ_SHORT();
+
+		if (moveWithEnt != -1 && READ_BYTE())
+		{
+			moveWithPos.x = READ_COORD();
+			moveWithPos.y = READ_COORD();
+			moveWithPos.z = READ_COORD();
+
+			moveWithAngles.x = READ_ANGLE();
+			moveWithAngles.y = READ_ANGLE();
+			moveWithAngles.z = READ_ANGLE();
+
+			moveWithExtraInfo = true;
+		}
+
+		g_BumpmapMgr.AddLight(targetname, pos, col, strength, rad, enabled, style, moveWithEnt, moveWithExtraInfo,
+			moveWithPos, moveWithAngles);
+	}
+	else if (msgtype == 1)
+	{
+		// set the enabled/disabled state of an existing one
+
+		targetname = READ_STRING();
+		enabled = (READ_BYTE() ? true : false);
+
+		g_BumpmapMgr.EnableLight(targetname, enabled);
+	}
+	else
+	{
+		gEngfuncs.Con_Printf("BUMPMAPPING: Bogus bump light message type: %i\n", msgtype); // Totally bogus, dude.
+	}
+
+	return 1;
+}
+
 //RENDERERS START
 int MsgFunc_SetFog(const char *pszName, int iSize, void *pbuf )
 {
@@ -544,6 +618,7 @@ void CHud :: Init()
 	CVAR_CREATE("r_blur", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE("r_blur_strength", "1", FCVAR_ARCHIVE);
 
+	CVAR_CREATE("bm_enable", "1", FCVAR_ARCHIVE);
 
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
@@ -557,6 +632,9 @@ void CHud :: Init()
 	HOOK_MESSAGE( Particle );
 	HOOK_MESSAGE( PPGray );
 	HOOK_MESSAGE( WpnSkn );
+
+	// FGW
+	HOOK_MESSAGE(BumpLight)
 
 	gPropManager.Init();
 	gTextureLoader.Init();

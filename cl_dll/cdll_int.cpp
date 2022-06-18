@@ -72,6 +72,9 @@ CPropManager gPropManager;
 CMirrorManager gMirrorManager;
 //RENDERERS END
 
+// FGW
+#include "bumpmap.h"
+
 void InitInput ();
 void EV_HookEvents( );
 void IN_Commands( );
@@ -194,6 +197,8 @@ int DLLEXPORT HUD_VidInit()
 	gHUD.VidInit();
 
 	VGui_Startup();
+
+	g_BumpmapMgr.Reset();
 	
 	return 1;
 }
@@ -233,11 +238,15 @@ int DLLEXPORT HUD_Redraw( float time, int intermission )
 {
 //	RecClHudRedraw(time, intermission);
 
+	// FGW
+	g_BumpmapMgr.Render(2);
+
 	gHUD.Redraw( time, intermission );
 
 //RENDERERS START
 	HUD_PrintSpeeds();
 //RENDERERS END
+
 	return 1;
 }
 
