@@ -60,6 +60,13 @@
 #include "FranUtils.hpp"
 
 // #define DUCKFIX
+// 
+// up / down
+#define	PITCH	0
+// left / right
+#define	YAW		1
+// fall over
+#define	ROLL	2 
 
 extern DLL_GLOBAL ULONG		g_ulModelIndexPlayer;
 extern DLL_GLOBAL BOOL		g_fGameOver;
@@ -6246,6 +6253,31 @@ void CBasePlayer::ClimbingPhysics()
 			isClimbing = false;
 		}
 
+		// cancel climbing when player looks away >= 90 degree
+		Vector angDiff;
+		Vector vecDiff = endTarget - pev->origin;
+		vecDiff.z = 0; // ignore this axis
+		VectorNormalize(vecDiff);
+		VectorAngles(vecDiff, angDiff);
+
+		float finalAngle;
+
+		if (angDiff[YAW] > 180)
+			finalAngle = angDiff[YAW] - 360.0f;
+		else
+			finalAngle = angDiff[YAW];
+
+		if (pev->v_angle[YAW] < 0 && finalAngle == 180)
+			finalAngle *= -1;
+
+		if (fabs(finalAngle - pev->v_angle[YAW]) >= 90.0f)
+		{
+			// climbing is finished
+			pev->movetype = MOVETYPE_WALK;
+			isClimbing = false;
+		}
+
+		ALERT(at_console, "diff %f %f", finalAngle, pev->v_angle[YAW]);
 	}
 }
 //===========================================================================================
