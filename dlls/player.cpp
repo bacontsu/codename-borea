@@ -2206,7 +2206,7 @@ void CBasePlayer::PreThink()
 			if (targetFov + currFov > m_iFOV) m_iFOV++;
 		}
 
-		nextFovUpdate = gpGlobals->time + 0.01f;
+		nextFovUpdate = gpGlobals->time + 0.001f;
 	}
 	// animated fov - END
 
