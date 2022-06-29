@@ -6,6 +6,8 @@
 * [Spirinity](https://github.com/edgarbarney/halflife-planckepoch) - Codebase that this mod is working on
 * [Spirit of Half-Life](https://github.com/LogicAndTrick/halflife-updated/tree/spirit/spirit-1.8-bug-fixes) - Spirit version that being combinated with Trinity
 * [Trinity Rendering Engine](https://www.moddb.com/mods/half-life-episode-two/downloads/trinity-rendering-engine-v308f) - Renderer that replaces Half-Life's original engine renderer
+* [Arrangement](https://github.com/JoelTroch/am_src_latest) - Mod that has alot of inspiration for many features being put onto this codebase
+* [Newlight Redux](https://github.com/BlueNightHawk/hl-newlight) - Many stuff i lend from this repo as references (e.g: Animated Camera, Weapon Particles, etc)
 
 ## Gallery:
 ![image](https://user-images.githubusercontent.com/62763382/172050105-61a6a605-fe25-4e72-9949-44a388f0f1f0.png)
