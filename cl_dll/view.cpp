@@ -166,6 +166,32 @@ void V_InterpolateAngles( float *start, float *end, float *output, float frac )
 	V_NormalizeAngles( output );
 } */
 
+//magic nipples - view lag
+float SmoothValues(float startValue, float endValue, float speed)
+{
+	float absd, d, finalValue;
+
+	d = endValue - startValue;
+	absd = fabs(d);
+
+	if (absd > 0.01f)
+	{
+		if (d > 0)
+			finalValue = startValue + (absd * speed);
+		else
+			finalValue = startValue - (absd * speed);
+	}
+	else
+	{
+		finalValue = endValue;
+	}
+	startValue = finalValue;
+
+	return startValue;
+
+	//gEngfuncs.Con_Printf("%f\n", startValue);
+}
+
 // Quakeworld bob code, this fixes jitters in the mutliplayer since the clock (pparams->time) isn't quite linear
 float V_CalcBob ( struct ref_params_s *pparams )
 {
@@ -704,21 +730,80 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// Let the viewmodel shake at about 10% of the amplitude
 	gEngfuncs.V_ApplyShake( view->origin, view->angles, 0.9 );
 
-	for ( i = 0; i < 3; i++ )
-	{
-		view->origin[ i ] += bob * 0.4 * pparams->forward[ i ];
-	}
 	view->origin[2] += bob;
 
-	// throw in a little tilt.
-	view->angles[YAW]   -= bob * 0.5;
-	view->angles[ROLL]  -= bob * 1;
-	view->angles[PITCH] -= bob * 0.3;
+	//magic nipples - view lag
+	float mouseX = gHUD.mouse_x * 0.045;
+	float mouseY = gHUD.mouse_y * 0.045;
+	float mouseZ = gHUD.mouse_x * 0.02;
+	float frameadj = (1.0f / pparams->frametime) * 0.01;
 
-	if (cl_bobtilt->value)
+	gHUD.lagangle_x = SmoothValues(gHUD.lagangle_x, mouseX * frameadj, pparams->frametime * 4);
+	if (gHUD.lagangle_x >= 15) gHUD.lagangle_x = 15; if (gHUD.lagangle_x <= -15) gHUD.lagangle_x = -15; //caps model from swaying too far
+	//view->angles[1] -= gHUD.lagangle_x;
+
+	gHUD.lagangle_z = SmoothValues(gHUD.lagangle_z, mouseZ * frameadj, pparams->frametime * 4);
+	if (gHUD.lagangle_z >= 8) gHUD.lagangle_z = 8; if (gHUD.lagangle_z <= -8) gHUD.lagangle_z = -8;
+	//view->angles[2] += gHUD.lagangle_z;
+
+	gHUD.lagangle_y = SmoothValues(gHUD.lagangle_y, mouseY * frameadj, pparams->frametime * 4);
+	if (gHUD.lagangle_y >= 15) gHUD.lagangle_y = 15; if (gHUD.lagangle_y <= -15) gHUD.lagangle_y = -15; //caps model from swaying too far
+	//view->angles[0] -= gHUD.lagangle_y;
+
+	//this controls the origin of the weapon when moving up/down (jumping, etc)
+	float simvelzmid = pparams->simvel[2] * 0.01;
+	if (simvelzmid <= -1.5) simvelzmid = -1.5; //another cap
+	if (simvelzmid >= 1.5) simvelzmid = 1.5; //another cap
+	gHUD.velz = SmoothValues(gHUD.velz, simvelzmid, pparams->frametime * 7);
+
+	// viewsway setting
+	switch ((int)CVAR_GET_FLOAT("cl_viewmodel_sway"))
 	{
-		VectorCopy(view->angles, view->curstate.angles);
+	case 1:
+		view->angles[1] -= gHUD.lagangle_x;
+		view->angles[2] += gHUD.lagangle_z;
+		view->angles[0] -= gHUD.lagangle_y;
+		view->origin[2] -= gHUD.velz * 1.3;
+		view->angles[0] -= gHUD.velz * 2.5;
+
+		//this moves the weapon origin left/right, up/down based on input (very similar to the hl2 weapon lag)
+		for (int i = 0; i < 3; i++)
+		{
+			view->origin[i] -= 0.7 * gHUD.lagangle_x * pparams->right[i];
+			view->origin[i] += 0.2 * gHUD.lagangle_y * pparams->up[i];
+			view->origin[i] -= 0.2 * abs(gHUD.lagangle_x) * pparams->forward[i];
+		}
+		//END
+		break;
 	}
+	
+	// viewbob setting
+	switch ((int)CVAR_GET_FLOAT("cl_viewmodel_bob"))
+	{
+	case 0:
+		for (i = 0; i < 3; i++)
+		{
+			view->origin[i] += bob * 0.4 * pparams->forward[i];
+		}
+		break;
+	case 1:
+		// throw in a little tilt.
+		view->angles[YAW] -= bob * 0.5;
+		view->angles[ROLL] -= bob * 1;
+		view->angles[PITCH] -= bob * 0.3;
+		break;
+	case 2:
+		for (i = 0; i < 3; i++)
+		{
+			view->origin[i] += bob * 0.6 * pparams->right[i];
+		}
+		view->origin[2] -= 0.5f * fabs(bob);
+		break;
+	}
+	
+
+	VectorCopy(view->angles, view->curstate.angles);
+	
 
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
 	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem

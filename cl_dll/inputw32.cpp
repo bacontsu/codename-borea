@@ -561,10 +561,10 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 	gEngfuncs.GetViewAngles( (float *)viewangles );
 	oldviewangles = viewangles; //LRC 1.8
 
-	if ( in_mlook.state & 1)
-	{
-		V_StopPitchDrift ();
-	}
+	//if ( in_mlook.state & 1) //magic nipples - commented this out
+	//{
+	V_StopPitchDrift();
+	//}
 
 	//jjb - this disbles normal mouse control if the user is trying to 
 	//      move the camera, or if the mouse cursor is visible or if we're in intermission
@@ -660,6 +660,10 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 				cmd->forwardmove -= m_forward->value * mouse_y;
 			}
 		}
+
+		//magic nipples - view lag
+		gHUD.mouse_x = mouse_x;
+		gHUD.mouse_y = mouse_y;
 
 		// if the mouse has moved, force it to the center, so there's room to move
 		if ( mx || my )
