@@ -195,6 +195,11 @@ public:
 	int			m_iFOV;			// field of view
 	int			m_iClientFOV;	// client's known FOV
 
+
+	// water
+	float nextSplashTime;
+	void WaterThink();
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

@@ -1560,6 +1560,50 @@ void CBaseMonster :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector
 	//RENDERERS END
 }
 
+void CBaseEntity::FireBulletsWater(Vector vecSrc, Vector vecEnd)
+{
+
+	if (!(POINT_CONTENTS(vecEnd) == CONTENTS_WATER && POINT_CONTENTS(vecSrc) != CONTENTS_WATER))
+		return;
+
+
+	float x = vecEnd.x - vecSrc.x;
+	float y = vecEnd.y - vecSrc.y;
+	float z = vecEnd.z - vecSrc.z;
+
+	float len = sqrt(x * x + y * y + z * z);
+
+	Vector vecTemp = Vector((vecEnd.x + vecSrc.x) / 2, (vecEnd.y + vecSrc.y) / 2, (vecEnd.z + vecSrc.z) / 2);
+	if (len <= 1)
+	{
+		// water particle
+		UTIL_Particle("water_shoot_cluster.txt", Vector(vecTemp.x, vecTemp.y, vecTemp.z + 5), Vector(0, 0, 2), 1);
+
+		// play sound
+		switch (RANDOM_LONG(1, 3))
+		{
+		case 1:
+			UTIL_EmitAmbientSound(ENT(0), vecTemp + Vector(0, 0, 5), "items/water_splash/water_splash1.wav", 1, ATTN_NORM, 0, 100);
+			break;
+		case 2:
+			UTIL_EmitAmbientSound(ENT(0), vecTemp + Vector(0, 0, 5), "items/water_splash/water_splash2.wav", 1, ATTN_NORM, 0, 100);
+			break;
+		case 3:
+			UTIL_EmitAmbientSound(ENT(0), vecTemp + Vector(0, 0, 5), "items/water_splash/water_splash3.wav", 1, ATTN_NORM, 0, 100);
+			break;
+		}
+
+	}
+
+	else
+	{
+		if (POINT_CONTENTS(vecTemp) == CONTENTS_WATER)
+			FireBulletsWater(vecSrc, vecTemp);
+		else
+			FireBulletsWater(vecTemp, vecEnd);
+	}
+}
+
 /*
 ================
 FireBullets
@@ -1721,6 +1765,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (flDistance * tr.flFraction) / 64.0 );
+		FireBulletsWater(vecSrc, tr.vecEndPos);
 	}
 	ApplyMultiDamage(pev, pevAttacker);
 }
@@ -1862,6 +1907,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 		}
 		// make bullet trails
 		UTIL_BubbleTrail( vecSrc, tr.vecEndPos, (flDistance * tr.flFraction) / 64.0 );
+		FireBulletsWater(vecSrc, tr.vecEndPos);
 	}
 	ApplyMultiDamage(pev, pevAttacker);
 
