@@ -20,6 +20,7 @@
 
 */
 
+#include <filesystem>
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -3254,4 +3255,171 @@ bool UTIL_IsMultiplayer()
 bool UTIL_IsCTF()
 {
 	return g_pGameRules->IsCTF();
+}
+
+static char com_token[1500];
+
+/*
+==============
+COM_Parse
+Parse a token out of a string
+==============
+*/
+char* COM_ParseFile(char* data)
+{
+	int             c;
+	int             len;
+
+	len = 0;
+	com_token[0] = 0;
+
+	if (!data)
+		return nullptr;
+
+	// skip whitespace
+skipwhite:
+	while ((c = *data) <= ' ')
+	{
+		if (c == 0)
+			return nullptr;                    // end of file;
+		data++;
+	}
+
+	// skip // comments
+	if (c == '/' && data[1] == '/')
+	{
+		while (*data && *data != '\n')
+			data++;
+		goto skipwhite;
+	}
+
+
+	// handle quoted strings specially
+	if (c == '\"')
+	{
+		data++;
+		while (1)
+		{
+			c = *data++;
+			if (c == '\"' || !c)
+			{
+				com_token[len] = 0;
+				return data;
+			}
+			com_token[len] = c;
+			len++;
+		}
+	}
+
+	// parse single characters
+	if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ',')
+	{
+		com_token[len] = c;
+		len++;
+		com_token[len] = 0;
+		return data + 1;
+	}
+
+	// parse a regular word
+	do
+	{
+		com_token[len] = c;
+		data++;
+		len++;
+		c = *data;
+		if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ',')
+			break;
+	} while (c > 32);
+
+	com_token[len] = 0;
+	return data;
+}
+
+void GetFallbackDir(char* falldir)
+{
+
+	char* pfile, * pfile2;
+	int length;
+	pfile = pfile2 = (char*)g_engfuncs.pfnLoadFileForMe("liblist.gam", &length);
+
+	if (pfile == nullptr)
+	{
+		return;
+	}
+
+	while (pfile = COM_ParseFile(pfile))
+	{
+		if (!stricmp(com_token, "fallback_dir"))
+		{
+			pfile = COM_ParseFile(pfile);
+			strcpy(falldir, com_token);
+			break;
+		}
+	}
+
+	g_engfuncs.pfnFreeFile(pfile2);
+	pfile = pfile2 = nullptr;
+
+}
+
+void SET_MODEL(edict_t* e, const char* model)
+{
+	if (strlen(model) > 4)
+	{
+		// mod directory
+		char modName[MAX_PATH];
+		g_engfuncs.pfnGetGameDir(modName);
+		strcat(modName, "/");
+		strcat(modName, model);
+
+		// fallback directory
+		char modName2[MAX_PATH];
+		GetFallbackDir(modName2);
+		strcat(modName2, "/");
+		strcat(modName2, model);
+
+		// hl directory (valve)
+		char modName3[MAX_PATH] = "valve/";
+		strcat(modName3, model);
+
+		if (std::filesystem::exists(modName) || std::filesystem::exists(modName2) || std::filesystem::exists(modName3))
+			g_engfuncs.pfnSetModel(e, (char*)model);
+		else
+		{
+			g_engfuncs.pfnPrecacheModel("models/error.mdl");
+			g_engfuncs.pfnSetModel(e, "models/error.mdl");
+		}
+	}
+	else
+		g_engfuncs.pfnSetModel(e, (char*)model);
+}
+
+int PRECACHE_MODEL(const char* s)
+{
+	int model;
+
+	if (strlen(s) > 4)
+	{
+		// mod directory
+		char modName[MAX_PATH];
+		g_engfuncs.pfnGetGameDir(modName);
+		strcat(modName, "/");
+		strcat(modName, s);
+
+		// fallback directory
+		char modName2[MAX_PATH];
+		GetFallbackDir(modName2);
+		strcat(modName2, "/");
+		strcat(modName2, s);
+
+		// hl directory (valve)
+		char modName3[MAX_PATH] = "valve/";
+		strcat(modName3, s);
+
+		if (std::filesystem::exists(modName) || std::filesystem::exists(modName2) || std::filesystem::exists(modName3))
+			return model = g_engfuncs.pfnPrecacheModel((char*)s);
+		else
+			return g_engfuncs.pfnPrecacheModel("models/error.mdl");
+	}
+	else return model = g_engfuncs.pfnPrecacheModel((char*)s);
 }

@@ -748,3 +748,7 @@ inline CEntityEnumeratorWithStart<T, FindByTargetnameFunctor<T>> UTIL_FindEntiti
 {
 	return { pszName, pStartEntity };
 }
+
+void SET_MODEL(edict_t* e, const char* model);
+int PRECACHE_MODEL(const char* s);
+void GetFallbackDir(char* falldir);
