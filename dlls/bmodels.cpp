@@ -300,6 +300,57 @@ void CFuncIllusionary :: Spawn()
 	//	MAKE_STATIC(ENT(pev));
 }
 
+class CFuncIllusionaryFading : public CFuncIllusionary
+{
+public:
+	void Spawn() override;
+	void KeyValue(KeyValueData* pkvd) override;
+	void EXPORT Think() override;
+
+	float m_flRadius;
+	float m_flOriginalRenderAmt;
+};
+
+LINK_ENTITY_TO_CLASS(func_illusionary_fading, CFuncIllusionaryFading);
+
+void CFuncIllusionaryFading::KeyValue(KeyValueData* pkvd)
+{
+	// Start fading radius
+	if (FStrEq(pkvd->szKeyName, "radius"))//skin is used for content type
+	{
+		m_flRadius = atof(pkvd->szValue);
+		pkvd->fHandled = TRUE;
+	}
+	else
+		CFuncIllusionary::KeyValue(pkvd);
+}
+
+void CFuncIllusionaryFading::Spawn()
+{
+	// store original data
+	m_flOriginalRenderAmt = pev->renderamt;
+
+	// set next think
+	SetNextThink(0.01f);
+	return CFuncIllusionary::Spawn();
+}
+
+void CFuncIllusionaryFading::Think()
+{
+	CBaseEntity* pPlayer = UTIL_FindEntityByClassname(nullptr, "player");
+	if (pPlayer)
+	{
+		Vector realOrigin = pev->origin + (pev->maxs + pev->mins) / 2;
+		float dist = Vector(pPlayer->pev->origin - realOrigin).Length2D();
+		dist = clamp(dist, 0, m_flRadius);
+		pev->renderamt = m_flOriginalRenderAmt * dist / m_flRadius;
+
+		ALERT(at_console, "dist %f renderamt %f radius %f cur renderamt %f \n", dist, m_flOriginalRenderAmt, m_flRadius, pev->renderamt);
+	}
+
+	SetNextThink(0.01f);
+}
+
 // -------------------------------------------------------------------------------
 //
 // Monster only clip brush
