@@ -75,6 +75,7 @@ int CHud :: MsgFunc_ResetHUD(const char *pszName, int iSize, void *pbuf )
 	gHUD.m_pSkyFogSettings.end = 0.0; 
 	gHUD.m_pSkyFogSettings.start = 0.0;
 	gHUD.m_pSkyFogSettings.active = false;
+	gLensflare.SunEnabled = FALSE;
 //RENDERERS END
 	// clear all hud data
 	HUDLIST *pList = m_pHudList;
@@ -133,6 +134,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_pSkyFogSettings.end = 0.0; 
 	gHUD.m_pSkyFogSettings.start = 0.0;
 	gHUD.m_pSkyFogSettings.active = false;
+	gLensflare.SunEnabled = FALSE;
 	//RENDERERS END
 
 	// prepare all hud data

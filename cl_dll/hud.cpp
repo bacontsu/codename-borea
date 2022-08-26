@@ -565,6 +565,7 @@ void CHud :: Init()
 	gWaterShader.Init();
 	gMirrorManager.Init();
 	gPostProcess.Init();
+	gLensflare.Init();
 	//RENDERERS END
 	
 	//start glow effect --FragBait0
@@ -862,6 +863,7 @@ void CHud :: VidInit()
 	gParticleEngine.VidInit();
 	gMirrorManager.VidInit();
 	g_StudioRenderer.VidInit();
+	gLensflare.VidInit();
 	//RENDERERS_END
 }
 

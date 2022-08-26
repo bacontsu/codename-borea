@@ -105,6 +105,7 @@ int CHud :: Redraw( float flTime, int intermission )
 {
 	//RENDERERS START
 	gPostProcess.ApplyPostEffects(); //PostProcessing
+	gLensflare.Draw(flTime);
 	//RENDERERS END
 
 	HUD_DrawBloodOverlay();

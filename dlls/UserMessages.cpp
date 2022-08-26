@@ -79,6 +79,8 @@ int gmsgFreeEnt		= 0;
 int gmsgCreateSystem	= 0;
 int gmsgPPGray = 0;
 int gmsgViewmodelSkin	= 0; // Weapon Model Skinfamilies
+int gmsgLensFlare = 0;
+
 //RENDERERS END
 
 int gmsgSpectator = 0;
@@ -168,6 +170,8 @@ void LinkUserMessages()
 	gmsgCreateSystem = REG_USER_MSG("Particle", -1);
 	gmsgPPGray = REG_USER_MSG("PPGray", -1);
 	gmsgViewmodelSkin = REG_USER_MSG("WpnSkn", -1);
+	gmsgLensFlare = REG_USER_MSG("Lensflare", -1);
+
 	//RENDERERS END
 
 	gmsgSpectator = g_engfuncs.pfnRegUserMsg("Spectator", 2);

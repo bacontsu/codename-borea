@@ -75,6 +75,7 @@ extern int gmsgSkyMark_World;
 extern int gmsgCreateSystem;
 extern int gmsgPPGray;
 extern int gmsgViewmodelSkin;
+extern int gmsgLensFlare;
 //RENDERERS END
 
 extern int gmsgSpectator;
