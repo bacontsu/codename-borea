@@ -45,6 +45,9 @@ extern Vector v_angles, v_origin;
 
 int CHudLensflare::Draw(float flTime)
 {  
+	if (!(int)CVAR_GET_FLOAT("te_sunflare"))
+		return 0;
+
 	Vector sunangles, sundir, suntarget;
 	Vector v_forward, v_right, v_up, angles;
 	Vector forward, right, up, screen;

@@ -548,6 +548,9 @@ void CHud :: Init()
 	CVAR_CREATE("glow_darken_steps", "5", FCVAR_ARCHIVE);
 	CVAR_CREATE("glow_strength", "1", FCVAR_ARCHIVE);
 
+	CVAR_CREATE("te_sunflare", "1", FCVAR_ARCHIVE);
+	CVAR_CREATE("te_bloom_effect", "1", FCVAR_ARCHIVE);
+
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( LightStyle );

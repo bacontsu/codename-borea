@@ -68,6 +68,9 @@ void CBloom::Draw(void)
     if ((int)gEngfuncs.pfnGetCvarFloat("glow_blur_steps") == 0 || (int)gEngfuncs.pfnGetCvarFloat("glow_strength") == 0)
         return;
 
+    if (!(int)CVAR_GET_FLOAT("te_bloom_effect")) 
+        return;
+
     // enable some OpenGL stuff
     glEnable(GL_TEXTURE_RECTANGLE_NV);
     glColor3f(1, 1, 1);
