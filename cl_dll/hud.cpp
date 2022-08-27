@@ -544,6 +544,9 @@ void CHud :: Init()
 	CVAR_CREATE("r_blur", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE("r_blur_strength", "1", FCVAR_ARCHIVE);
 
+	CVAR_CREATE("glow_blur_steps", "15", FCVAR_ARCHIVE);
+	CVAR_CREATE("glow_darken_steps", "5", FCVAR_ARCHIVE);
+	CVAR_CREATE("glow_strength", "1", FCVAR_ARCHIVE);
 
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
@@ -864,6 +867,7 @@ void CHud :: VidInit()
 	gMirrorManager.VidInit();
 	g_StudioRenderer.VidInit();
 	gLensflare.VidInit();
+	gBloomRenderer.Init();
 	//RENDERERS_END
 }
 
