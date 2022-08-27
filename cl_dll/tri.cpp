@@ -114,8 +114,9 @@ void DLLEXPORT HUD_DrawTransparentTriangles( void )
 
 	BlackFog();
 
+    // RENDERER
     gBlur.DrawBlur();
-
+    gHUD.gBloomRenderer.Draw();
 
 	// LRC: find out the time elapsed since the last redraw
 	static float fOldTime, fTime;
