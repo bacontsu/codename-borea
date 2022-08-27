@@ -8,10 +8,13 @@
 * [Trinity Rendering Engine](https://www.moddb.com/mods/half-life-episode-two/downloads/trinity-rendering-engine-v308f) - Renderer that replaces Half-Life's original engine renderer
 * [Arrangement](https://github.com/JoelTroch/am_src_latest) - Mod that has alot of inspiration for many features being put onto this codebase
 * [Newlight Redux](https://github.com/BlueNightHawk/hl-newlight) - Many stuff i lend from this repo as references (e.g: Animated Camera, Weapon Particles, etc)
+* [HLFX.ru](https://hlfx.ru/forum/index.php?s=) - Site filled with wonderful tutorials and guides, many features are also from here
 
 ## Gallery:
 ![image](https://user-images.githubusercontent.com/62763382/172050105-61a6a605-fe25-4e72-9949-44a388f0f1f0.png)
-![image](https://user-images.githubusercontent.com/62763382/172050144-53198bc5-8291-4273-ad8e-b21896063ac6.png)
+![image](https://user-images.githubusercontent.com/62763382/187019728-202b885a-2a35-4621-a56f-a29e479d7d70.png)
+![image](https://user-images.githubusercontent.com/62763382/187019734-0ca8cb23-7ebc-4ddd-a484-005bb89fc055.png)
+
 ------------
 Half Life 1 SDK LICENSE
 ======================
