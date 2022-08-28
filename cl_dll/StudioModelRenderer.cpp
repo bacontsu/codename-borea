@@ -2650,7 +2650,8 @@ void CStudioModelRenderer::StudioSetupBones ()
 	static float		pos4[MAXSTUDIOBONES][3];
 	static vec4_t		q4[MAXSTUDIOBONES];
 
-	if (m_pCurrentEntity->curstate.sequence >=  m_pStudioHeader->numseq) 
+	if (m_pCurrentEntity->curstate.sequence >= m_pStudioHeader->numseq
+		|| m_pCurrentEntity->curstate.sequence < 0)
 	{
 		m_pCurrentEntity->curstate.sequence = 0;
 	}
@@ -2831,7 +2832,8 @@ void CStudioModelRenderer::StudioMergeBones ( model_t *m_pSubModel )
 	float				bonematrix[3][4];
 	static vec4_t		q[MAXSTUDIOBONES];
 
-	if (m_pCurrentEntity->curstate.sequence >=  m_pStudioHeader->numseq) 
+	if (m_pCurrentEntity->curstate.sequence >= m_pStudioHeader->numseq
+		|| m_pCurrentEntity->curstate.sequence < 0)
 	{
 		m_pCurrentEntity->curstate.sequence = 0;
 	}
@@ -4401,6 +4403,10 @@ void CStudioModelRenderer::StudioDrawPoints ()
 	byte *pnormbone = ((byte *)m_pStudioHeader + m_pSubModel->norminfoindex);
 
 	int skinnum = m_pCurrentEntity->curstate.skin;
+
+	if (skinnum < 0)
+		skinnum = 0;
+
 	short *pskinref = (short *)((byte *)m_pTextureHeader + m_pTextureHeader->skinindex);
 
 	if (skinnum != 0 && skinnum < m_pTextureHeader->numskinfamilies)
@@ -5176,6 +5182,10 @@ void CStudioModelRenderer::StudioDrawPointsEXT()
 		return;
 
 	int skinnum = m_pCurrentEntity->curstate.skin; // for short..
+
+	if (skinnum < 0)
+		skinnum = 0;
+
 	short *pskinref = (short *)((byte *)m_pTextureHeader + m_pTextureHeader->skinindex);
 
 	if (skinnum != 0 && skinnum < m_pTextureHeader->numskinfamilies)
@@ -5937,6 +5947,10 @@ void CStudioModelRenderer::StudioDecalExternal( Vector vpos, Vector vnorm, const
 			baseindex += m_pBodyPart->nummodels;
 
 			int skinnum = m_pCurrentEntity->curstate.skin; // for short..
+
+			if (skinnum < 0)
+				skinnum = 0;
+
 			short *pskinref = (short *)((byte *)m_pTextureHeader + m_pTextureHeader->skinindex);
 
 			if (skinnum != 0 && skinnum < m_pTextureHeader->numskinfamilies)
@@ -6293,6 +6307,10 @@ void CStudioModelRenderer::StudioDrawPointsSolid ()
 	mstudiotexture_t *ptexture = (mstudiotexture_t *)((byte *)m_pTextureHeader + m_pTextureHeader->textureindex);
 
 	int skinnum = m_pCurrentEntity->curstate.skin;
+
+	if (skinnum < 0)
+		skinnum = 0;
+
 	short *pskinref = (short *)((byte *)m_pTextureHeader + m_pTextureHeader->skinindex);
 
 	if (skinnum != 0 && skinnum < m_pTextureHeader->numskinfamilies)
@@ -6457,6 +6475,10 @@ void CStudioModelRenderer::StudioDrawPointsSolidEXT()
 		return;
 
 	int skinnum = m_pCurrentEntity->curstate.skin; // for short..
+
+	if (skinnum < 0)
+		skinnum = 0;
+
 	short *pskinref = (short *)((byte *)m_pTextureHeader + m_pTextureHeader->skinindex);
 
 	if (skinnum != 0 && skinnum < m_pTextureHeader->numskinfamilies)
