@@ -674,6 +674,9 @@ CHud :: ~CHud()
 	//RENDERERS START
 	gTextureLoader.Shutdown();
 	gBSPRenderer.Shutdown();
+	gPropManager.Shutdown();
+	gWaterShader.Shutdown();
+	gParticleEngine.Shutdown();
 	//RENDERERS END
 }
 
@@ -871,6 +874,7 @@ void CHud :: VidInit()
 	gMirrorManager.VidInit();
 	g_StudioRenderer.VidInit();
 	gLensflare.VidInit();
+	gPropManager.VidInit();
 	//RENDERERS_END
 }
 
