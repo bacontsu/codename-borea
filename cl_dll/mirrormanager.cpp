@@ -453,7 +453,13 @@ void CMirrorManager::DrawMirrors( )
 		model_t *model = m_pMirrors[i].entity->model;
 		msurface_t *psurf = &model->surfaces[model->firstmodelsurface];
 
+		// BlueNightHawk - add opacity support for mirrors
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(1.0f, 1.0f, 1.0f, (m_pCurrentMirror->entity->curstate.renderamt / 255.0f));
 		gBSPRenderer.DrawPolyFromArray(psurf->polys);
+		glDisable(GL_BLEND);
+
 		psurf->visframe = gBSPRenderer.m_iFrameCount;// For decals
 		
 		glPopMatrix();
