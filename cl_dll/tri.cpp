@@ -116,7 +116,11 @@ void DLLEXPORT HUD_DrawTransparentTriangles( void )
 
     // RENDERER
     gBlur.DrawBlur();
-    gHUD.gBloomRenderer.Draw();
+    
+    auto view = gEngfuncs.GetViewModel();
+
+    if (!(view && view->model))
+        gHUD.gBloomRenderer.Draw();
 
 	// LRC: find out the time elapsed since the last redraw
 	static float fOldTime, fTime;

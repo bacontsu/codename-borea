@@ -3397,6 +3397,15 @@ void CStudioModelRenderer::StudioRenderModel()
 		StudioRenderFinal( );
 	}
 
+	// Draw bloom after drawing viewmodel
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+	{
+		auto view = gEngfuncs.GetViewModel();
+
+		if (view && view->model)
+			gHUD.gBloomRenderer.Draw();
+	}
+
 	// Restore saved states
 	R_RestoreGLStates();
 }
