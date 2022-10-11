@@ -23,6 +23,7 @@
 #include "vgui_StatsMenuPanel.h"
 
 #include "postprocess.h"
+#include "blur.h"
 
 void HUD_DrawBloodOverlay(void);
 
@@ -104,8 +105,10 @@ void CHud::Think()
 int CHud :: Redraw( float flTime, int intermission )
 {
 	//RENDERERS START
+	gHUD.gBloomRenderer.Draw();
 	gPostProcess.ApplyPostEffects(); //PostProcessing
 	gHUD.gLensflare.Draw(flTime);
+	gBlur.DrawBlur();
 	//RENDERERS END
 
 	HUD_DrawBloodOverlay();
@@ -260,6 +263,9 @@ int CHud :: Redraw( float flTime, int intermission )
 	if ((viewFlags & 1) && !(viewFlags & 2)) // custom view active, and flag "draw hud" isnt set
 		return 1;
 	
+	// BlueNightHawk - This fixes the viewmodel drawing on top of the hud
+	glDepthRange(0.0f, 0.0f);
+
 	// draw all registered HUD elements
 	if ( m_pCvarDraw->value )
 	{
@@ -314,6 +320,8 @@ int CHud :: Redraw( float flTime, int intermission )
 
 		SPR_DrawAdditive(i, x, y, nullptr);
 	}
+
+	glDepthRange(0.0f, 1.0f);
 
 	/*
 	if ( g_iVisibleMouse )

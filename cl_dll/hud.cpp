@@ -571,6 +571,7 @@ void CHud :: Init()
 	gWaterShader.Init();
 	gMirrorManager.Init();
 	gPostProcess.Init();
+	gBlur.InitScreen();
 	gLensflare.Init();
 	gBloomRenderer.Init();
 	//RENDERERS END
@@ -743,7 +744,6 @@ void CHud :: VidInit()
 	m_hsprLogo = 0;	
 	m_hsprCursor = 0;
 	numMirrors = 0;
-	gBlur.InitScreen();
 	slowmoUpdate = 0;
 	slowmoStrength = 0.5f;
 
