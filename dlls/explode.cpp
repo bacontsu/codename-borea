@@ -25,6 +25,7 @@
 #include "decals.h"
 #include "explode.h"
 #include "locus.h"
+#include <FranUtils.hpp>
 
 // Spark Shower
 class CShower : public CBaseEntity
@@ -210,6 +211,10 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 			WRITE_BYTE( 15  ); // framerate
 			WRITE_BYTE( TE_EXPLFLAG_NONE );
 		MESSAGE_END();
+
+		Vector realOrigin = (pev->maxs + pev->mins) / 2;
+		FranUtils::EmitDlight(realOrigin, 16, { 255, 255, 160 }, 2, 50);
+		UTIL_Particle("explosion_cluster.txt", realOrigin, g_vecZero, 1);
 	}
 	else
 	{

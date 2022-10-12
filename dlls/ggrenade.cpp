@@ -31,6 +31,7 @@
 #include "pm_movevars.h"
 #include "pm_shared.h"
 #include "pm_defs.h"
+#include <FranUtils.hpp>
 
 #define NadeVectorSubtract(a,b,c) {(c)[0]=(a)[0]-(b)[0];(c)[1]=(a)[1]-(b)[1];(c)[2]=(a)[2]-(b)[2];}
 
@@ -119,6 +120,8 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 	MESSAGE_END();
 
 //RENDERERS START
+	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 2, 50);
+
 	if(iContents != CONTENTS_WATER)
 		UTIL_Particle("explosion_cluster.txt", pev->origin, g_vecZero, 1);
 	else
