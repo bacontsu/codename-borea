@@ -10,6 +10,8 @@
 #define GL_TEXTURE_RECTANGLE_NV 0x84F5
 #endif
 
+#define MAX_MOTIONBLUR_FRAME 10
+
 extern float m_iBlurActive;
 
 CBlurTexture::CBlurTexture() {};
@@ -115,45 +117,51 @@ CBlur gBlur;
 void CBlur::InitScreen()
 {
     blur_pos = 1;
-    m_pTextures.Init(ScreenWidth, ScreenHeight);
-    m_pTextures.r = 1;//was 0.3
-    m_pTextures.g = 1;//was 0.3
-    m_pTextures.b = 1;//was 0.3
+    for (int i = 0; i < MAX_MOTIONBLUR_FRAME; i++)
+    {
+        m_pTextures[i].Init(ScreenWidth, ScreenHeight);
+    }
+}
+
+void CBlur::VidInit()
+{
+    // clear frame buffers datas
+    for (int i = 0; i < MAX_MOTIONBLUR_FRAME; i++)
+    {
+        memset(&gBlur.m_pTextures[i], 0, sizeof(gBlur.m_pTextures[i]));
+    }
+    m_flNextFrameUpdate = 0;
 }
 
 void CBlur::DrawBlur()
 {
-    int rate = 70+300;
-    float fade = 0.4;
-
-    if (rate <= 60+300)
-    {
-        int ofset = -1;
 
         glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
         glEnable(GL_BLEND);
 
-        m_pTextures.Draw(ScreenWidth, ScreenHeight);
-        m_pTextures.alpha = 0.75;//was 0.2
-        m_pTextures.of = ofset;
+        for (int i = 0; i < MAX_MOTIONBLUR_FRAME; i++)
+        {
+            m_pTextures[i].r = 1;//was 0.3
+            m_pTextures[i].g = 1;//was 0.3
+            m_pTextures[i].b = 1;//was 0.3
+            m_pTextures[i].Draw(ScreenWidth, ScreenHeight);
+            m_pTextures[i].of = 0;
+            m_pTextures[i].alpha = 0.9;
+        }
 
-        if (AnimateNextFrame(rate))
-            m_pTextures.BindTexture(ScreenWidth, ScreenHeight);
+        if (m_flNextFrameUpdate < gHUD.m_flTime)
+        {
+            m_pTextures[m_iFrameCounter].BindTexture(ScreenWidth, ScreenHeight);
+            m_iFrameCounter++;
+            if (m_iFrameCounter >= 10) m_iFrameCounter = 0;
 
+            m_flNextFrameUpdate = gHUD.m_flTime + (gHUD.m_flTimeDelta);
+        }
+
+        // HACK HACK HACK - level change things, timer broken n stuff 
+        if (m_flNextFrameUpdate > gHUD.m_flTime + gHUD.m_flTimeDelta) m_flNextFrameUpdate = 0;
+
+        //gEngfuncs.Con_Printf("frame: %f %f\n", gHUD.m_flTime, m_flNextFrameUpdate);
         glDisable(GL_BLEND);
-    }
-    else
-    {
-        int ofset = -(CVAR_GET_FLOAT("r_blur_strength"));
-        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-        glEnable(GL_BLEND);
-        m_pTextures.Draw(ScreenWidth, ScreenHeight);
 
-        m_pTextures.alpha = 0.75;//was 0.2
-        m_pTextures.of = ofset;
-
-        m_pTextures.BindTexture(ScreenWidth, ScreenHeight);
-
-        glDisable(GL_BLEND);
-    }
 }

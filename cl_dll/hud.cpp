@@ -747,7 +747,6 @@ void CHud :: VidInit()
 	slowmoUpdate = 0;
 	slowmoStrength = 0.5f;
 
-
 	if (ScreenWidth < 640)
 		m_iRes = 320;
 	else
@@ -875,6 +874,7 @@ void CHud :: VidInit()
 	g_StudioRenderer.VidInit();
 	gLensflare.VidInit();
 	gPropManager.VidInit();
+	gBlur.VidInit();
 	//RENDERERS_END
 }
 

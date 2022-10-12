@@ -18,11 +18,13 @@ class CBlur
 public:
 	void InitScreen(void);
 	void DrawBlur(void);
+	void VidInit();
 	int blur_pos;
 	bool AnimateNextFrame(int desiredFrameRate);
 
-	CBlurTexture m_pTextures;
-	CBlurTexture m_pScreen;
+	CBlurTexture m_pTextures[10];
+	int m_iFrameCounter;
+	float m_flNextFrameUpdate;
 };
 
 extern CBlur gBlur;
