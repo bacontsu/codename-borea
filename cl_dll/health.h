@@ -63,6 +63,10 @@ public:
 	float nextBeatUpdate;
 	float animSpeed;
 
+	int beatFrame;
+	char beatSprite[512];
+	float nextBeatFrame;
+
 private:
 	HL_HSPRITE m_hSprite;
 	HL_HSPRITE m_hDamage;

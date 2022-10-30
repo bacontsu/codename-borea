@@ -161,6 +161,7 @@ int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	gHUD.isClimbing = READ_SHORT();
 	gHUD.slowmoBar = READ_SHORT();
 	gHUD.isSlowmo = READ_SHORT();
+	gHUD.isRunning = (bool)READ_BYTE();
 	
 	return 1;
 }
@@ -194,6 +195,36 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 		b = 0;
 	}
 #endif 
+}
+
+void DrawFrame(float xmin, float ymin, float xmax, float ymax, char* sprite, Vector color, int mode, int frame)
+{
+	//setup
+	gEngfuncs.pTriAPI->RenderMode(mode);
+	gEngfuncs.pTriAPI->Brightness(1.0f);
+	gEngfuncs.pTriAPI->Color4ub(color.x, color.y, color.z, 255);
+	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), frame);
+
+	//start drawing
+	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
+
+	//top left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymin, 0);
+	//bottom left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmin, ymax, 0);
+	//bottom right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymax, 0);
+	//top right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+	gEngfuncs.pTriAPI->Vertex3f(xmax, ymin, 0);
+
+	//end
+	gEngfuncs.pTriAPI->End();
+	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
 }
 
 int CHudHealth::Draw(float flTime)
@@ -267,6 +298,43 @@ int CHudHealth::Draw(float flTime)
 		nextBeatUpdate = gHUD.m_flTime + animSpeed;
 	}
 
+	// cardio line thing
+	if (nextBeatFrame < gHUD.m_flTime)
+	{
+		beatFrame++;
+
+		int maxFrame;
+		if (m_iHealth > 80)
+		{
+			maxFrame = 24;
+		}
+		else if (m_iHealth > 60)
+		{
+			maxFrame = 25;
+		}
+		else if (m_iHealth > 40)
+		{
+			maxFrame = 23;
+		}
+		else if (m_iHealth > 20)
+		{
+			maxFrame = 23;
+		}
+		else if (m_iHealth > 0)
+		{
+			maxFrame = 25;
+		}
+		else
+		{
+			maxFrame = 12;
+		}
+
+		if (beatFrame >= maxFrame) beatFrame = 0;
+
+		nextBeatFrame = gHUD.m_flTime + 0.05f;
+	}
+
+
 	// Only draw health if we have the suit.
 	if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
 	{
@@ -285,6 +353,35 @@ int CHudHealth::Draw(float flTime)
 
 		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
 
+		// draw cardio lines
+		x = 85 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight - 98 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 + gHUD.camValue[1] * 0.1f;
+
+		if (m_iHealth > 80)
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/a.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+		else if (m_iHealth > 60)
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/b.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+		else if (m_iHealth > 40)
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/c.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+		else if (m_iHealth > 20)
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/d.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+		else if (m_iHealth > 0)
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/e.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+		else
+		{
+			DrawFrame(x, y, x + 120, y + 120, "sprites/f.spr", Vector(94, 235, 33), kRenderTransAdd, beatFrame);
+		}
+
 		// draw health logo
 		x = 100 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 78 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
@@ -292,18 +389,25 @@ int CHudHealth::Draw(float flTime)
 		gHUD.DrawBackground(x - heartScaler*2, y - heartScaler*2, x + 80 + heartScaler*2, y + 80 + heartScaler * 2, HEALTH_SPRITE, HEALTH_COLOR, kRenderTransAdd);
 
 		// draw battery empty bar
+		/*
 		x = 200 + gHUD.m_Battery.m_iBat * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = (100 - gHUD.m_Battery.m_iBat) * 1.3f;
+		static float scaleLerpEmpty = 0.0f;
+		scaleLerpEmpty = lerp(scaleLerpEmpty, scale, gHUD.m_flTimeDelta);
 
-		FillRGBA(x, y, scale, 15, 144, 144, 144, 100);
+		FillRGBA(x, y, scaleLerpEmpty, 15, 144, 144, 144, 100);
+		*/
 
 		// draw battery
 		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = gHUD.m_Battery.m_iBat * 1.3f;
+		static float scaleLerp = 0.0f;
+		scaleLerp = lerp(scaleLerp, scale, gHUD.m_flTimeDelta);
 
-		FillRGBA(x, y, scale, 15, 251, 177, 43, 255);
+		FillRGBA(x, y, 100 * 1.3f, 15, 144, 144, 144, 100);
+		FillRGBA(x, y, scaleLerp, 15, 251, 177, 43, 255);
 
 		// draw stamina empty bar
 		x = 200 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
@@ -326,8 +430,8 @@ int CHudHealth::Draw(float flTime)
 
 		if (gHUD.isSlowmo)
 		{
-			FillRGBA(x, y, slowmo, 5, 249, 111, 45, 255);
-			gHUD.DrawHudString(x, y - 20, 512, "Slowmo!", 249, 111, 45);
+			//FillRGBA(x, y, slowmo, 5, 249, 111, 45, 255);
+			//gHUD.DrawHudString(x, y - 20, 512, "Slowmo!", 249, 111, 45);
 		}
 
 	}
