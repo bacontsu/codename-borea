@@ -950,7 +950,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	gHUD.bobValue[0] = bobRight;
 	gHUD.bobValue[1] = bobUp;
 
-	gEngfuncs.Con_Printf("%f\n", pparams->viewangles[PITCH]);
+	//gEngfuncs.Con_Printf("%f\n", pparams->viewangles[PITCH]);
 	
 
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
