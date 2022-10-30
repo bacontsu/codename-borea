@@ -4835,6 +4835,7 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_SHORT(isClimbing);
 	WRITE_SHORT(slowmoCounter);
 	WRITE_SHORT(isSlowmo);
+	WRITE_BYTE(isRunning);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)

@@ -908,7 +908,6 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	// wallrun offsetting
 	float target;
-
 	if(gHUD.wallType == 1)
 		target = 30;
 	else if (gHUD.wallType == 2)
@@ -919,15 +918,29 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	pparams->viewangles[ROLL] += gHUD.lerpedRoll / 5;
 
 	// climbing viewmodel holstering
-	float pitchTarget;
-
+	float pitchTarget = 0;
 	if (gHUD.isClimbing)
 		pitchTarget = -80;
-	else
-		pitchTarget = 0;
 
 	gHUD.lerpedPitch = (pitchTarget * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (gHUD.lerpedPitch * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
 	view->angles[PITCH] += gHUD.lerpedPitch;
+
+	// running hold down viewmodel
+	float holdTarget = 0;
+	float holdTargetYaw = 0;
+	if (gHUD.isRunning)
+	{
+		holdTarget = -20;
+		holdTargetYaw = 50 * (90 - abs(pparams->viewangles[PITCH])) /90;
+	}
+
+	static float lerpedHold = 0;
+	static float lerpedHoldYaw = 0;
+	lerpedHold = lerp(lerpedHold, holdTarget, gHUD.m_flTimeDelta * 7.0f);
+	lerpedHoldYaw = lerp(lerpedHoldYaw, holdTargetYaw, gHUD.m_flTimeDelta * 7.0f);
+
+	view->angles[PITCH] += lerpedHold;
+	view->angles[YAW] += lerpedHoldYaw;
 
 	VectorCopy(view->angles, view->curstate.angles);
 	
@@ -936,6 +949,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	gHUD.bobValue[0] = bobRight;
 	gHUD.bobValue[1] = bobUp;
+
+	gEngfuncs.Con_Printf("%f\n", pparams->viewangles[PITCH]);
 	
 
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
