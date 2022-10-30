@@ -211,10 +211,6 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 			WRITE_BYTE( 15  ); // framerate
 			WRITE_BYTE( TE_EXPLFLAG_NONE );
 		MESSAGE_END();
-
-		Vector realOrigin = (pev->maxs + pev->mins) / 2;
-		FranUtils::EmitDlight(realOrigin, 16, { 255, 255, 160 }, 2, 50);
-		UTIL_Particle("explosion_cluster.txt", realOrigin, g_vecZero, 1);
 	}
 	else
 	{
@@ -229,6 +225,9 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 			WRITE_BYTE( TE_EXPLFLAG_NONE );
 		MESSAGE_END();
 	}
+
+	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 2, 50);
+	UTIL_Particle("explosion_cluster.txt", pev->origin, g_vecZero, 1);
 
 	// do damage
 	if ( !( pev->spawnflags & SF_ENVEXPLOSION_NODAMAGE ) )
