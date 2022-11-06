@@ -25,6 +25,14 @@
 #include "postprocess.h"
 #include "blur.h"
 
+#include "com_model.h"
+#include "triangleapi.h"
+
+extern int g_iUseEnt;
+extern std::string g_szUseEntClassname;
+void HUD_MarkUsableEnt();
+extern int KB_ConvertString(char* in, char** ppout);
+
 void HUD_DrawBloodOverlay(void);
 
 #define MAX_LOGO_FRAMES 56
@@ -110,8 +118,6 @@ int CHud :: Redraw( float flTime, int intermission )
 	gHUD.gLensflare.Draw(flTime);
 	gBlur.DrawBlur();
 	//RENDERERS END
-
-	HUD_DrawBloodOverlay();
 
 	m_fOldTime = m_flTime;	// save time of previous redraw
 	m_flTime = flTime;
@@ -265,6 +271,9 @@ int CHud :: Redraw( float flTime, int intermission )
 	
 	// BlueNightHawk - This fixes the viewmodel drawing on top of the hud
 	glDepthRange(0.0f, 0.0f);
+
+	HUD_MarkUsableEnt();
+	HUD_DrawBloodOverlay();
 
 	// draw all registered HUD elements
 	if ( m_pCvarDraw->value )
@@ -559,3 +568,340 @@ int CHud::DrawHudNumberReverse(int x, int y, int number, int flags, int r, int g
 	return x;
 }
 
+// offset from the edges of the screen
+#define BORDER_X XRES(40)
+#define BORDER_Y YRES(40)
+// line thickness
+#define BRACKET_TX XRES(2)
+#define BRACKET_TY YRES(2)
+// line length
+#define BRACKET_LX XRES(20)
+#define BRACKET_LY YRES(20)
+
+void HUD_MarkUsableEnt(void)
+{
+	if (g_iUseEnt <= 0)
+
+		return;
+
+
+
+	cl_entity_t* ent = gEngfuncs.GetEntityByIndex(g_iUseEnt);
+
+
+
+	if (!ent)
+		return;
+
+	if (ent->model && ent->model->type != mod_brush)
+		return;
+
+	Vector org, tmp, modelmins, modelmaxs;
+
+
+
+	int j;
+
+	Vector p[8];
+
+
+
+	float gap = 0.0f;
+
+
+
+	Vector screen[8];
+
+	int max_x, max_y, min_x, min_y;
+
+
+
+	max_x = max_y = 0;
+
+	min_x = min_y = 8192;
+
+
+
+	if (ent->model)
+
+	{
+
+		VectorCopy(ent->origin, org);
+
+
+
+		if (ent->model->type == mod_studio) // ??????
+
+		{
+
+			VectorCopy(ent->curstate.mins, modelmins);
+
+			VectorCopy(ent->curstate.maxs, modelmaxs);
+
+
+
+			for (j = 0; j < 8; j++)
+
+			{
+
+				tmp[0] = (j & 1) ? modelmins[0] : modelmaxs[0];
+
+				tmp[1] = (j & 2) ? modelmins[1] : modelmaxs[1];
+
+				tmp[2] = (j & 4) ? modelmins[2] : modelmaxs[2];
+
+
+
+				VectorCopy(tmp, p[j]);
+
+				VectorAdd(p[j], org, p[j]);
+
+
+
+				gEngfuncs.pTriAPI->WorldToScreen(p[j], screen[j]);
+
+
+
+				screen[j][0] = XPROJECT(screen[j][0]);
+
+				screen[j][1] = YPROJECT(screen[j][1]);
+
+				screen[j][2] = 0.0f;
+
+			}
+
+		}
+
+		else // ????
+
+		{
+
+			VectorCopy(ent->model->mins, modelmins);
+
+			VectorCopy(ent->model->maxs, modelmaxs);
+
+
+
+			for (j = 0; j < 8; j++)
+
+			{
+
+				tmp[0] = (j & 1) ? modelmins[0] - gap : modelmaxs[0] + gap;
+
+				tmp[1] = (j & 2) ? modelmins[1] - gap : modelmaxs[1] + gap;
+
+				tmp[2] = (j & 4) ? modelmins[2] - gap : modelmaxs[2] + gap;
+
+
+
+				VectorCopy(tmp, p[j]);
+
+			}
+
+
+
+			if (ent->angles[0] || ent->angles[1] || ent->angles[2])
+
+			{
+
+				Vector	forward, right, up;
+
+
+
+				AngleVectors(ent->angles, forward, right, up);
+
+
+
+				for (j = 0; j < 8; j++)
+
+				{
+
+					VectorCopy(p[j], tmp);
+
+
+
+					p[j][0] = DotProduct(tmp, forward);
+
+					p[j][1] = DotProduct(tmp, right);
+
+					p[j][2] = DotProduct(tmp, up);
+
+				}
+
+			}
+
+
+
+			for (j = 0; j < 8; j++)
+
+			{
+
+				VectorAdd(p[j], org, p[j]);
+
+
+
+				gEngfuncs.pTriAPI->WorldToScreen(p[j], screen[j]);
+
+
+
+				screen[j][0] = XPROJECT(screen[j][0]);
+
+				screen[j][1] = YPROJECT(screen[j][1]);
+
+				screen[j][2] = 0.0f;
+
+			}
+
+		}
+
+	}
+
+	else // ??? ??????
+
+	{
+
+		for (j = 0; j < 8; j++)
+
+		{
+
+			tmp[0] = (j & 1) ? ent->curstate.mins[0] : ent->curstate.maxs[0];
+
+			tmp[1] = (j & 2) ? ent->curstate.mins[1] : ent->curstate.maxs[1];
+
+			tmp[2] = (j & 4) ? ent->curstate.mins[2] : ent->curstate.maxs[2];
+
+
+
+			VectorAdd(tmp, ent->origin, tmp);
+
+			VectorCopy(tmp, p[j]);
+
+
+
+			gEngfuncs.pTriAPI->WorldToScreen(p[j], screen[j]);
+
+
+
+			screen[j][0] = XPROJECT(screen[j][0]);
+
+			screen[j][1] = YPROJECT(screen[j][1]);
+
+			screen[j][2] = 0.0f;
+
+		}
+
+	}
+
+
+
+	// ???????? ??????????
+
+	for (j = 0; j < 8; j++)
+
+	{
+
+		if (screen[j][0] > max_x) max_x = screen[j][0];
+
+		if (screen[j][1] > max_y) max_y = screen[j][1];
+
+
+
+		if (screen[j][0] < min_x) min_x = screen[j][0];
+
+		if (screen[j][1] < min_y) min_y = screen[j][1];
+
+	}
+
+
+
+	if (max_x < BORDER_X) max_x = BORDER_X;
+
+	if (max_x > ScreenWidth - BORDER_X) max_x = ScreenWidth - BORDER_X;
+
+
+
+	if (min_x < BORDER_X) min_x = BORDER_X;
+
+	if (min_x > ScreenWidth - BORDER_X) min_x = ScreenWidth - BORDER_X;
+
+
+
+	if (max_y < BORDER_Y) max_y = BORDER_Y;
+
+	if (max_y > ScreenHeight - BORDER_Y) max_y = ScreenHeight - BORDER_Y;
+
+
+
+	if (min_y < BORDER_Y) min_y = BORDER_Y;
+
+	if (min_y > ScreenHeight - BORDER_Y) min_y = ScreenHeight - BORDER_Y;
+
+
+
+	// ?????????
+
+	int r, g, b, a;
+
+	max_x += 60;
+	min_x -= 60;
+
+	max_y += 60;
+	min_y -= 60;
+
+	a = MIN_ALPHA;
+
+	UnpackRGB(r, g, b, RGB_YELLOWISH);
+
+
+
+	// ????
+
+	// ?
+
+	FillRGBA(min_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
+
+	FillRGBA(min_x, min_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+
+	// ?
+
+	FillRGBA(max_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
+
+	FillRGBA(max_x + BRACKET_TX, min_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+
+
+
+	// ???
+
+	// ?
+
+	FillRGBA(min_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
+
+	FillRGBA(min_x, max_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+
+	// ?
+
+	FillRGBA(max_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
+	FillRGBA(max_x + BRACKET_TX, max_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+
+	char* keyout;
+	KB_ConvertString("+use", &keyout);
+	strUpper(keyout);
+	std::string boundkey;
+	std::string sprite;
+
+	if (g_szUseEntClassname == "func_pushable")
+	{
+		boundkey = keyout + (std::string)" to Pull/Push";
+		sprite = "sprites/grab.spr";
+	}
+	else
+	{
+		boundkey = keyout + (std::string)" to Interact";
+		sprite = "sprites/use.spr";
+	}
+
+	// drawing
+	gHUD.DrawBackground(min_x + BRACKET_TX * 2, min_y + BRACKET_TY, min_x + BRACKET_TX * 2 + 50, min_y + BRACKET_TY + 50 ,(char*)sprite.c_str(), Vector(r, g, b), kRenderTransAdd);
+	gHUD.DrawHudString(min_x + BRACKET_TX * 2 + 60, min_y + BRACKET_TY + 10, BRACKET_LX * 2, (char*)boundkey.c_str(), r, g, b);
+
+}

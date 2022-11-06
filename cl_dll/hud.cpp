@@ -59,6 +59,9 @@ int giR, giG, giB;
 
 extern int giOldWeapons;
 
+int g_iUseEnt;
+std::string g_szUseEntClassname;
+
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
 public:
@@ -437,6 +440,13 @@ int __MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf)
 	gHUD.MsgFunc_WpnSkn(pszName, iSize, pbuf);
 	return 1;
 }
+int __MsgFunc_UseEnt(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	g_iUseEnt = READ_BYTE();
+	g_szUseEntClassname = READ_STRING();
+	return 1;
+}
 
 
 //void InitPostEffects(); //Forward Declaration for Post-Processing
@@ -551,6 +561,9 @@ void CHud :: Init()
 	CVAR_CREATE("te_sunflare", "1", FCVAR_ARCHIVE);
 	CVAR_CREATE("te_bloom_effect", "1", FCVAR_ARCHIVE);
 
+	CVAR_CREATE("test1", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("test2", "0", FCVAR_ARCHIVE);
+
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
 	HOOK_MESSAGE( LightStyle );
@@ -563,6 +576,7 @@ void CHud :: Init()
 	HOOK_MESSAGE( Particle );
 	HOOK_MESSAGE( PPGray );
 	HOOK_MESSAGE( WpnSkn );
+	HOOK_MESSAGE(UseEnt);
 
 	gPropManager.Init();
 	gTextureLoader.Init();
@@ -1082,7 +1096,7 @@ void CHud::DrawBackground(float xmin, float ymin, float xmax, float ymax, char* 
 	gEngfuncs.pTriAPI->Brightness(1.0f);
 	gEngfuncs.pTriAPI->Color4ub(color.x, color.y, color.z, 255);
 	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
-	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), 4);
+	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load(sprite)), 0);
 
 	//start drawing
 	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
