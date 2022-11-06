@@ -119,6 +119,12 @@ BOOL CanAttack(float attack_time, float curtime, BOOL isPredicted)
 void CBasePlayerWeapon::ItemPostFrame()
 {
 #ifndef CLIENT_DLL
+
+	if (m_pPlayer->isRunning)
+	{
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5f;
+	}
+
 	//Reset max clip and max ammo to default values
 	if (!(m_pPlayer->m_iItems & CTFItem::Backpack))
 	{

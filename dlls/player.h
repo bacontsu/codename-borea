@@ -229,7 +229,16 @@ public:
 	float nextSlowmoUpdate;
 	int slowmoCounter;
 	void SlowmoPhysics();
+	
+	// leaning
+	void LeaningThink();
+	bool isLeaning;
+	int leanMode; // 0 - none	1 - left	2 - right
+	float leanAngle;
+	TraceResult leanRightTr, leanLeftTr;
 
+	// deus ex box thing
+	int m_iUseEnt;
 
 	// Opposing Force specific
 

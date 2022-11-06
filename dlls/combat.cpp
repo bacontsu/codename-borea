@@ -31,6 +31,7 @@
 #include "func_break.h"
 #include "studio.h"
 #include <FranUtils.hpp>
+#include "player.h";
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
@@ -1786,6 +1787,17 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 	Vector vecRight = gpGlobals->v_right;
 	Vector vecUp = gpGlobals->v_up;
 	float x, y, z;
+
+	UTIL_MakeVectors(pev->v_angle);
+	if (IsPlayer())
+	{
+		auto m_pPlayer = static_cast<CBasePlayer*>(this);
+		if (m_pPlayer)
+		{
+			vecSrc = vecSrc + gpGlobals->v_right * m_pPlayer->leanAngle;
+			UTIL_Particle("smokegun.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5 + gpGlobals->v_right * m_pPlayer->leanAngle, gpGlobals->v_forward * 5, 0);
+		}
+	}
 
 	if ( pevAttacker == nullptr )
 		pevAttacker = pev;  // the default attacker is ourselves

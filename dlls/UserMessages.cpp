@@ -80,6 +80,7 @@ int gmsgCreateSystem	= 0;
 int gmsgPPGray = 0;
 int gmsgViewmodelSkin	= 0; // Weapon Model Skinfamilies
 int gmsgLensFlare = 0;
+int gmsgUseEnt = 0;
 
 //RENDERERS END
 
@@ -171,6 +172,7 @@ void LinkUserMessages()
 	gmsgPPGray = REG_USER_MSG("PPGray", -1);
 	gmsgViewmodelSkin = REG_USER_MSG("WpnSkn", -1);
 	gmsgLensFlare = REG_USER_MSG("Lensflare", -1);
+	gmsgUseEnt = REG_USER_MSG("UseEnt", -1);
 
 	//RENDERERS END
 

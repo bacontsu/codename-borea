@@ -174,12 +174,6 @@ void CPython::PrimaryAttack()
 
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 
-#ifndef CLIENT_DLL
-	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
-	FranUtils::EmitDlight(m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 6, 16, { 255, 255, 160 }, 0.05f, 0);
-	UTIL_Particle("smokegun.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5, gpGlobals->v_forward * 5, 0);
-#endif
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 

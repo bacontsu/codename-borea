@@ -360,6 +360,30 @@ void DLLEXPORT HUD_CreateEntities()
 extern int g_bACSpinning[33];
 #endif 
 
+
+void ProjectMuzzleflash(const struct cl_entity_s* entity)
+{
+	if (entity != gEngfuncs.GetViewModel()) return;
+
+	Vector forward;
+	AngleVectors(gHUD.pparams->viewangles, forward, null, null);
+
+	cl_dlight_t* dlight = gBSPRenderer.CL_AllocDLight(gEngfuncs.GetLocalPlayer()->index);
+
+	dlight->color.x = (float)255 / 255;
+	dlight->color.y = (float)255 / 255;
+	dlight->color.z = (float)160 / 255;
+	dlight->radius = 200;
+	dlight->origin = Vector(gHUD.pparams->vieworg);
+	dlight->cone_size = 150;
+	dlight->angles = gHUD.pparams->viewangles;
+	dlight->die = gEngfuncs.GetClientTime() + 0.05f;
+	dlight->textureindex = gBSPRenderer.m_pFlashlightTextures[0]->iIndex;
+	dlight->noshadow = 0;
+
+	dlight->frustum.SetFrustum(dlight->angles, dlight->origin, dlight->cone_size * 1.2, dlight->radius);
+}
+
 /*
 =========================
 HUD_StudioEvent
@@ -384,20 +408,24 @@ void DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct
 	switch( event->event )
 	{
 	case 5001:
-		if ( iMuzzleFlash )
-			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
+		if (iMuzzleFlash)
+			gEngfuncs.pEfxAPI->R_MuzzleFlash((float*)&entity->attachment[0], atoi(event->options));
+		ProjectMuzzleflash(entity);
 		break;
 	case 5011:
 		if ( iMuzzleFlash )
 			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
+		ProjectMuzzleflash(entity);
 		break;
 	case 5021:
 		if ( iMuzzleFlash )
 			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
+		ProjectMuzzleflash(entity);
 		break;
 	case 5031:
 		if ( iMuzzleFlash )
 			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );
+		ProjectMuzzleflash(entity);
 		break;
 	case 5002:
 		gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options), -100, 100 );

@@ -113,6 +113,8 @@ kbutton_t	in_break;
 kbutton_t	in_graph;  // Display the netgraph
 kbutton_t	in_customhud;	//AJH custom hud
 kbutton_t	in_briefing;	//AJH show map briefing
+kbutton_t	in_leanright;
+kbutton_t	in_leanleft;
 
 
 typedef struct kblist_s
@@ -584,6 +586,26 @@ void IN_MLookUp ()
 	}
 }
 
+void IN_LeanRightDown()
+{
+	KeyDown(&in_leanright);
+}
+
+void IN_LeanRightUp()
+{
+	KeyUp(&in_leanright);
+}
+
+void IN_LeanLeftDown()
+{
+	KeyDown(&in_leanleft);
+}
+
+void IN_LeanLeftUp()
+{
+	KeyUp(&in_leanleft);
+}
+
 /*
 ===============
 CL_KeyState
@@ -879,12 +901,12 @@ int CL_ButtonBits( int bResetState )
 
 	if ( in_left.state & 3 )
 	{
-		bits |= IN_LEFT;
+		//bits |= IN_LEFT;
 	}
 	
 	if (in_right.state & 3)
 	{
-		bits |= IN_RIGHT;
+		//bits |= IN_RIGHT;
 	}
 	
 	if ( in_moveleft.state & 3 )
@@ -923,6 +945,18 @@ int CL_ButtonBits( int bResetState )
 		bits |= IN_RUN;
 	}
 
+	if (in_leanright.state & 3)
+	{
+		//gEngfuncs.Con_Printf("lean right!");
+		bits |= IN_RIGHT;
+	}
+
+	if (in_leanleft.state & 3)
+	{
+		//gEngfuncs.Con_Printf("lean left!");
+		bits |= IN_LEFT;
+	}
+
 	// Dead or in intermission? Shore scoreboard, too
 	if ( CL_IsDead() || gHUD.m_iIntermission )
 	{
@@ -946,6 +980,8 @@ int CL_ButtonBits( int bResetState )
 		in_alt1.state &= ~2;
 		in_score.state &= ~2;
 		in_speed.state &= ~2;
+		in_leanright.state &= ~2;
+		in_leanleft.state &= ~2;
 	}
 
 	return bits;
@@ -1041,6 +1077,10 @@ void InitInput ()
 	gEngfuncs.pfnAddCommand ("-graph", IN_GraphUp);
 	gEngfuncs.pfnAddCommand ("+break",IN_BreakDown);
 	gEngfuncs.pfnAddCommand ("-break",IN_BreakUp);
+	gEngfuncs.pfnAddCommand("+leanright", IN_LeanRightDown);
+	gEngfuncs.pfnAddCommand("-leanright", IN_LeanRightUp);
+	gEngfuncs.pfnAddCommand("+leanleft", IN_LeanLeftDown);
+	gEngfuncs.pfnAddCommand("-leanleft", IN_LeanLeftUp);
 
 	lookstrafe			= gEngfuncs.pfnRegisterVariable ( "lookstrafe", "0", FCVAR_ARCHIVE );
 	lookspring			= gEngfuncs.pfnRegisterVariable ( "lookspring", "0", FCVAR_ARCHIVE );

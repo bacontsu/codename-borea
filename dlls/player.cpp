@@ -2191,6 +2191,7 @@ void CBasePlayer::PreThink()
 
 	SlowmoPhysics(); // bacontsu - slowmotion handler
 
+	LeaningThink(); // bacontsu - leaning handler
 
 	// animated fov stuff
 	currFov = CVAR_GET_FLOAT("default_fov");
@@ -4836,6 +4837,7 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_SHORT(slowmoCounter);
 	WRITE_SHORT(isSlowmo);
 	WRITE_BYTE(isRunning);
+	WRITE_FLOAT(leanAngle);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -6414,6 +6416,96 @@ void CBasePlayer::SlowmoPhysics()
 }
 //===========================================================================================
 // SLOWMO END
+//===========================================================================================
+
+//===========================================================================================
+// LEANING START
+//===========================================================================================
+void CBasePlayer::LeaningThink()
+{
+	if (isClimbing) return; // dont lean if we're climbing
+
+	if (isOnWall) return; // dont lean if we're wallrunning
+
+	if (isRunning) return; // dont lean if player is currently running (that doesnt even make sense)
+
+	if (IsOnLadder()) return; // whar
+
+
+	Vector right, up;
+	AngleVectors(pev->angles, nullptr, &right, &up);
+	right.z = 0;
+	right.Normalize();
+
+	// left leaning
+	if (pev->button & IN_LEFT)
+	{
+		// first scan
+		Vector vecSrc = pev->origin + up * 50;
+		Vector vecEnd = vecSrc - right * 100;
+		UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &leanLeftTr);
+		vecEnd = leanLeftTr.vecEndPos;
+
+		// second scan
+		if (leanLeftTr.flFraction < 1)
+		{
+			vecSrc = leanLeftTr.vecEndPos;
+			vecEnd = vecSrc + right * 10;
+		}
+
+		Vector ang;
+		VectorAngles((vecEnd - pev->origin).Normalize(), ang);
+
+		leanAngle = ang[PITCH] - 75;
+		
+		if (leanAngle < -30.0f) leanAngle = -30.0f;
+
+		if (leanAngle > 0) leanAngle = 0;
+
+		isLeaning = true;
+		leanMode = 1;
+	}
+
+	// right leaning
+	else if (pev->button & IN_RIGHT)
+	{
+		// first scan
+		Vector vecSrc = pev->origin + up * 50;
+		Vector vecEnd = vecSrc + right * 100;
+		UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &leanRightTr);
+		vecEnd = leanRightTr.vecEndPos;
+
+		// second scan
+		if (leanRightTr.flFraction < 1)
+		{
+			vecSrc = leanRightTr.vecEndPos;
+			vecEnd = vecSrc - right * 10;
+		}
+
+		Vector ang;
+		VectorAngles((vecEnd - pev->origin).Normalize(), ang);
+
+		leanAngle = 75 - ang[PITCH];
+
+		if (leanAngle < 0) leanAngle = 0;
+
+		if (leanAngle > 30.0f) leanAngle = 30.0f;
+
+		isLeaning = true;
+		leanMode = 2;			
+
+	}
+	//ALERT(at_console, "%f", leanAngle);
+	else if (isLeaning)
+	{
+		isLeaning = false;
+		leanMode = 0;
+		leanAngle = 0.0f;
+	}
+
+}
+//===========================================================================================
+// LEANING END
 //===========================================================================================
 
 //=========================================================

@@ -108,6 +108,7 @@ int CHudHealth::VidInit()
 
 	// reset when level change
 	nextBeatUpdate = 0;
+	nextBeatFrame = 0;
 	return 1;
 }
 
@@ -162,7 +163,8 @@ int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	gHUD.slowmoBar = READ_SHORT();
 	gHUD.isSlowmo = READ_SHORT();
 	gHUD.isRunning = (bool)READ_BYTE();
-	
+	gHUD.leanAngle = READ_FLOAT();
+
 	return 1;
 }
 

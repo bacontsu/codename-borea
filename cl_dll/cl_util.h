@@ -171,3 +171,4 @@ void VectorInverse ( float *v );
 HL_HSPRITE LoadSprite(const char *pszName);
 
 void GetFallbackDir(char* falldir);
+char* strUpper(char* str);

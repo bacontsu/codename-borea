@@ -906,7 +906,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	//view->angles[ROLL]  -= bob * 1;
 	//view->angles[PITCH] -= bob * 0.3;
 
-	// wallrun offsetting
+	// Bacontsu - wallrun offsetting
 	float target;
 	if(gHUD.wallType == 1)
 		target = 30;
@@ -917,7 +917,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL] += gHUD.lerpedRoll;
 	pparams->viewangles[ROLL] += gHUD.lerpedRoll / 5;
 
-	// climbing viewmodel holstering
+	// Bacontsu - climbing viewmodel holstering
 	float pitchTarget = 0;
 	if (gHUD.isClimbing)
 		pitchTarget = -80;
@@ -925,7 +925,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	gHUD.lerpedPitch = (pitchTarget * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (gHUD.lerpedPitch * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
 	view->angles[PITCH] += gHUD.lerpedPitch;
 
-	// running hold down viewmodel
+	// Bacontsu - running hold down viewmodel
 	float holdTarget = 0;
 	float holdTargetYaw = 0;
 	if (gHUD.isRunning)
@@ -942,6 +942,23 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[PITCH] += lerpedHold;
 	view->angles[YAW] += lerpedHoldYaw;
 
+	// Bacontsu - Leaning
+	static float leanLerp = 0;
+	leanLerp = lerp(leanLerp, gHUD.leanAngle, gHUD.m_flTimeDelta * 7.0f);
+
+	// apply rotation
+	pparams->viewangles[ROLL] += leanLerp;
+	view->angles[ROLL] += leanLerp;
+
+	// apply peeking
+	for (int i = 0; i < 3; i++)
+	{
+		pparams->vieworg[i] += pparams->right[i] * leanLerp;
+		view->origin[i] += pparams->right[i] * leanLerp;
+	}
+
+	//gEngfuncs.Con_Printf("%f", gHUD.leanAngle);
+
 	VectorCopy(view->angles, view->curstate.angles);
 	
 	pparams->viewangles[ROLL] += bobRight * 0.15;
@@ -949,6 +966,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	gHUD.bobValue[0] = bobRight;
 	gHUD.bobValue[1] = bobUp;
+
+	gHUD.pparams = pparams;
 
 	//gEngfuncs.Con_Printf("%f\n", pparams->viewangles[PITCH]);
 	

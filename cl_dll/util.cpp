@@ -65,6 +65,20 @@ void GetFallbackDir(char* falldir)
     pfile = pfile2 = nullptr;
 }
 
+//==========================
+//	strUpper
+//
+//==========================
+char* strUpper(char* str)
+{
+    char* temp;
+
+    for (temp = str; *temp; temp++)
+        *temp = toupper(*temp);
+
+    return str;
+}
+
 // stub functions
 void SET_MODEL(edict_t* e, const char* model) {}
 int PRECACHE_MODEL(const char* s) { return 0; }

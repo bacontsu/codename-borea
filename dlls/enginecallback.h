@@ -77,6 +77,7 @@ inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin = nu
 #define WRITE_CHAR		(*g_engfuncs.pfnWriteChar)
 #define WRITE_SHORT		(*g_engfuncs.pfnWriteShort)
 #define WRITE_LONG		(*g_engfuncs.pfnWriteLong)
+#define WRITE_FLOAT(x) (WRITE_LONG(*reinterpret_cast<long*>(&x)))
 #define WRITE_ANGLE		(*g_engfuncs.pfnWriteAngle)
 #define WRITE_COORD		(*g_engfuncs.pfnWriteCoord)
 #define WRITE_STRING	(*g_engfuncs.pfnWriteString)

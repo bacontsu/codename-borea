@@ -850,7 +850,8 @@ public:
 	float		slowmoStrength;
 	int		slowmoMode;
 	bool	isRunning;
-	int		leanMode; // 0 - none, 1 - right, 2 - left
+	float	leanAngle;
+	ref_params_s* pparams;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );

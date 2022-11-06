@@ -422,6 +422,11 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 	pmtrace_t tr;
 	int iShot;
 	int tracer;
+
+	for (int i = 0; i < 3; i++)
+	{
+		vecSrc[i] += gHUD.leanAngle * right[i];
+	}
 	
 	for ( iShot = 1; iShot <= cShots; iShot++ )	
 	{
