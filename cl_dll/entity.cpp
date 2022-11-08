@@ -368,20 +368,49 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 	Vector forward;
 	AngleVectors(gHUD.pparams->viewangles, forward, null, null);
 
-	cl_dlight_t* dlight = gBSPRenderer.CL_AllocDLight(gEngfuncs.GetLocalPlayer()->index);
+	pmtrace_t tr = { 0 };
+	Vector VecSrc = entity->attachment[0] - forward * 5;
+	Vector VecEnd = Vector(gHUD.pparams->vieworg) + forward * 8192;
 
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(VecSrc, VecEnd, PM_NORMAL | PM_GLASS_IGNORE, 1, & tr);
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	Vector angles;
+	if (&tr)
+	{
+		Vector dist = tr.endpos - VecSrc;
+		dist.z = 0;
+		dist.Normalize();
+		VectorAngles(dist, angles);
+	}
+
+	// projected light/textures
+	cl_dlight_t* dlight = gBSPRenderer.CL_AllocDLight(gEngfuncs.GetLocalPlayer()->index);
 	dlight->color.x = (float)255 / 255;
 	dlight->color.y = (float)255 / 255;
 	dlight->color.z = (float)160 / 255;
 	dlight->radius = 200;
-	dlight->origin = Vector(gHUD.pparams->vieworg);
+	dlight->origin = VecSrc;
 	dlight->cone_size = 150;
-	dlight->angles = gHUD.pparams->viewangles;
+	dlight->angles = Vector(gHUD.pparams->viewangles[PITCH], angles.y, angles.z);
 	dlight->die = gEngfuncs.GetClientTime() + 0.05f;
 	dlight->textureindex = gBSPRenderer.m_pFlashlightTextures[0]->iIndex;
 	dlight->noshadow = 0;
 
 	dlight->frustum.SetFrustum(dlight->angles, dlight->origin, dlight->cone_size * 1.2, dlight->radius);
+
+	// small dlight
+	cl_dlight_t* dlight2 = gBSPRenderer.CL_AllocDLight(0);
+	dlight2->color.x = (float)255 / 255;
+	dlight2->color.y = (float)255 / 255;
+	dlight2->color.z = (float)160 / 255;
+	dlight2->radius = 5;
+	dlight2->origin = VecSrc;
+	dlight2->die = gEngfuncs.GetClientTime() + 0.05f;
 }
 
 /*
