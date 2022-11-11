@@ -666,6 +666,34 @@ public:
 	void DrawAll(const Vector &org);
 };
 
+class CImguiManager
+{
+public:
+	bool Init();
+	bool VidInit();
+	void Draw();
+	void DrawChapter();
+
+	// chapter selection variables
+	bool isMenuOpen = false;
+	int page;
+	bool skillMode[4];
+};
+
+class CDiscordRPCManager
+{
+public:
+	bool Init();
+	bool VidInit();
+	void Shutdown();
+	void Update();
+
+	float runningTime;
+	float discordUpdate;
+	std::string chapterName;
+
+};
+
 //
 //-----------------------------------------------------
 //
@@ -1017,6 +1045,9 @@ typedef struct viewinfo_s
 extern viewinfo_s g_viewinfo;
 
 extern CHud gHUD;
+
+extern CImguiManager g_ImGUIManager;
+extern CDiscordRPCManager g_DiscordRPC;
 
 extern int g_iPlayerClass;
 extern int g_iTeamNumber;

@@ -59,6 +59,8 @@ extern engine_studio_api_t IEngineStudio;
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 CMP3 gMP3; //AJH - Killars MP3player
+CImguiManager g_ImGUIManager;
+CDiscordRPCManager g_DiscordRPC;
 TeamFortressViewport *gViewPort = nullptr;
 
 //RENDERERS START

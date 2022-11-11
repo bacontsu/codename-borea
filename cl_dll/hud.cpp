@@ -240,6 +240,14 @@ int __MsgFunc_Inventory(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+int __MsgFunc_ChapterName(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	g_DiscordRPC.chapterName = READ_STRING();
+
+	return 1;
+}
+
 // TFFree Command Menu
 void __CmdFunc_OpenCommandMenu()
 {
@@ -544,6 +552,7 @@ void CHud :: Init()
 
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );
+	HOOK_MESSAGE(ChapterName);
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
@@ -589,6 +598,9 @@ void CHud :: Init()
 	gLensflare.Init();
 	gBloomRenderer.Init();
 	//RENDERERS END
+
+	g_ImGUIManager.Init();
+	g_DiscordRPC.Init();
 	
 	//start glow effect --FragBait0
 	CVAR_CREATE("r_glow", "0", FCVAR_ARCHIVE );
@@ -890,6 +902,8 @@ void CHud :: VidInit()
 	gPropManager.VidInit();
 	gBlur.VidInit();
 	//RENDERERS_END
+	g_ImGUIManager.VidInit();
+	g_DiscordRPC.VidInit();
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

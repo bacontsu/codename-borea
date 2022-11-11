@@ -353,7 +353,21 @@ int CHudHealth::Draw(float flTime)
 		x = 190 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2 + gHUD.camValue[1] * 0.1f;
 
-		gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
+		//gHUD.DrawHudNumber(x, y, DHN_DRAWZERO, m_iHealth, r, g, b);
+
+		// draw health
+		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 90 + gHUD.camValue[1] * 0.1f;
+		scale = m_iHealth * 1.3f;
+		static float scaleLerpHealth = 0.0f;
+		scaleLerpHealth = lerp(scaleLerpHealth, scale, gHUD.m_flTimeDelta * 5);
+
+		FillRGBA(x, y, 100 * 1.3f, 15, 144, 144, 144, 100);
+		FillRGBA(x, y, scaleLerpHealth, 15, 251, 125, 43, 255);
+
+		y -= 20;
+		x -= 4;
+		gHUD.DrawHudString(x, y, ScreenWidth, "Vitals", 251, 125, 43);
 
 		// draw cardio lines
 		x = 85 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
@@ -402,24 +416,24 @@ int CHudHealth::Draw(float flTime)
 		*/
 
 		// draw battery
-		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 210 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 70 + gHUD.camValue[1] * 0.1f;
 		scale = gHUD.m_Battery.m_iBat * 1.3f;
 		static float scaleLerp = 0.0f;
-		scaleLerp = lerp(scaleLerp, scale, gHUD.m_flTimeDelta);
+		scaleLerp = lerp(scaleLerp, scale, gHUD.m_flTimeDelta * 5);
 
 		FillRGBA(x, y, 100 * 1.3f, 15, 144, 144, 144, 100);
-		FillRGBA(x, y, scaleLerp, 15, 251, 177, 43, 255);
+		FillRGBA(x, y, scaleLerp, 15, 21, 255, 255, 255);
 
 		// draw stamina empty bar
-		x = 200 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 220 + m_iStamina * 1.3f + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		int stamina = (100-m_iStamina) * 1.3f;
 
 		FillRGBA(x, y, stamina, 5, 144, 144, 144, 100);
 
 		// draw stamina
-		x = 200 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
+		x = 220 + gHUD.bobValue[0] * 2.5f - gHUD.lagangle_x * 3 + gHUD.camValue[0] * 0.1f;
 		y = ScreenHeight + gHUD.bobValue[1] * 2.5f + gHUD.velz * 10 - 50 + gHUD.camValue[1] * 0.1f;
 		stamina = m_iStamina * 1.3f;
 

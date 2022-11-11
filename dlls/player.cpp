@@ -5233,6 +5233,22 @@ void CBasePlayer :: UpdateClientData()
 		//else ALERT(at_console, "Usable ent found.\n");
 	}
 
+	// send map chapter data
+	entvars_t* pevWorld = VARS(INDEXENT(0));
+	if (pevWorld->message != 0)
+	{
+		// trying to extract message from the world
+		MESSAGE_BEGIN(MSG_ALL, gmsgChapterName);
+		WRITE_STRING(STRING(pevWorld->message));
+		MESSAGE_END();
+	}
+	else
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgChapterName);
+		WRITE_STRING(0);
+		MESSAGE_END();
+	}
+
 	//Handled anything that needs resetting
 	m_bRestored = false;
 }

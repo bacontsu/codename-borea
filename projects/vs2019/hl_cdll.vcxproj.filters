@@ -70,6 +70,12 @@
     <Filter Include="Header Files\engine">
       <UniqueIdentifier>{ebcb0f66-49b6-4e55-9a97-f6720cade9ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{dac453e3-e733-453e-82fc-20a6a74fc308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\discord">
+      <UniqueIdentifier>{343855c9-d42a-4cd4-8fc8-a9a5dbc52c12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -403,6 +409,60 @@
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\bloom.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\backends\imgui_impl_opengl2.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\backends\imgui_impl_sdl.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\imgui.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\imgui_demo.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\imgui_draw.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\imgui_tables.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\imgui\misc\fonts\binary_to_compressed_c.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\connection_win.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\discord_register_win.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\discord_rpc.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\dllmain.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\rpc_connection.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\discord_sdk\src\serialization.cpp">
+      <Filter>Source Files\discord</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\imgui_manager.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\discord_manager.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
   </ItemGroup>
@@ -757,6 +817,174 @@
     </ClInclude>
     <ClInclude Include="..\..\cl_dll\blur.h">
       <Filter>Header Files\cl_dll</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\backends\imgui_impl_opengl2.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\backends\imgui_impl_opengl3_loader.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\backends\imgui_impl_sdl.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imconfig.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imgui.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imgui_internal.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imstb_rectpack.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imstb_textedit.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\imstb_truetype.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\imgui\misc\single_file\imgui_single_file.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\include\discord_register.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\include\discord_rpc.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\backoff.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\connection.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\msg_queue.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\allocators.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\cursorstreamwrapper.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\document.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\encodedstream.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\encodings.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\error\en.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\error\error.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\filereadstream.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\filewritestream.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\fwd.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\biginteger.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\diyfp.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\dtoa.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\ieee754.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\itoa.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\meta.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\pow10.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\regex.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\stack.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\strfunc.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\strtod.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\internal\swap.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\istreamwrapper.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\memorybuffer.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\memorystream.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\msinttypes\inttypes.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\msinttypes\stdint.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\ostreamwrapper.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\pointer.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\prettywriter.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\rapidjson.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\reader.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\schema.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\stream.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\stringbuffer.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rapidjson\writer.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\rpc_connection.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\discord_sdk\src\serialization.h">
+      <Filter>Source Files\discord</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\stb_image.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
