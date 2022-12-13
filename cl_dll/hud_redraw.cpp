@@ -842,11 +842,11 @@ void HUD_MarkUsableEnt(void)
 
 	int r, g, b, a;
 
-	max_x += 60;
-	min_x -= 60;
+	max_x += 30;
+	min_x -= 30;
 
-	max_y += 60;
-	min_y -= 60;
+	max_y += 15;
+	min_y -= 15;
 
 	a = MIN_ALPHA;
 
@@ -891,12 +891,12 @@ void HUD_MarkUsableEnt(void)
 
 	if (g_szUseEntClassname == "func_pushable")
 	{
-		boundkey = keyout + (std::string)" to Pull/Push";
+		boundkey = keyout;
 		sprite = "sprites/grab.spr";
 	}
 	else
 	{
-		boundkey = keyout + (std::string)" to Interact";
+		boundkey = keyout;
 		sprite = "sprites/use.spr";
 	}
 
