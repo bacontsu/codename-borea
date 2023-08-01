@@ -914,9 +914,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	// Bacontsu - wallrun offsetting
 	float target;
-	if(gHUD.wallType == 1)
+	if(gHUD.wallType == 2)
 		target = 30;
-	else if (gHUD.wallType == 2)
+	else if (gHUD.wallType == 1)
 		target = -30;
 
 	gHUD.lerpedRoll = (target * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (gHUD.lerpedRoll * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));

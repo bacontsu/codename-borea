@@ -6424,8 +6424,6 @@ void CBasePlayer::WallrunThink()
 {
 	if (isClimbing) return; // if we're climbing a wall, dont init wallrun
 
-	if (pev->velocity.Length2D() < 100) return; // atleast 100u/s speed to init wallrun
-
 	UTIL_MakeVectors(pev->angles);
 	Vector realRight = gpGlobals->v_right;
 	
@@ -6439,69 +6437,68 @@ void CBasePlayer::WallrunThink()
 	UTIL_TraceLine(vecSrc, vecRight, ignore_monsters, ENT(pev), &wallRightTr);
 	UTIL_TraceLine(vecSrc, vecLeft, ignore_monsters, ENT(pev), &wallLeftTr);
 
-	// left traceline
-	if (wallLeftTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
+	int hitsWall = 0; // 0 - none, 1 - right, 2 - left
+	static Vector wallAngles, wallRight, wallForward;
+
+	// atleast 100u/s speed to init wallrun
+	if(pev->velocity.Length2D() > 100.0f)
 	{
-		CBaseEntity* pEntity = CBaseEntity::Instance(wallLeftTr.pHit);
-
-		if (FClassnameIs(pEntity->pev, "func_wallrun"))
+		// right traceline
+		if (wallRightTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
 		{
-			pev->movetype = MOVETYPE_FLY;
-			pev->velocity.z = 0;
-
-			Vector wallAngles, wallRight;
-			VectorAngles(wallLeftTr.vecPlaneNormal, wallAngles);
-
-			// ALERT(at_console, "hits walllrun trigger on left side angle diff: %f ", pev->angles.y);
-
-			AngleVectors(wallAngles, nullptr, &wallRight, nullptr);
-
-			pev->velocity = pev->velocity - wallRight * 10 * (300 / (1 / gpGlobals->frametime));
-
-			// cap player climbing speed
-			if (pev->velocity.Length() > 400.0f)
-			{
-				pev->velocity = pev->velocity.Normalize() * 400.0f;
-			}
-
-			isOnWall = true;
-			wallType = 1;
+			hitsWall = 1;
+		}
+		// left traceline
+		else if (wallLeftTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
+		{
+			hitsWall = 2;
 		}
 	}
 
-	// right traceline
-	else if (wallRightTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
+	// check for jump
+	bool pressedSpace = (pev->button & IN_JUMP);
+
+	if (hitsWall)
 	{
-		CBaseEntity* pEntity = CBaseEntity::Instance(wallRightTr.pHit);
+		pev->movetype = MOVETYPE_FLY;
+		pev->velocity.z = 0;
 
-		if (FClassnameIs(pEntity->pev, "func_wallrun"))
+
+		if (hitsWall == 1) // right
 		{
-			pev->movetype = MOVETYPE_FLY;
-			pev->velocity.z = 0;
-
-			Vector wallAngles, wallRight;
 			VectorAngles(wallRightTr.vecPlaneNormal, wallAngles);
-
-			// ALERT(at_console, "hits walllrun trigger on right side angle diff: %f ", pev->angles.y);
-
-			AngleVectors(wallAngles, nullptr, &wallRight, nullptr);
-
-			pev->velocity = pev->velocity + wallRight * 10 * (300 / (1 / gpGlobals->frametime));
-
-			// cap player climbing speed
-			if (pev->velocity.Length() > 400.0f)
-			{
-				pev->velocity = pev->velocity.Normalize() * 400.0f;
-			}
-
-			isOnWall = true;
-			wallType = 2;
+			AngleVectors(wallAngles, &wallForward, &wallRight, nullptr);
 		}
+		else if (hitsWall == 2) // left
+		{
+			VectorAngles(wallLeftTr.vecPlaneNormal, wallAngles);
+			AngleVectors(wallAngles, &wallForward, &wallRight, nullptr);
+			wallRight = wallRight * -1;
+		}
+
+		pev->velocity = pev->velocity + wallRight * 10 * (300 / (1 / gpGlobals->frametime));
+
+		// cap player climbing speed
+		if (pev->velocity.Length() > 400.0f)
+		{
+			pev->velocity = pev->velocity.Normalize() * 400.0f;
+		}
+		
+		isOnWall = true;
+		wallType = hitsWall;
 	}
 
 	// hits nothing
-	else if (!IsOnLadder() && isOnWall)
+	if ((!IsOnLadder() || !hitsWall || pev->velocity.Length2D() < 20.0f || pressedSpace) && isOnWall)
 	{
+		// launch player if they jumped
+		if (pressedSpace)
+		{
+			pev->velocity.x = wallForward.x * 200;
+			pev->velocity.y = wallForward.y * 200;
+			pev->velocity.z = 300;
+		}
+
 		pev->movetype = MOVETYPE_WALK;
 		wallType = 0;
 		isOnWall = false;
