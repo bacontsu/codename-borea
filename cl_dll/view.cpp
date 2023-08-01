@@ -947,8 +947,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	leanLerp = lerp(leanLerp, gHUD.leanAngle, gHUD.m_flTimeDelta * 7.0f);
 
 	// apply rotation
-	pparams->viewangles[ROLL] += leanLerp;
-	view->angles[ROLL] += leanLerp;
+	pparams->viewangles[ROLL] += leanLerp * 17.0f / 30.0f;
+	view->angles[ROLL] += leanLerp * 20.0f / 30.0f;
 
 	// apply peeking
 	for (int i = 0; i < 3; i++)
