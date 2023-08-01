@@ -240,6 +240,16 @@ public:
 	// deus ex box thing
 	int m_iUseEnt;
 
+	// sliding
+	int m_iSlidingStage;
+	Vector m_vecSlidingDir;
+	float m_flSlidingMultiplier;
+	float m_flSlidingTimer;
+	int m_iSlidingCounter;
+	float m_flSlidingCooldown;
+	TraceResult m_slidingTr;
+	void SlidingThink();
+
 	// Opposing Force specific
 
 	char* m_szTeamModel;

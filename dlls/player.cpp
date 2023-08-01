@@ -214,6 +214,14 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, slowmoCounter, FIELD_INTEGER),
 	DEFINE_FIELD(CBasePlayer, nextSlowmoUpdate, FIELD_TIME),
 
+	// sliding
+	DEFINE_FIELD(CBasePlayer, m_iSlidingStage, FIELD_INTEGER),
+	DEFINE_FIELD(CBasePlayer, m_vecSlidingDir, FIELD_VECTOR),
+	DEFINE_FIELD(CBasePlayer, m_flSlidingMultiplier, FIELD_FLOAT),
+	DEFINE_FIELD(CBasePlayer, m_flSlidingTimer, FIELD_TIME),
+	DEFINE_FIELD(CBasePlayer, m_iSlidingCounter, FIELD_INTEGER),
+	DEFINE_FIELD(CBasePlayer, m_flSlidingCooldown, FIELD_TIME),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -2192,6 +2200,8 @@ void CBasePlayer::PreThink()
 	SlowmoPhysics(); // bacontsu - slowmotion handler
 
 	LeaningThink(); // bacontsu - leaning handler
+
+	SlidingThink(); // bacontsu - sliding handler
 
 	// animated fov stuff
 	currFov = CVAR_GET_FLOAT("default_fov");
@@ -4840,6 +4850,7 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_SHORT(isSlowmo);
 	WRITE_BYTE(isRunning);
 	WRITE_FLOAT(leanAngle);
+	WRITE_BYTE((bool)m_iSlidingStage);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -6625,6 +6636,108 @@ void CBasePlayer::LeaningThink()
 }
 //===========================================================================================
 // LEANING END
+//===========================================================================================
+
+//===========================================================================================
+// SLIDING START
+//===========================================================================================
+
+void CBasePlayer::SlidingThink()
+{
+	float SlidingTime = 1.25f;
+	int SlidingCounter = (int)(SlidingTime / 0.05f);
+	if (pev->velocity.Length2D() > 350.0f && (pev->button & IN_DUCK) && m_iSlidingStage == 0 && m_flSlidingCooldown < gpGlobals->time && (pev->flags & FL_ONGROUND))
+	{
+		m_vecSlidingDir = pev->velocity;
+		m_iSlidingStage = 1;
+		m_iSlidingCounter = SlidingCounter;
+		EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/playerslide.wav", 1, ATTN_NORM);
+	}
+
+	if (m_iSlidingStage == 1)
+	{
+		Vector right, up;
+		AngleVectors(pev->angles, nullptr, &right, &up);
+		Vector vecSrc = pev->origin + up * 14;
+		Vector vecEnd = vecSrc + pev->velocity.Normalize() * 30;
+		UTIL_TraceHull(vecSrc, vecEnd, dont_ignore_monsters, 50, ENT(pev), &m_slidingTr);
+		bool blockedByWall = m_slidingTr.flFraction < 1.0;
+
+		// check if we're hitting destroyable doors
+		/*
+		if (blockedByWall && !FNullEnt(m_slidingTr.pHit))
+		{
+			auto pEnt = CBaseEntity::Instance(m_slidingTr.pHit);
+			if (pEnt && (!strncmp(STRING(pEnt->pev->classname), "func_door", 9) || !strcmp(STRING(pEnt->pev->classname), "momentary_door")))
+			{
+				auto pDoor = static_cast<CBaseDoor*>(pEnt);
+				if (pDoor && pDoor->pev->spawnflags & SF_DOOR_DESTROYABLE)
+				{
+					pDoor->DestroyDoor(this);
+					blockedByWall = false;
+				}
+			}
+			else if (pEnt && FClassnameIs(pEnt->pev, "func_breakable"))
+			{
+				pEnt->TakeDamage(this->pev, this->pev, pEnt->pev->health * 1.2f, DMG_GENERIC);
+				blockedByWall = false;
+			}
+		}
+		*/
+
+		// check if cancelled
+		if (!(pev->button & IN_DUCK) || blockedByWall || pev->velocity.Length2D() < 50.0f)
+		{
+			if (blockedByWall)
+			{
+				pev->punchangle.x -= 10;
+				pev->punchangle.z += 20;
+			}
+
+			m_iSlidingStage = 0;
+			m_flSlidingCooldown = gpGlobals->time + 0.5f;
+		}
+
+		// apply sliding - only on ground
+		if (pev->flags & FL_ONGROUND)
+		{
+
+			// if forward is pressed, slowly change the dir
+			if (pev->button & IN_FORWARD)
+			{
+				Vector forward;
+				AngleVectors(pev->angles, &forward, nullptr, nullptr);
+
+				for (int i = 0; i < 3; i++)
+					m_vecSlidingDir[i] = lerp(m_vecSlidingDir[i], forward[i] * 500, gpGlobals->frametime);
+			}
+
+			pev->velocity.x = lerp(pev->velocity.x, m_vecSlidingDir.x * m_flSlidingMultiplier, gpGlobals->frametime * 13);
+			pev->velocity.y = lerp(pev->velocity.y, m_vecSlidingDir.y * m_flSlidingMultiplier, gpGlobals->frametime * 13);
+			pev->velocity.z -= 100.0f;
+
+			// speed cap
+			if (pev->velocity.Length2D() > 700)
+				pev->velocity = pev->velocity.Normalize() * 700;
+
+			// always decrease multiplier
+			if (m_flSlidingTimer < gpGlobals->time)
+			{
+				if (m_iSlidingCounter > 0)
+					m_iSlidingCounter--;
+
+				m_flSlidingMultiplier = 2.25f * (float)m_iSlidingCounter / (float)SlidingCounter;
+
+				m_flSlidingTimer = gpGlobals->time + 0.05f;
+			}
+		}
+	}
+
+	//ALERT(at_console, "slidingstage: %i\n", m_iSlidingStage);
+}
+
+//===========================================================================================
+// SLIDING END
 //===========================================================================================
 
 //=========================================================

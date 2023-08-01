@@ -858,15 +858,15 @@ void HUD_MarkUsableEnt(void)
 
 	// ?
 
-	FillRGBA(min_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
+//	FillRGBA(min_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
 
-	FillRGBA(min_x, min_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+	//FillRGBA(min_x, min_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
 
 	// ?
 
-	FillRGBA(max_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
+	//FillRGBA(max_x, min_y + BRACKET_TY, BRACKET_TX, BRACKET_LY, r, g, b, a); // ?
 
-	FillRGBA(max_x + BRACKET_TX, min_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+	//FillRGBA(max_x + BRACKET_TX, min_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
 
 
 
@@ -874,14 +874,14 @@ void HUD_MarkUsableEnt(void)
 
 	// ?
 
-	FillRGBA(min_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
+	//FillRGBA(min_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
 
-	FillRGBA(min_x, max_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+	//FillRGBA(min_x, max_y, BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
 
 	// ?
 
-	FillRGBA(max_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
-	FillRGBA(max_x + BRACKET_TX, max_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
+	//FillRGBA(max_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
+	//FillRGBA(max_x + BRACKET_TX, max_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
 
 	char* keyout;
 	KB_ConvertString("+use", &keyout);

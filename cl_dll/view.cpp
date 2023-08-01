@@ -508,7 +508,10 @@ void V_CamAnims(struct ref_params_s* pparams, cl_entity_s* view)
 {
 	float cl_animbone = CVAR_GET_FLOAT("cl_animbone");
 
-	if (view->model == nullptr || view->model->name == nullptr || g_viewinfo.phdr == NULL)
+	if (view->model == nullptr || view->model->name == nullptr)
+		return;
+
+	if (g_viewinfo.phdr == NULL)
 		return;
 
 	mstudiobone_t* pbone = nullptr;
@@ -858,11 +861,14 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// Let the viewmodel shake at about 10% of the amplitude
 	gEngfuncs.V_ApplyShake( view->origin, view->angles, 0.9 );
 
+	static float BobScaling = 1.0f;
+	BobScaling = lerp(BobScaling, (float)(int)!gHUD.m_bSliding, gHUD.m_flTimeDelta * 10);
+
 	for ( i = 0; i < 3; i++ )
 	{
-		view->origin[i] += bobRight * 0.70 * pparams->right[i];
-		view->origin[i] += bobUp * 0.17 * pparams->up[i];
-		view->origin[i] += bobForward * 0 * pparams->forward[i];
+		view->origin[i] += BobScaling * bobRight * 0.70 * pparams->right[i];
+		view->origin[i] += BobScaling * bobUp * 0.17 * pparams->up[i];
+		view->origin[i] += BobScaling * bobForward * 0 * pparams->forward[i];
 	}
 	view->origin[2] += bobRight;
 
@@ -958,6 +964,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	}
 
 	//gEngfuncs.Con_Printf("%f", gHUD.leanAngle);
+
+	// bacontsu - sliding
+	static float slidelerp = 0;
+	slidelerp = lerp(slidelerp, gHUD.m_bSliding ? -15 : 0, gHUD.m_flTimeDelta * 5.0f);
+	view->angles[ROLL] += slidelerp * 2.5f;
+	pparams->viewangles[ROLL] += slidelerp;
 
 	VectorCopy(view->angles, view->curstate.angles);
 	

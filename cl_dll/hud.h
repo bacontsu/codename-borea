@@ -880,6 +880,7 @@ public:
 	bool	isRunning;
 	float	leanAngle;
 	ref_params_s* pparams;
+	bool	m_bSliding = false;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );
