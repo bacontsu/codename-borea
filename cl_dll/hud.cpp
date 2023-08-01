@@ -560,15 +560,7 @@ void CHud :: Init()
 	CVAR_CREATE("cl_animbone", "1", FCVAR_ARCHIVE);
 	CVAR_CREATE("cl_camoffset", "0", FCVAR_ARCHIVE);
 
-	CVAR_CREATE("r_blur", "0", FCVAR_ARCHIVE);
-	CVAR_CREATE("r_blur_strength", "1", FCVAR_ARCHIVE);
-
-	CVAR_CREATE("glow_blur_steps", "15", FCVAR_ARCHIVE);
-	CVAR_CREATE("glow_darken_steps", "5", FCVAR_ARCHIVE);
-	CVAR_CREATE("glow_strength", "1", FCVAR_ARCHIVE);
-
 	CVAR_CREATE("te_sunflare", "1", FCVAR_ARCHIVE);
-	CVAR_CREATE("te_bloom_effect", "1", FCVAR_ARCHIVE);
 
 	CVAR_CREATE("test1", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE("test2", "0", FCVAR_ARCHIVE);

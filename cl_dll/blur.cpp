@@ -16,6 +16,9 @@ extern float m_iBlurActive;
 
 CBlurTexture::CBlurTexture() {};
 
+cvar_t* r_blur = NULL;
+cvar_t* r_blur_strength = NULL;
+
 void CBlurTexture::Init(int width, int height)
 {
     // create a load of blank pixels to create textures with
@@ -33,6 +36,9 @@ void CBlurTexture::Init(int width, int height)
 
     // free the memory
     delete[] pBlankTex;
+
+    r_blur = CVAR_CREATE("r_blur", "0", FCVAR_ARCHIVE);
+    r_blur_strength = CVAR_CREATE("r_blur_strength", "1", FCVAR_ARCHIVE);
 }
 
 void CBlurTexture::BindTexture(int width, int height)
@@ -59,7 +65,7 @@ void CBlurTexture::Draw(int width, int height)
     glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
     glColor4f(r, g, b, alpha);
 
-    if (gEngfuncs.pfnGetCvarFloat("r_blur"))
+    if ((bool)(int)r_blur->value)
     {
         glBegin(GL_QUADS);
         DrawQuad(width, height, of);

@@ -19,6 +19,10 @@ extern engine_studio_api_t IEngineStudio;
 
 #define GL_TEXTURE_RECTANGLE_NV 0x84F5
 
+cvar_t* glow_blur_steps = NULL;
+cvar_t* glow_darken_steps = NULL;
+cvar_t* glow_strength = NULL;
+cvar_t* te_bloom_effect = NULL;
 
 bool CBloom::Init(void)
 {
@@ -43,6 +47,12 @@ bool CBloom::Init(void)
     // free the memory
     delete[] pBlankTex;
 
+    glow_blur_steps = CVAR_CREATE("glow_blur_steps", "15", FCVAR_ARCHIVE);
+    glow_darken_steps = CVAR_CREATE("glow_darken_steps", "5", FCVAR_ARCHIVE);
+    glow_strength = CVAR_CREATE("glow_strength", "1", FCVAR_ARCHIVE);
+
+    te_bloom_effect = CVAR_CREATE("te_bloom_effect", "1", FCVAR_ARCHIVE);
+
     return true;
 }
 
@@ -65,10 +75,10 @@ void CBloom::Draw(void)
     if (IEngineStudio.IsHardware() != 1)
         return;
 
-    if ((int)gEngfuncs.pfnGetCvarFloat("glow_blur_steps") == 0 || (int)gEngfuncs.pfnGetCvarFloat("glow_strength") == 0)
+    if ((int)glow_blur_steps->value == 0 || (int)glow_strength->value == 0)
         return;
 
-    if (!(int)CVAR_GET_FLOAT("te_bloom_effect")) 
+    if (!(int)te_bloom_effect->value)
         return;
 
     // enable some OpenGL stuff
@@ -110,7 +120,7 @@ void CBloom::Draw(void)
     glEnable(GL_BLEND);
 
     glBegin(GL_QUADS);
-    for (int i = 0; i < (int)gEngfuncs.pfnGetCvarFloat("glow_darken_steps"); i++)
+    for (int i = 0; i < (int)glow_darken_steps->value; i++)
         DrawQuad(ScreenWidth, ScreenHeight);
     glEnd();
 
@@ -119,7 +129,7 @@ void CBloom::Draw(void)
 
     // STEP 4: Blur the now darkened scene in the horizontal direction.
 
-    float blurAlpha = 1 / (gEngfuncs.pfnGetCvarFloat("glow_blur_steps") * 2 + 1);
+    float blurAlpha = 1 / (glow_blur_steps->value * 2 + 1);
 
     glColor4f(1, 1, 1, blurAlpha);
 
@@ -132,7 +142,7 @@ void CBloom::Draw(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     glBegin(GL_QUADS);
-    for (int i = 1; i <= (int)gEngfuncs.pfnGetCvarFloat("glow_blur_steps"); i++) {
+    for (int i = 1; i <= (int)glow_blur_steps->value; i++) {
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2, -i, 0);
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2, i, 0);
     }
@@ -151,7 +161,7 @@ void CBloom::Draw(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     glBegin(GL_QUADS);
-    for (int i = 1; i <= (int)gEngfuncs.pfnGetCvarFloat("glow_blur_steps"); i++) {
+    for (int i = 1; i <= (int)glow_blur_steps->value; i++) {
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2, 0, -i);
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2, 0, i);
     }
@@ -173,7 +183,7 @@ void CBloom::Draw(void)
     glBlendFunc(GL_ONE, GL_ONE);
 
     glBegin(GL_QUADS);
-    for (int i = 1; i < (int)gEngfuncs.pfnGetCvarFloat("glow_strength"); i++) {
+    for (int i = 1; i < (int)glow_strength->value; i++) {
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2);
     }
     glEnd();
