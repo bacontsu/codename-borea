@@ -6494,9 +6494,8 @@ void CBasePlayer::WallrunThink()
 		// launch player if they jumped
 		if (pressedSpace)
 		{
-			pev->velocity.x = wallForward.x * 200;
-			pev->velocity.y = wallForward.y * 200;
-			pev->velocity.z = 300;
+			Vector addVel{ wallForward.x * 200 , wallForward.y * 200, 300 };
+			pev->velocity = (pev->velocity * 0.5f) + addVel;
 		}
 
 		pev->movetype = MOVETYPE_WALK;
