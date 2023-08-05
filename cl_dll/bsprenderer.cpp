@@ -2803,7 +2803,7 @@ void CBSPRenderer::DrawBrushModel ( cl_entity_t *pEntity, bool bStatic )
 	// Mark any possible lit surfaces
 	MarkBrushFaces(mins, maxs);
 
-	if ( m_pCurrentEntity->curstate.rendermode == kRenderTransAdd )
+	if ( m_pCurrentEntity->curstate.rendermode == kRenderTransAdd)
 	{
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -2831,6 +2831,15 @@ void CBSPRenderer::DrawBrushModel ( cl_entity_t *pEntity, bool bStatic )
 		float g = (float)m_pCurrentEntity->curstate.rendercolor.g/255.0;
 		float b = (float)m_pCurrentEntity->curstate.rendercolor.b/255.0;
 		glColor4f(r, g, b, alpha);
+	}
+	else if (m_pCurrentEntity->curstate.rendermode == kRenderGlow)
+	{
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		float alpha = 1.0 - (float)m_pCurrentEntity->curstate.renderamt / 255.0;
+		glColor4f(1, 1, 1, alpha);
 	}
 
 	bool bIsLit = DynamicLighted(mins, maxs);
@@ -2860,7 +2869,8 @@ void CBSPRenderer::DrawBrushModel ( cl_entity_t *pEntity, bool bStatic )
 
 	if (m_pCurrentEntity->curstate.rendermode == kRenderTransTexture 
 		|| m_pCurrentEntity->curstate.rendermode == kRenderTransAdd 
-		|| m_pCurrentEntity->curstate.rendermode == kRenderTransColor)
+		|| m_pCurrentEntity->curstate.rendermode == kRenderTransColor
+		|| m_pCurrentEntity->curstate.rendermode == kRenderGlow)
 	{
 		glDepthMask(GL_TRUE);
 		glDisable(GL_BLEND);
