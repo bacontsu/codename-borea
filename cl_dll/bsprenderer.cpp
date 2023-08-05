@@ -533,6 +533,8 @@ void CBSPRenderer::VidInit( )
 	m_bMirroring			= false;
 	m_bSpecialFog			= false;
 	m_iNumFlashlightTextures = NULL;
+	m_flRenderFXUpdate = gEngfuncs.GetAbsoluteTime();
+	m_iRenderFXCount = 0;
 
 	ClearDetailObjects();
 	DeleteDecals();
@@ -2141,6 +2143,13 @@ void CBSPRenderer::DrawWorld( )
 	if(!m_pCvarDrawWorld->value)
 		return;
 
+	// bacontsu - renderfx
+	if (m_flRenderFXUpdate < gEngfuncs.GetAbsoluteTime())
+	{
+		m_iRenderFXCount++;
+		m_flRenderFXUpdate = gEngfuncs.GetAbsoluteTime() + 0.1f;
+	}
+
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
 	VectorCopy(m_vRenderOrigin, m_vVecToEyes);
 
@@ -2832,13 +2841,27 @@ void CBSPRenderer::DrawBrushModel ( cl_entity_t *pEntity, bool bStatic )
 		float b = (float)m_pCurrentEntity->curstate.rendercolor.b/255.0;
 		glColor4f(r, g, b, alpha);
 	}
-	else if (m_pCurrentEntity->curstate.rendermode == kRenderGlow)
+	else if (m_pCurrentEntity->curstate.rendermode == kRenderGlow) // bacontsu - glowing surfaces
 	{
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 
 		float alpha = 1.0 - (float)m_pCurrentEntity->curstate.renderamt / 255.0;
+		glColor4f(1, 1, 1, alpha);
+	}
+
+	// bacontsu - renderfx
+	auto curRenderFX = (m_pCurrentEntity->curstate.renderfx);
+	if (curRenderFX != 0 && curRenderFX < NUM_STYLES)
+	{
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		auto style = R_RenderFXTable[curRenderFX];
+		auto curStyle = style[m_iRenderFXCount % strlen(style)];
+		float alpha = float(curStyle - 'a') / 25.0f;
 		glColor4f(1, 1, 1, alpha);
 	}
 

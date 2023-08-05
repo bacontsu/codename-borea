@@ -357,6 +357,37 @@ public:
 	Vector				m_vDecalMins;
 	Vector				m_vDecalMaxs;
 
+	float				m_flRenderFXUpdate;
+	int					m_iRenderFXCount;
+
 };
 extern CBSPRenderer gBSPRenderer;
+
+#define MAX_STYLE_LEN 100
+#define NUM_STYLES 20
+
+// every 10th of a second. 'z' is max light, 'a' is darkness
+inline char R_RenderFXTable[NUM_STYLES][MAX_STYLE_LEN + 1] =
+{
+	"z",
+	"mmnmmommommnonmmonqnmmo",
+	"abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba",
+	"mmmmmaaaaammmmmaaaaaabcdefgabcdefg",
+	"mamamamamama",
+	"jklmnopqrstuvwxyzyxwvutsrqponmlkj",
+	"nmonqnmomnmomomno",
+	"mmmaaaabcdefgmmmmaaaammmaamm",
+	"mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa",
+	"aaaaaaaazzzzzzzz",
+	"zzazazzzzazzazazaaazazzza",
+	"zyxxzyxyzxyxzyxzyxyzxyzxy",
+	"azzaazazaaazzzaaazzzaaaaaaza",
+	"aaaazzzaazazazzzaazzazzzaaaz",
+	"aabbccddeeffgghhiijjkkllmmmmmmmmmmmmmm",
+	"abcdefghijklmmmmmmmmmmmmmmmmmmmmmmmmmm",
+	"acegikmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+	"llkkjjiihhggffeeddccbbaaaaaaaaaaaaaaaa",
+	"lkjihgfedcbaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"kigecaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+};
 #endif
