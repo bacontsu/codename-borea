@@ -705,11 +705,14 @@ Update
 */
 void CParticleEngine::Update( ) 
 {
+	// moved to imgui_manager.cpp
+	/*
 	if(m_pCvarParticleDebug->value)
 	{
 		gEngfuncs.Con_Printf("Created Particles: %i, Freed Particles %i, Active Particles: %i\nCreated Systems: %i, Freed Systems: %i, Active Systems: %i\n\n", 
 			m_iNumCreatedParticles, m_iNumFreedParticles,m_iNumCreatedParticles-m_iNumFreedParticles, m_iNumCreatedSystems, m_iNumFreedSystems, m_iNumCreatedSystems-m_iNumFreedSystems);
 	}
+	*/
 
 	if(m_pCvarDrawParticles->value < 1)
 		return;

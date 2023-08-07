@@ -753,6 +753,8 @@ HUD_PrintSpeeds
 */
 void HUD_PrintSpeeds ( )
 {
+	return; // moved to imgui_manager.cpp
+
 	if( gBSPRenderer.m_pCvarSpeeds->value <= 0 )
 		return;
 

@@ -23,6 +23,8 @@
 #include "backends/imgui_impl_opengl2.h"
 #include "backends/imgui_impl_sdl.h"
 
+#include "bsprenderer.h"
+
 SDL_Window* mainWindow;
 SDL_GLContext mainContext;
 
@@ -294,21 +296,19 @@ void CImguiManager::Draw()
 	}
 
 	// draw
+	ImGui_ImplOpenGL2_NewFrame();
+	ImGui_ImplSDL2_NewFrame(mainWindow);
+	ImGui::NewFrame();
+
+	DrawSpeeds();
+
 	if (strlen(gEngfuncs.pfnGetLevelName()) < 4)
 	{
 		// ================== call drawing code between this ==================
 
 		if (isMenuOpen)
 		{
-			ImGui_ImplOpenGL2_NewFrame();
-			ImGui_ImplSDL2_NewFrame(mainWindow);
-			ImGui::NewFrame();
-
 			DrawChapter();
-
-			// glViewport( 0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y );
-			ImGui::Render();
-			ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 		}
 
 		// ================== call drawing code between this ==================
@@ -321,6 +321,10 @@ void CImguiManager::Draw()
 		strcpy(selectedChapter, "");
 		isMenuOpen = false;
 	}
+
+	// glViewport( 0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y );
+	ImGui::Render();
+	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
 	// update discord here
 	g_DiscordRPC.Update();
@@ -692,6 +696,99 @@ void CImguiManager::DrawChapter()
 	ImGui::SetCursorPosY(yStart + 6);
 	ImGui::SetCursorPosX(613);
 	ImGui::Text(LoadChapterName("cancelbtn").c_str());
+
+	ImGui::End();
+}
+
+void CImguiManager::DrawSpeeds()
+{
+	if (!gBSPRenderer.m_pCvarSpeeds)
+		return;
+
+	if (!gParticleEngine.m_pCvarParticleDebug)
+		return;
+
+	int width = 75;
+
+	if (gBSPRenderer.m_pCvarSpeeds->value == 1.0f)
+		width += 125;
+
+	if (gParticleEngine.m_pCvarParticleDebug->value == 1.0f)
+		width += 150;
+
+
+	// setup
+	bool is_open;
+	ImGuiWindowFlags window_flags = 0;
+	window_flags |= ImGuiWindowFlags_NoResize;
+	window_flags |= ImGuiWindowFlags_NoTitleBar;
+	window_flags |= ImGuiWindowFlags_NoCollapse;
+	window_flags |= ImGuiWindowFlags_NoMove;
+
+	// get resolution
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 350 , 100));
+	ImGui::SetNextWindowSize(ImVec2(250, width));
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	// override imgui styles
+	ImVec4* colours = ImGui::GetStyle().Colors;
+	colours[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.4f);
+
+	ImGui::Begin("Codename Borea", &is_open, window_flags);
+	ImGui::SetWindowFontScale(1.5f);
+	ImGui::TextColored(ImVec4(0.76f, 0.62f, 0.2f, 1), "Codename Borea");
+	ImGui::SetWindowFontScale(1.0f);
+	ImGui::Text("Renderer: Spirinity");
+	std::string version = "OpenGL: " + (std::string)(const char*)glGetString(GL_VERSION);
+	ImGui::Text(version.c_str());
+
+	if(gBSPRenderer.m_pCvarSpeeds->value == 1.0f)
+	{
+		static float flLastTime;
+		float flCurTime = gEngfuncs.GetClientTime();
+		float flFrameTime = flCurTime - flLastTime;
+		flLastTime = flCurTime;
+
+		// prevent divide by zero
+		if (flFrameTime <= 0)
+			flFrameTime = 1;
+
+		if (flFrameTime > 1)
+			flFrameTime = 1;
+
+		int iFPS = 1 / flFrameTime;
+
+		ImGui::Text("");
+		ImGui::SetWindowFontScale(1.2f);
+		ImGui::Text("Polygons:");
+		ImGui::SetWindowFontScale(1.0f);
+		ImGui::Text((std::string("Wpolys: ") + std::to_string(gBSPRenderer.m_iWorldPolyCounter)).c_str());
+		ImGui::Text((std::string("Epolys: ") + std::to_string(gBSPRenderer.m_iBrushPolyCounter)).c_str());
+		ImGui::Text((std::string("Studio polys: ") + std::to_string(gBSPRenderer.m_iStudioPolyCounter)).c_str());
+		ImGui::Text((std::string("Particles: ") + std::to_string(gParticleEngine.m_iNumParticles)).c_str());
+		ImGui::Text((std::string("FPS: ") + std::to_string(iFPS)).c_str());
+
+	}
+
+	if (gParticleEngine.m_pCvarParticleDebug->value == 1.0f)
+	{
+		//gEngfuncs.Con_Printf("Created Particles: %i, Freed Particles %i, Active Particles: %i\nCreated Systems: %i, Freed Systems: %i, Active Systems: %i\n\n",
+			//m_iNumCreatedParticles, m_iNumFreedParticles, m_iNumCreatedParticles - m_iNumFreedParticles, m_iNumCreatedSystems, m_iNumFreedSystems, m_iNumCreatedSystems - m_iNumFreedSystems);
+		ImGui::Text("");
+		ImGui::SetWindowFontScale(1.2f);
+		ImGui::Text("Particles:");
+		ImGui::SetWindowFontScale(1.0f);
+		ImGui::Text((std::string("Created Particles: ") + std::to_string(gParticleEngine.m_iNumCreatedParticles)).c_str());
+		ImGui::Text((std::string("Freed Particle: ") + std::to_string(gParticleEngine.m_iNumFreedParticles)).c_str());
+		ImGui::Text((std::string("Active Particles: ") + std::to_string(gParticleEngine.m_iNumCreatedParticles - gParticleEngine.m_iNumFreedParticles)).c_str());
+		ImGui::Text((std::string("Created Systems: ") + std::to_string(gParticleEngine.m_iNumCreatedSystems)).c_str());
+		ImGui::Text((std::string("Freed Systems: ") + std::to_string(gParticleEngine.m_iNumFreedSystems)).c_str());
+		ImGui::Text((std::string("Active Systems: ") + std::to_string(gParticleEngine.m_iNumCreatedSystems - gParticleEngine.m_iNumFreedSystems)).c_str());
+	}
 
 	ImGui::End();
 }

@@ -673,6 +673,7 @@ public:
 	bool VidInit();
 	void Draw();
 	void DrawChapter();
+	void DrawSpeeds();
 
 	// chapter selection variables
 	bool isMenuOpen = false;
