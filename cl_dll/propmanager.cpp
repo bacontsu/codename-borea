@@ -550,7 +550,7 @@ void CPropManager::LoadEntVars( )
 				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].angles[0],
 										&m_pEntities[m_iNumEntities].angles[1],
 										&m_pEntities[m_iNumEntities].angles[2]);
-				m_pEntities[m_iNumEntities].curstate.angles = m_pEntities[m_iNumEntities].angles;
+				m_pEntities[m_iNumEntities].baseline.angles = m_pEntities[m_iNumEntities].curstate.angles = m_pEntities[m_iNumEntities].angles;
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderamt");
@@ -600,6 +600,12 @@ void CPropManager::LoadEntVars( )
 				m_pEntities[m_iNumEntities].curstate.rendercolor.g = iColG;
 				m_pEntities[m_iNumEntities].curstate.rendercolor.b = iColB;
 			}
+
+			pValue = ValueForKey(&m_pBSPEntities[i], "prop_grass");
+			if (pValue)
+				m_pEntities[m_iNumEntities].curstate.iuser3 = 1;
+			else
+				m_pEntities[m_iNumEntities].curstate.iuser3 = 0;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
 			if(pValue && strlen(pValue))
@@ -756,6 +762,62 @@ void CPropManager::RenderProps( )
 			
 		if (j == pExtraData->num_leafs)
 			continue;
+
+		// bacontsu - interactive grass
+#define GRASS_RADIUS 40.0f
+#define GRASS_ANGLE 15.0f
+
+		if (m_pEntities[i].curstate.iuser3 == 1)
+		{
+			// get base params
+			Vector clientOrg = gEngfuncs.GetLocalPlayer()->curstate.origin;
+			Vector grassOrg = m_pEntities[i].curstate.origin;
+
+			// calculate distance of x and y axis from player
+			Vector dist = grassOrg - clientOrg;
+
+			// actually apply logic when we're close enough 
+			if (dist.Length2D() < GRASS_RADIUS)
+			{
+				// clamps
+				float distX = clamp(dist.x, -GRASS_RADIUS, GRASS_RADIUS);
+				float distY = clamp(dist.y, -GRASS_RADIUS, GRASS_RADIUS);
+
+				if (distX > 0)
+				{
+					distX = GRASS_RADIUS - distX;
+				}
+				else if (distX < 0)
+				{
+					distX = -GRASS_RADIUS - distX;
+				}
+
+				if (distY > 0)
+				{
+					distY = GRASS_RADIUS - distY;
+				}
+				else if (distY < 0)
+				{
+					distY = -GRASS_RADIUS - distY;
+				}
+
+				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x - (distX * GRASS_ANGLE / GRASS_RADIUS);
+				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z - (distY * GRASS_ANGLE / GRASS_RADIUS);
+				m_pEntities[i].curstate.angles.y = 0;
+
+			}
+			else
+			{
+				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x;
+				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z;
+				m_pEntities[i].curstate.angles.y = 0;
+			}
+
+			for (int j = 0; j < 3; j++)
+			{
+				m_pEntities[i].angles[j] = lerp(m_pEntities[i].angles[j], m_pEntities[i].curstate.angles[j], gHUD.m_flTimeDelta * 5);
+			}
+		}
 
 		g_StudioRenderer.StudioDrawExternalEntity( &m_pEntities[i] );
 	}
