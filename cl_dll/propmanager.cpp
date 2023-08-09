@@ -742,6 +742,8 @@ void CPropManager::RenderProps( )
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	int FoliageCount = 0;
 	
 	for ( int i = 0; i < m_iNumEntities; i++ )
 	{
@@ -815,10 +817,15 @@ void CPropManager::RenderProps( )
 			{
 				m_pEntities[i].angles[j] = lerp(m_pEntities[i].angles[j], m_pEntities[i].curstate.angles[j], gHUD.m_flTimeDelta * 5);
 			}
+
+			FoliageCount++;
 		}
 
 		g_StudioRenderer.StudioDrawExternalEntity( &m_pEntities[i] );
 	}
+
+	// update
+	gBSPRenderer.m_iTotalFoliage = FoliageCount;
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 

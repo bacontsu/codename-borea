@@ -711,7 +711,7 @@ void CImguiManager::DrawSpeeds()
 	int width = 75;
 
 	if (gBSPRenderer.m_pCvarSpeeds->value == 1.0f)
-		width += 125;
+		width += 145;
 
 	if (gParticleEngine.m_pCvarParticleDebug->value == 1.0f)
 		width += 150;
@@ -770,8 +770,8 @@ void CImguiManager::DrawSpeeds()
 		ImGui::Text((std::string("Epolys: ") + std::to_string(gBSPRenderer.m_iBrushPolyCounter)).c_str());
 		ImGui::Text((std::string("Studio polys: ") + std::to_string(gBSPRenderer.m_iStudioPolyCounter)).c_str());
 		ImGui::Text((std::string("Particles: ") + std::to_string(gParticleEngine.m_iNumParticles)).c_str());
+		ImGui::Text((std::string("Foliage: ") + std::to_string(gBSPRenderer.m_iTotalFoliage)).c_str());
 		ImGui::Text((std::string("FPS: ") + std::to_string(iFPS)).c_str());
-
 	}
 
 	if (gParticleEngine.m_pCvarParticleDebug->value == 1.0f)

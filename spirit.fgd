@@ -6925,3 +6925,39 @@ initammo(string) : "Initial Ammo" : "6"
 	]
 ]
 
+@PointClass base(Targetname, Angles, MoveWith, RenderFields) studio() = prop_static : "Static props" 
+[
+	model(studio) : "Model name"
+	skin(integer) : "Skin" : 0
+	body(integer) : "Body" : 0
+	scale(string) : "Scale (1.0 = normal size)"
+	sequence(integer) : "Sequence" : 0
+	DisableShadows(choices) : "Disable shadows" : 0 = 
+	[
+		0: "Off"
+		1: "On"
+	]
+	lightorigin(string) : "Light origin"
+]
+
+@PointClass base(Targetname, Angles, MoveWith, RenderFields) studio() = prop_grass : "Static props" 
+[
+	model(studio) : "Model name"
+	skin(integer) : "Skin" : 0
+	body(integer) : "Body" : 0
+	scale(string) : "Scale (1.0 = normal size)"
+	sequence(integer) : "Sequence" : 0
+	DisableShadows(choices) : "Disable shadows" : 0 = 
+	[
+		0: "Off"
+		1: "On"
+	]
+	lightorigin(string) : "Light origin"
+]
+
+@PointClass base(Target, Targetname, Angles, MoveWith, RenderFields) studio() = env_cable : "Clientside cables" 
+[
+	falldepth(integer) : "Fall depth" : 100
+	spritewidth(integer) : "Cable width" : 1
+	segments(integer) : "Segments" : 32
+]

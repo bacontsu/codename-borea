@@ -289,6 +289,7 @@ public:
 	int					m_iWorldPolyCounter; // wpoly counter
 	int					m_iBrushPolyCounter; // bmodel poly counter
 	int					m_iStudioPolyCounter; // studiomodel poly counter
+	int					m_iTotalFoliage; // bacontsu - foliage
 
 	char				m_szSkyName[64];
 	char				m_szMapName[64];
