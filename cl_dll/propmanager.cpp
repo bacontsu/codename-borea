@@ -501,8 +501,10 @@ void CPropManager::LoadEntVars( )
 			strcpy(m_pDecals[m_iNumDecals].name, pValue);
 			m_iNumDecals++;
 		}
-		else if(!strcmp( pValue, "item_generic"))
+		else if(!strcmp( pValue, "item_generic") || !strcmp(pValue, "env_static") || !strcmp(pValue, "prop_static") || !strcmp(pValue, "prop_grass"))
 		{
+			bool isGrass = (!strcmp(pValue, "prop_grass"));
+
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
 			if(pValue)
@@ -601,11 +603,7 @@ void CPropManager::LoadEntVars( )
 				m_pEntities[m_iNumEntities].curstate.rendercolor.b = iColB;
 			}
 
-			pValue = ValueForKey(&m_pBSPEntities[i], "prop_grass");
-			if (pValue)
-				m_pEntities[m_iNumEntities].curstate.iuser3 = 1;
-			else
-				m_pEntities[m_iNumEntities].curstate.iuser3 = 0;
+			m_pEntities[m_iNumEntities].curstate.iuser3 = ValueForKey(&m_pBSPEntities[i], "prop_grass") || isGrass;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
 			if(pValue && strlen(pValue))
