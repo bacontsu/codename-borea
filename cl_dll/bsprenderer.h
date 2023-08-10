@@ -290,6 +290,7 @@ public:
 	int					m_iBrushPolyCounter; // bmodel poly counter
 	int					m_iStudioPolyCounter; // studiomodel poly counter
 	int					m_iTotalFoliage; // bacontsu - foliage
+	int					m_iCable; // bacontsu - cable
 
 	char				m_szSkyName[64];
 	char				m_szMapName[64];

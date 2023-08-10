@@ -52,6 +52,7 @@ public:
 	modeldata_t *GetHeader( const char *name );
 
 	bool SetupCable( cabledata_t *cable, entity_t *entity );
+	void CalcCable(cabledata_t* cable);
 	void DrawCables( );
 
 	void ParseEntities( );

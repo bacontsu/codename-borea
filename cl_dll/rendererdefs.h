@@ -698,6 +698,12 @@ struct cabledata_t
 {
 	int iwidth;
 	int isegments;
+	float ifall;
+	float iBaseFall;
+	float iTargetFall;
+
+	Vector vpos1;
+	Vector vpos2;
 
 	Vector vmins;
 	Vector vmaxs;

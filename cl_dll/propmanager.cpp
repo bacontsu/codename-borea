@@ -927,6 +927,55 @@ bool CPropManager::LoadMDL( char *name, cl_entity_t *pEntity, entity_t *pBSPEnti
 	return true;
 }
 
+void CPropManager::CalcCable(cabledata_t* cable)
+{
+	Vector vdroppoint;
+	Vector vdirection;
+	Vector vmidpoint;
+	Vector vendpoint;
+
+	cable->vmins = Vector(4096, 4096, 4096);
+	cable->vmaxs = Vector(-4096, -4096, -4096);
+
+	// Calculate dropping point
+	VectorSubtract(cable->vpos2, cable->vpos1, vdirection);
+	VectorMASSE(cable->vpos1, 0.5, vdirection, vmidpoint);
+	vdroppoint = Vector(vmidpoint[0], vmidpoint[1], vmidpoint[2] - cable->ifall);
+
+	for (int i = 0; i < cable->inumpoints; i++)
+	{
+		float f = (float)i / (float)cable->isegments;
+		cable->vpoints[i][0] = cable->vpos1[0] * ((1 - f) * (1 - f)) + vdroppoint[0] * ((1 - f) * f * 2) + cable->vpos2[0] * (f * f);
+		cable->vpoints[i][1] = cable->vpos1[1] * ((1 - f) * (1 - f)) + vdroppoint[1] * ((1 - f) * f * 2) + cable->vpos2[1] * (f * f);
+		cable->vpoints[i][2] = cable->vpos1[2] * ((1 - f) * (1 - f)) + vdroppoint[2] * ((1 - f) * f * 2) + cable->vpos2[2] * (f * f);
+
+		for (int j = 0; j < 3; j++)
+		{
+			if ((cable->vpoints[i][j] + cable->iwidth) > cable->vmaxs[j])
+				cable->vmaxs[j] = cable->vpoints[i][j] + cable->iwidth;
+
+			if ((cable->vpoints[i][j] - cable->iwidth) > cable->vmaxs[j])
+				cable->vmaxs[j] = cable->vpoints[i][j] - cable->iwidth;
+
+			if ((cable->vpoints[i][j] + cable->iwidth) < cable->vmins[j])
+				cable->vmins[j] = cable->vpoints[i][j] + cable->iwidth;
+
+			if ((cable->vpoints[i][j] - cable->iwidth) < cable->vmins[j])
+				cable->vmins[j] = cable->vpoints[i][j] - cable->iwidth;
+		}
+	}
+
+	entextradata_t pdata;
+	memset(&pdata, 0, sizeof(pdata));
+
+	VectorCopy(cable->vmaxs, pdata.absmax);
+	VectorCopy(cable->vmins, pdata.absmin);
+	SV_FindTouchedLeafs(&pdata, gBSPRenderer.m_pWorld->nodes);
+
+	memcpy(cable->leafnums, pdata.leafnums, sizeof(short) * MAX_ENT_LEAFS);
+	cable->num_leafs = pdata.num_leafs;
+}
+
 /*
 ====================
 SetupCable
@@ -936,12 +985,8 @@ SetupCable
 bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 {
 	char sz[64];
-	Vector vdroppoint;
 	Vector vposition1;
 	Vector vposition2;
-	Vector vdirection;
-	Vector vmidpoint;
-	Vector vendpoint;
 
 	// Get our origin
 	char *pValue = ValueForKey(entity, "origin");
@@ -950,6 +995,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 		return false;
 
 	sscanf(pValue, "%f %f %f", &vposition1[0], &vposition1[1], &vposition1[2]);
+	cable->vpos1 = Vector(vposition1[0], vposition1[1], vposition1[2]);
 
 	// Find our target entity
 	pValue = ValueForKey(entity, "target");
@@ -975,6 +1021,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 
 			// Copy origin over
 			sscanf(pValue, "%f %f %f", &vposition2[0], &vposition2[1], &vposition2[2]);
+			cable->vpos2 = Vector(vposition2[0], vposition2[1], vposition2[2]);
 		}
 	}
 
@@ -984,10 +1031,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	if(!pValue)
 		return false;
 
-	// Calculate dropping point
-	VectorSubtract(vposition2, vposition1, vdirection);
-	VectorMASSE(vposition1, 0.5, vdirection, vmidpoint);
-	vdroppoint = Vector(vmidpoint[0], vmidpoint[1], vmidpoint[2] - atoi(pValue));
+	cable->iTargetFall = cable->iBaseFall = cable->ifall = atoi(pValue);
 
 	// Get sprite width
 	pValue = ValueForKey(entity, "spritewidth");
@@ -1006,41 +1050,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	cable->isegments = atoi(pValue);
 	cable->inumpoints = cable->isegments+1;
 
-	cable->vmins = Vector(4096, 4096, 4096);
-	cable->vmaxs = Vector(-4096, -4096, -4096);
-
-	for(int i = 0; i < cable->inumpoints; i++)
-	{
-		float f = (float)i/(float)cable->isegments;
-		cable->vpoints[i][0] = vposition1[0]*((1-f)*(1-f))+vdroppoint[0]*((1-f)*f*2)+vposition2[0]*(f*f);
-		cable->vpoints[i][1] = vposition1[1]*((1-f)*(1-f))+vdroppoint[1]*((1-f)*f*2)+vposition2[1]*(f*f);
-		cable->vpoints[i][2] = vposition1[2]*((1-f)*(1-f))+vdroppoint[2]*((1-f)*f*2)+vposition2[2]*(f*f);
-	
-		for(int j = 0; j < 3; j++)
-		{
-			if((cable->vpoints[i][j]+cable->iwidth) > cable->vmaxs[j])
-				cable->vmaxs[j] = cable->vpoints[i][j]+cable->iwidth;
-
-			if((cable->vpoints[i][j]-cable->iwidth) > cable->vmaxs[j])
-				cable->vmaxs[j] = cable->vpoints[i][j]-cable->iwidth;
-
-			if((cable->vpoints[i][j]+cable->iwidth) < cable->vmins[j])
-				cable->vmins[j] = cable->vpoints[i][j]+cable->iwidth;
-
-			if((cable->vpoints[i][j]-cable->iwidth) < cable->vmins[j])
-				cable->vmins[j] = cable->vpoints[i][j]-cable->iwidth;
-		}
-	}
-
-	entextradata_t pdata;
-	memset(&pdata, 0, sizeof(pdata));
-
-	VectorCopy(cable->vmaxs, pdata.absmax);
-	VectorCopy(cable->vmins, pdata.absmin);
-	SV_FindTouchedLeafs(&pdata, gBSPRenderer.m_pWorld->nodes);
-
-	memcpy(cable->leafnums, pdata.leafnums, sizeof(short)*MAX_ENT_LEAFS);
-	cable->num_leafs = pdata.num_leafs;
+	CalcCable(cable);
 
 	return true;
 }
@@ -1069,6 +1079,16 @@ void CPropManager::DrawCables( )
 
 	for ( int i = 0; i < m_iNumCables; i++ )
 	{
+		// bacontsu - animated cables
+		cabledata_t* cable = &m_pCables[i];
+		if (cable)
+		{
+			cable->iTargetFall = cable->iBaseFall + (sin(gEngfuncs.GetAbsoluteTime() * (float((i % 4) + 1) * 2.0f / 4.0f)) * cable->iBaseFall / 10.0f);
+			cable->ifall = lerp(cable->ifall, cable->iTargetFall, gHUD.m_flTimeDelta * 10.0f);
+
+			CalcCable(cable);
+		}
+
 		int j = 0;
 		for (; j < m_pCables[i].num_leafs; j++)
 			if (gBSPRenderer.m_pPVS[m_pCables[i].leafnums[j] >> 3] & (1 << (m_pCables[i].leafnums[j]&7) ))
@@ -1102,6 +1122,8 @@ void CPropManager::DrawCables( )
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
 	glColor3f(GL_ONE, GL_ONE, GL_ONE);
+
+	gBSPRenderer.m_iCable = m_iNumCables;
 }
 
 /*
