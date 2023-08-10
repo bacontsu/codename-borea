@@ -12,9 +12,10 @@
 
 ## Gallery:
 ![image](https://user-images.githubusercontent.com/62763382/172050105-61a6a605-fe25-4e72-9949-44a388f0f1f0.png)
-![image](https://user-images.githubusercontent.com/62763382/187019728-202b885a-2a35-4621-a56f-a29e479d7d70.png)
-![image](https://user-images.githubusercontent.com/62763382/187019734-0ca8cb23-7ebc-4ddd-a484-005bb89fc055.png)
-![image](https://github.com/bacontsu/codename-borea/assets/62763382/81e7f590-21a0-4dcc-8685-39658a1b08fa)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/17de0e92-e449-4c9c-8303-0f9277ff095d)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/821af269-4338-4049-b7ad-c558617e216a)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/4c16b345-e99a-4b4f-a3c0-5a78ab9eeda4)
+
 
 
 ------------
