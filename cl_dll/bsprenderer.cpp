@@ -5972,6 +5972,9 @@ void CBSPRenderer::CreateShadowMap( )
 
 	gPropManager.RenderPropsSolid();
 
+	// Render any cables
+	gPropManager.DrawCables();
+
 	// Save Depth Buffer
 	glBindTexture(GL_TEXTURE_2D, m_pCurrentDynLight->depth);
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 0, 0, DEPTHMAP_RESOLUTION, DEPTHMAP_RESOLUTION, 0);
