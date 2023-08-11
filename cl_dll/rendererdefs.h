@@ -701,6 +701,9 @@ struct cabledata_t
 	float ifall;
 	float iBaseFall;
 	float iTargetFall;
+	
+	float fSinSpeed;
+	float fCosSpeed;
 
 	Vector vpos1;
 	Vector vpos2;

@@ -1050,6 +1050,10 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	cable->isegments = atoi(pValue);
 	cable->inumpoints = cable->isegments+1;
 
+	// Randomize speeds
+	cable->fSinSpeed = gEngfuncs.pfnRandomFloat(1.0f, 2.0f);
+	cable->fCosSpeed = gEngfuncs.pfnRandomFloat(1.0f, 2.0f);
+
 	CalcCable(cable);
 
 	return true;
@@ -1083,7 +1087,7 @@ void CPropManager::DrawCables( )
 		cabledata_t* cable = &m_pCables[i];
 		if (cable)
 		{
-			cable->iTargetFall = cable->iBaseFall + (sin(gEngfuncs.GetAbsoluteTime() * (float((i % 4) + 1) * 2.0f / 4.0f)) * cable->iBaseFall / 10.0f);
+			cable->iTargetFall = cable->iBaseFall + (sin(gEngfuncs.GetAbsoluteTime() * cable->fSinSpeed) * cable->iBaseFall / 10.0f);
 			cable->ifall = lerp(cable->ifall, cable->iTargetFall, gHUD.m_flTimeDelta * 10.0f);
 
 			CalcCable(cable);
@@ -1100,6 +1104,15 @@ void CPropManager::DrawCables( )
 		if(gHUD.viewFrustum.CullBox(m_pCables[i].vmins, m_pCables[i].vmaxs))
 			continue;
 
+		// find cable's right fector
+		Vector forward = cable->vpos2 - cable->vpos1;
+		forward.z = 0;
+		forward = forward.Normalize();
+
+		Vector right, angles;
+		VectorAngles(forward, angles);
+		AngleVectors(angles, nullptr, right, nullptr);
+
 		glBegin(GL_TRIANGLE_STRIP);
 		for(int j = 0; j < m_pCables[i].inumpoints; j++)
 		{
@@ -1110,10 +1123,14 @@ void CPropManager::DrawCables( )
 			vRight = CrossProduct(vTangent, -vDir); VectorNormalizeFast(vRight);
 
 			glColor3f(GL_ZERO, GL_ZERO, GL_ZERO);
-			VectorMASSE(m_pCables[i].vpoints[j], m_pCables[i].iwidth, vRight, vVertex);			
+			VectorMASSE(m_pCables[i].vpoints[j], m_pCables[i].iwidth, vRight, vVertex);
+			if(j != 0 && j != m_pCables[i].inumpoints - 1) // bacontsu - dont animate last and first vertex
+				vVertex = vVertex + (right * 1.5f * cos(gEngfuncs.GetAbsoluteTime() * m_pCables[i].fCosSpeed + j * 0.2f));
 			glVertex3fv(vVertex);
 
 			VectorMASSE(m_pCables[i].vpoints[j], -m_pCables[i].iwidth, vRight, vVertex);
+			if (j != 0 && j != m_pCables[i].inumpoints - 1) // bacontsu - dont animate last and first vertex
+				vVertex = vVertex + (right * 1.5f * cos(gEngfuncs.GetAbsoluteTime() * m_pCables[i].fCosSpeed + j * 0.2f));
 			glVertex3fv(vVertex);
 		}
 		glEnd();
