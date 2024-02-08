@@ -23,6 +23,8 @@ cvar_t* glow_blur_steps = NULL;
 cvar_t* glow_darken_steps = NULL;
 cvar_t* glow_strength = NULL;
 cvar_t* te_bloom_effect = NULL;
+cvar_t* glow_multiplier = NULL;
+float glow_mult = 0.0f;
 
 bool CBloom::Init(void)
 {
@@ -52,6 +54,7 @@ bool CBloom::Init(void)
     glow_strength = CVAR_CREATE("glow_strength", "1", FCVAR_ARCHIVE);
 
     te_bloom_effect = CVAR_CREATE("te_bloom_effect", "1", FCVAR_ARCHIVE);
+    glow_multiplier = CVAR_CREATE("glow_multiplier", "1", FCVAR_ARCHIVE);
 
     return true;
 }
@@ -119,6 +122,14 @@ void CBloom::Draw(void)
 
     glEnable(GL_BLEND);
 
+    // Dynamic Bloom - some janky ass math here
+    auto mult = gHUD.m_fLight - 100.0f;
+    mult = 100 - mult;
+    mult = mult / 400.0f;
+    glow_mult = lerp(glow_mult, 0.75 + (mult), gHUD.m_flTimeDelta * 3.0f);
+
+    glColor4f(glow_mult, glow_mult, glow_mult, 1.0f);
+
     glBegin(GL_QUADS);
     for (int i = 0; i < (int)glow_darken_steps->value; i++)
         DrawQuad(ScreenWidth, ScreenHeight);
@@ -128,7 +139,7 @@ void CBloom::Draw(void)
     glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB, 0, 0, ScreenWidth / 2, ScreenHeight / 2, 0);
 
     // STEP 4: Blur the now darkened scene in the horizontal direction.
-
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     float blurAlpha = 1 / (glow_blur_steps->value * 2 + 1);
 
     glColor4f(1, 1, 1, blurAlpha);
@@ -181,21 +192,27 @@ void CBloom::Draw(void)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
-
+    glColor4f(glow_mult, glow_mult, glow_mult, 1.0f);
     glBegin(GL_QUADS);
     for (int i = 1; i < (int)glow_strength->value; i++) {
         DrawQuad(ScreenWidth / 2, ScreenHeight / 2);
     }
     glEnd();
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
+    glColor4f(1.0, 1.0, 1.0, 1.0f);
 
+    float end_mult = glow_mult / 2.0f;
+    end_mult = 0.5 + end_mult;
+
+    glColor4f(end_mult, end_mult, end_mult, 1.0f);
+    glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
     glBegin(GL_QUADS);
     DrawQuad(ScreenWidth, ScreenHeight);
     glEnd();
 
     // STEP 7: Restore the original projection and modelview matrices and disable rectangular textures.
 
+    glColor4f(1.0, 1.0, 1.0, 1.0f);
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 

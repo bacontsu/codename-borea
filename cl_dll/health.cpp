@@ -165,6 +165,7 @@ int CHudHealth::MsgFunc_Stamina(const char* pszName, int iSize, void* pbuf)
 	gHUD.isRunning = (bool)READ_BYTE();
 	gHUD.leanAngle = READ_FLOAT();
 	gHUD.m_bSliding = (bool)(int)READ_BYTE();
+	gHUD.m_fLight = READ_FLOAT();
 
 	return 1;
 }

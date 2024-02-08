@@ -4841,6 +4841,9 @@ void CBasePlayer :: UpdateClientData()
 		MESSAGE_END();
 	}
 
+	float light = (float)Illumination();
+	light = clamp(light, 100, 200);
+
 	//stamina
 	MESSAGE_BEGIN(MSG_ONE, gmsgStamina, nullptr, pev);
 	WRITE_SHORT(playerStamina);
@@ -4851,6 +4854,7 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_BYTE(isRunning);
 	WRITE_FLOAT(leanAngle);
 	WRITE_BYTE((bool)m_iSlidingStage);
+	WRITE_FLOAT(light);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)

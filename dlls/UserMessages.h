@@ -77,6 +77,7 @@ extern int gmsgPPGray;
 extern int gmsgViewmodelSkin;
 extern int gmsgLensFlare;
 extern int gmsgUseEnt;
+extern int gmsgGetLight;
 //RENDERERS END
 
 extern int gmsgSpectator;
