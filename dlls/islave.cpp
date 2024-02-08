@@ -773,6 +773,8 @@ void CISlave :: BeamGlow( )
 
 	Vector vecSrc = pev->origin + gpGlobals->v_forward * 2;
 	FranUtils::EmitDlight(vecSrc, 12, { 0, 100, 0 }, 3.0f /* pev->framerate*/, 5.0f);
+
+	UTIL_Particle("vortcharge.txt", pev->origin + Vector(0,0,20.0f), vec3_origin, 0);
 }
 
 
