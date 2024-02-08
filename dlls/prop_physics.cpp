@@ -12,6 +12,7 @@ public:
 	void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType) override;
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 	void BounceSound();
+	void KeyValue(KeyValueData* pkvd) override;
 
 	EXPORT void PropThink();
 	EXPORT void PropTouch(CBaseEntity* pOther);
@@ -27,6 +28,8 @@ public:
 	CBasePlayer* m_pPlayer = nullptr;
 	float usedTime = 0.0f;
 	float lerp[2];
+	int m_iPropType;
+	bool m_bOnProgress;
 };
 
 LINK_ENTITY_TO_CLASS(prop_physics, CPropPhysics);
@@ -39,7 +42,16 @@ void CPropPhysics::Spawn()
 
 	SET_MODEL(ENT(pev), PROPMODEL);
 	//UTIL_SetSize(pev, Vector(-8, -8, 0), Vector(8, 8, 16));
-	UTIL_SetSize(pev, Vector(-26, -26, -26), Vector(26, 26, 26));
+	switch (m_iPropType)
+	{
+	case 1:
+		UTIL_SetSize(pev, Vector(-26, -26, -26), Vector(26, 26, 26));
+		break;
+
+	default:
+		UTIL_SetSize(pev, Vector(-26, 0, -26), Vector(26, 26, 26));
+		break;
+	}
 
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
@@ -52,6 +64,17 @@ void CPropPhysics::Spawn()
 
 	pev->nextthink = gpGlobals->time + 0.001f;
 	//SetNextThink(0.001f);
+}
+
+void CPropPhysics::KeyValue(KeyValueData* pkvd)
+{
+	if (FStrEq(pkvd->szKeyName, "proptype"))
+	{
+		m_iPropType = atoi(pkvd->szValue);
+		pkvd->fHandled = TRUE;
+	}
+	else
+		CBaseEntity::KeyValue(pkvd);
 }
 
 void CPropPhysics::Precache()
@@ -69,8 +92,23 @@ void CPropPhysics::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector ve
 	{
 		UTIL_Sparks(Center());
 
-		pev->velocity = g_vecAttackDir * -1;
+		Vector dir = pev->origin - pevAttacker->origin;
+		dir = dir.Normalize();
+
+		// explosion
+		if (bitsDamageType & DMG_BLAST)
+		{
+			pev->velocity.x = dir.x * 1000.0f;
+			pev->velocity.y = dir.y * 1000.0f;
+			pev->velocity.z = dir.z * 3000.0f;
+		}
+		// generic
+		else
+			pev->velocity = dir * 100;
+
 		//pev->velocity = pev->velocity * 1000;
+
+		ALERT(at_console, "Damage inflicted by %s\n", STRING(pevAttacker->classname));
 	}
 
 	return CBaseEntity::TraceAttack(pevAttacker, flDamage, vecDir, ptr, bitsDamageType);
@@ -90,37 +128,41 @@ void CPropPhysics::PropThink()
 		float target[2] = {0, 0};
 
 		// these funny physics thing isnt ready to be used
-		/*
-		if (pev->angles.x >= 0 && pev->angles.x < 45)
-			target[0] = 0;
-		else if (pev->angles.x >= 45 && pev->angles.x < 135)
-			target[0] = 90;
-		else if (pev->angles.x >= 135 && pev->angles.x < 180)
-			target[0] = 180;
-		else if (pev->angles.x <= -180 && pev->angles.x > -135)
-			target[0] = -179;
-		else if (pev->angles.x <= -135 && pev->angles.x > -45)
-			target[0] = -90;
-		else if (pev->angles.x >= -45 && pev->angles.x < 0)
-			target[0] = -1;
+
+		if(m_iPropType == 1)
+		{
+			if (pev->angles.x >= 0 && pev->angles.x < 45)
+				target[0] = 0;
+			else if (pev->angles.x >= 45 && pev->angles.x < 135)
+				target[0] = 90;
+			else if (pev->angles.x >= 135 && pev->angles.x < 180)
+				target[0] = 180;
+			else if (pev->angles.x >= -180 && pev->angles.x < -135)
+				target[0] = -179;
+			else if (pev->angles.x >= -135 && pev->angles.x < -45)
+				target[0] = -90;
+			else if (pev->angles.x >= -45 && pev->angles.x < 0)
+				target[0] = -1;
 
 
-		if (pev->angles.z >= 0 && pev->angles.z < 45)
-			target[1] = 0;
-		else if (pev->angles.z >= 45 && pev->angles.z < 135)
-			target[1] = 90;
-		else if (pev->angles.z >= 135 && pev->angles.z < 180)
-			target[1] = 180;
-		else if (pev->angles.z <= -180 && pev->angles.z > -135)
-			target[1] = -179;
-		else if (pev->angles.z <= -135 && pev->angles.z > -45)
-			target[1] = -90;
-		else if (pev->angles.z >= -45 && pev->angles.z < 0)
-			target[1] = -1;
+			if (pev->angles.z >= 0 && pev->angles.z < 45)
+				target[1] = 0;
+			else if (pev->angles.z >= 45 && pev->angles.z < 135)
+				target[1] = 90;
+			else if (pev->angles.z >= 135 && pev->angles.z < 180)
+				target[1] = 180;
+			else if (pev->angles.z >= -180 && pev->angles.z < -135)
+				target[1] = -179;
+			else if (pev->angles.z >= -135 && pev->angles.z < -45)
+				target[1] = -90;
+			else if (pev->angles.z >= -45 && pev->angles.z < 0)
+				target[1] = -1;
 
-		if (pev->angles.x == -1) { pev->angles.x = 0; target[0] == 0; }
-		if (pev->angles.z == -1) { pev->angles.z = 0; target[1] == 0; }
-		*/
+
+			if ((int)pev->angles.x == -1) { pev->angles.x = 0; target[0] = 0; lerp[0] = 0; }
+			if ((int)pev->angles.z == -1) { pev->angles.z = 0; target[1] = 0; lerp[1] = 0; }
+		}
+		
 
 		lerp[0] = (target[0] * 0.03f * 300 * gpGlobals->frametime) + (lerp[0] * (1.0 - 0.03f * 300 * gpGlobals->frametime));
 		pev->angles.x = lerp[0];
@@ -131,8 +173,10 @@ void CPropPhysics::PropThink()
 	}
 	else
 	{
+		float divider = m_iPropType == 1 ? 2.0f : 5.0f;
+
 		if (usedTime < gpGlobals->time)
-			pev->avelocity = pev->velocity / 5; // divide by 2 when I finished the physics formula
+			pev->avelocity = pev->velocity / divider; // divide by 2 when I finished the physics formula
 
 		lerp[0] = pev->angles.x;
 		lerp[1] = pev->angles.z;
@@ -156,7 +200,7 @@ void CPropPhysics::PropTouch(CBaseEntity* pOther)
 		//pev->velocity = pOther->pev->velocity * 10;
 		Vector dist = pev->origin - pOther->pev->origin;
 		
-		pev->velocity = pev->velocity + dist.Normalize() * 10;
+		pev->velocity = pev->velocity + dist.Normalize() * 30;
 		pev->velocity.z = 20;
 
 		//ALERT(at_console, "balls");
