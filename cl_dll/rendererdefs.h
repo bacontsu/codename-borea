@@ -805,6 +805,7 @@ extern void		R_RestoreGLStates(void);
 extern void		R_Init(void);
 extern void		R_VidInit(void);
 extern void		R_Shutdown(void);
+extern void		DBG_DrawBBox(const Vector& mins, const Vector& maxs);
 
 extern Vector	g_vecFull;
 //extern Vector	g_vecZero;

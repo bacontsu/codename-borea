@@ -89,6 +89,8 @@ public:
 	int	m_iNumCables;
 
 	cvar_t *m_pCvarDrawClientEntities;
+	cvar_t* m_pCvarDrawCable;
+	cvar_t* m_pCvarDrawCableDebug;
 
 	// Extra data for all entities.
 	entextradata_t *m_pCurrentExtraData;

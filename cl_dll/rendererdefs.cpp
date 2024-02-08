@@ -1338,3 +1338,40 @@ void R_RestoreGLStates(void)
 
 	glAlphaFunc(g_savedGLState.alphatest_func, g_savedGLState.alphatest_value);
 }
+
+void DBG_DrawBBox(const Vector& mins, const Vector& maxs)
+{
+	Vector bbox[8];
+	int i;
+
+	for (i = 0; i < 8; i++)
+	{
+		bbox[i][0] = (i & 1) ? mins[0] : maxs[0];
+		bbox[i][1] = (i & 2) ? mins[1] : maxs[1];
+		bbox[i][2] = (i & 4) ? mins[2] : maxs[2];
+	}
+
+	glColor4f(1.0f, 0.0f, 1.0f, 1.0f);    // yellow bboxes for frustum
+	glDisable(GL_TEXTURE_2D);
+	glBegin(GL_LINES);
+
+	for (i = 0; i < 2; i += 1)
+	{
+		glVertex3fv(bbox[i + 0]);
+		glVertex3fv(bbox[i + 2]);
+		glVertex3fv(bbox[i + 4]);
+		glVertex3fv(bbox[i + 6]);
+		glVertex3fv(bbox[i + 0]);
+		glVertex3fv(bbox[i + 4]);
+		glVertex3fv(bbox[i + 2]);
+		glVertex3fv(bbox[i + 6]);
+		glVertex3fv(bbox[i * 2 + 0]);
+		glVertex3fv(bbox[i * 2 + 1]);
+		glVertex3fv(bbox[i * 2 + 4]);
+		glVertex3fv(bbox[i * 2 + 5]);
+	}
+
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+}

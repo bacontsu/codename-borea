@@ -156,6 +156,8 @@ Init
 void CPropManager::Init( )
 {
 	m_pCvarDrawClientEntities = CVAR_CREATE( "te_client_entities", "1", 0 );
+	m_pCvarDrawCable = CVAR_CREATE("te_cables", "1", 0);
+	m_pCvarDrawCableDebug = CVAR_CREATE("te_cables_debug", "0", 0);
 }
 
 /*
@@ -1075,12 +1077,16 @@ void CPropManager::DrawCables( )
 	if(m_pCvarDrawClientEntities->value < 1)
 		return;
 
+	if (m_pCvarDrawCable->value < 1)
+		return;
+
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_CULL_FACE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PRIMARY_COLOR_ARB);
 
+	bool isDebug = (m_pCvarDrawCableDebug->value != 0.0f);
 	for ( int i = 0; i < m_iNumCables; i++ )
 	{
 		// bacontsu - animated cables
@@ -1089,8 +1095,12 @@ void CPropManager::DrawCables( )
 		{
 			cable->iTargetFall = cable->iBaseFall + (sin(gEngfuncs.GetAbsoluteTime() * cable->fSinSpeed) * cable->iBaseFall / 10.0f);
 			cable->ifall = lerp(cable->ifall, cable->iTargetFall, gHUD.m_flTimeDelta * 10.0f);
-
+				
 			CalcCable(cable);
+
+			// debug
+			if (isDebug)
+				DBG_DrawBBox(cable->vmins, cable->vmaxs);
 		}
 
 		int j = 0;
