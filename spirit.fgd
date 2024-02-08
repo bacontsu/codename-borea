@@ -1565,7 +1565,7 @@
     1 : "Wait for Trigger" : 1
   ]
 ]
-@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) = env_spotlight : "SpotLight"
+@PointClass base(Targetname, Angles) flags(Angle) size(-16 -16 -16, 16 16 16) = env_spotlight : "SpotLight"
 [
   renderamt(integer) : "Radius" : 15
   rendercolor(color255) : "Render Color" : "255 255 255"
