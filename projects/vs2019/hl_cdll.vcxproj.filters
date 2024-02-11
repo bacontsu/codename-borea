@@ -76,6 +76,15 @@
     <Filter Include="Source Files\discord">
       <UniqueIdentifier>{343855c9-d42a-4cd4-8fc8-a9a5dbc52c12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\minhook">
+      <UniqueIdentifier>{83583eae-f753-4f4a-a996-f02d515fc760}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sptlib">
+      <UniqueIdentifier>{c272c921-f237-4160-952a-ae3a605af980}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\regs">
+      <UniqueIdentifier>{e4159116-63c6-4f0f-a595-b14210387267}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -464,6 +473,27 @@
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\discord_manager.cpp">
       <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\minhook\buffer.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\minhook\hde\hde32.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\minhook\hde\hde64.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\minhook\hook.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\minhook\trampoline.c">
+      <Filter>Source Files\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\sptlib\DetoursUtils.cpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\regs\reGS_enginehook.cpp">
+      <Filter>Source Files\regs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -985,6 +1015,54 @@
     </ClInclude>
     <ClInclude Include="..\..\common\stb_image.h">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\buffer.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\hde\hde32.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\hde\hde64.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\hde\pstdint.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\hde\table32.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\hde\table64.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\MinHook.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\minhook\trampoline.h">
+      <Filter>Source Files\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\DetoursUtils.hpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\MemUtils.h">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\patterns.hpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\patterns_macros.hpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\sptlib-stdafx.hpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\external\sptlib\Utils.hpp">
+      <Filter>Source Files\sptlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\regs\reGS_enginehook.h">
+      <Filter>Source Files\regs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\regs\reGS_patterns.hpp">
+      <Filter>Source Files\regs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

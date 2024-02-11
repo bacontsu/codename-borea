@@ -56,6 +56,10 @@ extern engine_studio_api_t IEngineStudio;
 #include "vgui_TeamFortressViewport.h"
 #include "../public/interface.h"
 
+#include "minhook/MinHook.h"
+
+extern void HWHook();
+
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 CMP3 gMP3; //AJH - Killars MP3player
@@ -171,6 +175,8 @@ int DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
 
 	EV_HookEvents();
 
+	MH_Initialize();
+
 	// get tracker interface, if any
 	return 1;
 }
@@ -217,6 +223,7 @@ void DLLEXPORT HUD_Init()
 
 	gHUD.Init();
 	Scheme_Init();
+	HWHook();
 }
 
 
