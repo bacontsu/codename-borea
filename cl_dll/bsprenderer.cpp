@@ -2328,6 +2328,17 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 				m_iWorldPolyCounter++;
 			}
 		}
+		// bacontsu - fake specular
+		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect"))
+		{
+			//gEngfuncs.Con_Printf("found spec\n");
+			while (psurface)
+			{
+				DrawScrollingPolyCustom(psurface);
+				psurface = psurface->texturechain;
+				m_iWorldPolyCounter++;
+			}
+		}
 		else
 		{
 			while(psurface)
@@ -2337,6 +2348,7 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 				m_iWorldPolyCounter++;
 			}
 		}
+
 
 		if(pTexture->name[0] == '{')
 		{
@@ -2496,6 +2508,17 @@ void CBSPRenderer::RenderFinalPasses( )
 			{
 				DrawScrollingPoly(psurface);
 				psurface = psurface->texturechain;
+			}
+		}
+		// bacontsu - fake specular
+		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect"))
+		{
+			//gEngfuncs.Con_Printf("found spec\n");
+			while (psurface)
+			{
+				DrawScrollingPolyCustom(psurface);
+				psurface = psurface->texturechain;
+				m_iWorldPolyCounter++;
 			}
 		}
 		else
@@ -3000,6 +3023,51 @@ void CBSPRenderer::DrawScrollingPoly(msurface_t *s)
 			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, pVert->texcoord[0]+speed, pVert->texcoord[1]);
 			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, pVert->detailtexcoord[0]+speed, pVert->detailtexcoord[1]);
 			glVertex3fv(pVert->pos);			
+		}
+	}
+	glEnd();
+}
+
+/*
+====================
+DrawScrollingPoly
+
+====================
+*/
+void CBSPRenderer::DrawScrollingPolyCustom(msurface_t* s)
+{
+	glpoly_t* p = s->polys;
+	float* v = p->verts[0];
+
+	Vector backward;
+	Vector ang;
+	ang[YAW] = m_vViewAngles[YAW];
+	AngleVectors(ang, backward, nullptr, nullptr);
+	float speed_x = -gEngfuncs.GetLocalPlayer()->curstate.origin.x * 0.0025f * 0.5f + (backward.x * 0.05f);
+	float speed_y = gEngfuncs.GetLocalPlayer()->curstate.origin.y * 0.0025f * 0.5f - (backward.y * 0.05f);
+
+
+	brushface_t* pFace = &m_pFacesExtraData[p->flags];
+	brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
+
+	glBegin(GL_TRIANGLES);
+	if (m_iTexPointer[0] == TC_LIGHTMAP)
+	{
+		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		{
+			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
+			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, pVert->texcoord[0] + speed_x, pVert->texcoord[1] + speed_y);
+			glMultiTexCoord2fARB(GL_TEXTURE2_ARB, pVert->detailtexcoord[0] + speed_x, pVert->detailtexcoord[1] + speed_y);
+			glVertex3fv(pVert->pos);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		{
+			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, pVert->texcoord[0] + speed_x, pVert->texcoord[1] + speed_y);
+			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, pVert->detailtexcoord[0] + speed_x, pVert->detailtexcoord[1] + speed_y);
+			glVertex3fv(pVert->pos);
 		}
 	}
 	glEnd();

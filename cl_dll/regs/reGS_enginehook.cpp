@@ -49,7 +49,8 @@ void R_DrawWorld()
 
 void Sys_Error(const char* error, ...)
 {
-	//ORIG_Sys_Error(error);
+	if(strncmp(error, "AllocBlock", strlen("AllocBlock")))
+		ORIG_Sys_Error(error);
 }
 
 #include "hud.h"

@@ -104,6 +104,7 @@ public:
 
 	void SurfaceToChain( msurface_t *s, bool dynlit );
 	void DrawScrollingPoly( msurface_t *s );
+	void DrawScrollingPolyCustom(msurface_t* s);
 	void EmitWaterPolys( msurface_t *fa );
 	void DrawPolyFromArray( glpoly_t *p );
 
