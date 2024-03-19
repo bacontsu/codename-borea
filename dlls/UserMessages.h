@@ -78,6 +78,7 @@ extern int gmsgViewmodelSkin;
 extern int gmsgLensFlare;
 extern int gmsgUseEnt;
 extern int gmsgGetLight;
+inline int gmsgSendAnim = 0;
 //RENDERERS END
 
 extern int gmsgSpectator;

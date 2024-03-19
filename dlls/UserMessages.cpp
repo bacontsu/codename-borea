@@ -174,6 +174,7 @@ void LinkUserMessages()
 	gmsgLensFlare = REG_USER_MSG("Lensflare", -1);
 	gmsgUseEnt = REG_USER_MSG("UseEnt", -1);
 	gmsgChapterName = REG_USER_MSG("ChapterName", -1);
+	gmsgSendAnim = REG_USER_MSG("SendAnim", -1);
 	//RENDERERS END
 
 	gmsgSpectator = g_engfuncs.pfnRegUserMsg("Spectator", 2);
