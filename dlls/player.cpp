@@ -4855,6 +4855,7 @@ void CBasePlayer :: UpdateClientData()
 	WRITE_FLOAT(leanAngle);
 	WRITE_BYTE((bool)m_iSlidingStage);
 	WRITE_FLOAT(light);
+	WRITE_BYTE(m_iScopeType);
 	MESSAGE_END();
 
 	if (pev->dmg_take || pev->dmg_save || m_bitsHUDDamage != m_bitsDamageType)
@@ -6445,7 +6446,7 @@ void CBasePlayer::WallrunThink()
 	static Vector wallAngles, wallRight, wallForward;
 
 	// atleast 100u/s speed to init wallrun
-	if(pev->velocity.Length2D() > 100.0f)
+	if(pev->velocity.Length2D() > 100.0f && !hitsWall)
 	{
 		// right traceline
 		if (wallRightTr.flFraction < 1 && !(pev->flags & FL_ONGROUND))
@@ -6467,6 +6468,7 @@ void CBasePlayer::WallrunThink()
 		pev->movetype = MOVETYPE_FLY;
 		pev->velocity.z = 0;
 
+		runningSpeed = this->pev->velocity.Length2D();
 
 		if (hitsWall == 1) // right
 		{
@@ -6480,7 +6482,8 @@ void CBasePlayer::WallrunThink()
 			wallRight = wallRight * -1;
 		}
 
-		pev->velocity = pev->velocity + wallRight * 10 * (300 / (1 / gpGlobals->frametime));
+		pev->velocity = pev->velocity + wallRight * runningSpeed * (300 / (1 / gpGlobals->frametime));
+		pev->velocity.z = -10.0f;
 
 		// cap player climbing speed
 		if (pev->velocity.Length() > 400.0f)

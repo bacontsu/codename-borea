@@ -213,6 +213,7 @@ public:
 	bool isClimbing;
 	TraceResult climbTr1, climbTr2, headTr;
 	void ClimbingPhysics();
+	float runningSpeed;
 
 	// water
 	float nextSplashTime;
@@ -249,6 +250,9 @@ public:
 	float m_flSlidingCooldown;
 	TraceResult m_slidingTr;
 	void SlidingThink();
+
+	// ads
+	int m_iScopeType;
 
 	// Opposing Force specific
 
