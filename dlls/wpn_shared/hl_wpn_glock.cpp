@@ -52,6 +52,11 @@ int CGlock::AddToPlayer( CBasePlayer *pPlayer )//Fix old Half-life bug. G-Cont
 
 void CGlock::Holster( int skiplocal )
 {
+	if (m_pPlayer->targetFov != 0)
+	{
+		SecondaryAttack();
+	}
+
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim( GLOCK_HOLSTER );
 }
@@ -109,7 +114,22 @@ BOOL CGlock::Deploy( )
 
 void CGlock::SecondaryAttack()
 {
-	GlockFire( 0.1, 0.2, FALSE );
+	if (m_pPlayer->isRunning) return;
+
+	if (m_pPlayer->targetFov != 0)
+	{
+		m_pPlayer->targetFov = 0;  // 0 means reset to default fov
+		m_pPlayer->isScoping = false;
+		m_pPlayer->m_iScopeType = false;
+	}
+	else if (m_pPlayer->targetFov != -30)
+	{
+		m_pPlayer->targetFov = -30;
+		m_pPlayer->isScoping = true;
+		m_pPlayer->m_iScopeType = WEAPON_GLOCK;
+	}
+
+	m_flNextSecondaryAttack = 0.5;
 }
 
 void CGlock::PrimaryAttack()

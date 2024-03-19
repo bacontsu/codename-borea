@@ -69,6 +69,9 @@ public:
 	// Find final attachment points
 	virtual void StudioCalcAttachments ( );
 
+	// Fixes engine's broken viewmodel events
+	virtual void StudioClientEvents();
+
 	// Determine interpolation fraction
 	virtual float StudioEstimateInterpolant( );
 

@@ -248,6 +248,26 @@ int __MsgFunc_ChapterName(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+int __MsgFunc_SendAnim(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	auto p = gEngfuncs.GetViewModel();
+	int iAnim = READ_SHORT();
+	int iBody = READ_SHORT();
+	int iBlend = READ_BYTE();
+
+	p->latched.prevsequence = p->curstate.sequence;
+	gEngfuncs.pfnWeaponAnim(iAnim, iBody);
+
+	// doesnt do anything rn
+	if (iBlend == 0)
+		p->latched.prevsequence = iAnim;
+
+	return true;
+
+}
+
 // TFFree Command Menu
 void __CmdFunc_OpenCommandMenu()
 {
@@ -564,6 +584,10 @@ void CHud :: Init()
 
 	CVAR_CREATE("test1", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE("test2", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("test3", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("test4", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("test5", "0", FCVAR_ARCHIVE);
+	CVAR_CREATE("test6", "0", FCVAR_ARCHIVE);
 
 	//RENDERERS START
 	HOOK_MESSAGE( SetFog );
@@ -578,6 +602,7 @@ void CHud :: Init()
 	HOOK_MESSAGE( PPGray );
 	HOOK_MESSAGE( WpnSkn );
 	HOOK_MESSAGE(UseEnt);
+	HOOK_MESSAGE(SendAnim);
 
 	gPropManager.Init();
 	gTextureLoader.Init();

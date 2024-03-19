@@ -88,8 +88,11 @@ void HUD_SendWeaponAnim( int iAnim, int body, int force )
 
 	g_currentanim = iAnim;
 
+	auto p = gEngfuncs.GetViewModel();
+	p->latched.prevsequence = p->curstate.sequence;
 	// Tell animation system new info
 	gEngfuncs.pfnWeaponAnim( iAnim, body );
+
 }
 
 /*

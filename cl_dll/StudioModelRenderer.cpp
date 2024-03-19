@@ -2699,68 +2699,68 @@ void CStudioModelRenderer::StudioSetupBones ()
 	
 	if (m_fDoInterp &&
 		m_pCurrentEntity->latched.sequencetime &&
-		( m_pCurrentEntity->latched.sequencetime + 0.2 > m_clTime ) && 
-		( m_pCurrentEntity->latched.prevsequence < m_pStudioHeader->numseq ))
+		(m_pCurrentEntity->latched.sequencetime + 0.01f > m_clTime) &&
+		(m_pCurrentEntity->latched.prevsequence < m_pStudioHeader->numseq))
 	{
 		// blend from last sequence
-		static float		pos1b[MAXSTUDIOBONES][3];
-		static vec4_t		q1b[MAXSTUDIOBONES];
-		float				s;
+		static float pos1b[MAXSTUDIOBONES][3];
+		static vec4_t q1b[MAXSTUDIOBONES];
+		float s;
 
-		pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->latched.prevsequence;
-		panim = StudioGetAnim( m_pRenderModel, pseqdesc );
+		pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pCurrentEntity->latched.prevsequence;
+		panim = StudioGetAnim(m_pRenderModel, pseqdesc);
 		// clip prevframe
-		StudioCalcRotations( pos1b, q1b, pseqdesc, panim, m_pCurrentEntity->latched.prevframe );
+		StudioCalcRotations(pos1b, q1b, pseqdesc, panim, m_pCurrentEntity->latched.prevframe);
 
 		if (pseqdesc->numblends > 1)
 		{
 			panim += m_pStudioHeader->numbones;
-			StudioCalcRotations( pos2, q2, pseqdesc, panim, m_pCurrentEntity->latched.prevframe );
+			StudioCalcRotations(pos2, q2, pseqdesc, panim, m_pCurrentEntity->latched.prevframe);
 
 			s = (m_pCurrentEntity->latched.prevseqblending[0]) / 255.0;
-			StudioSlerpBones( q1b, pos1b, q2, pos2, s );
+			StudioSlerpBones(q1b, pos1b, q2, pos2, s);
 
 			if (pseqdesc->numblends == 4)
 			{
 				panim += m_pStudioHeader->numbones;
-				StudioCalcRotations( pos3, q3, pseqdesc, panim, m_pCurrentEntity->latched.prevframe );
+				StudioCalcRotations(pos3, q3, pseqdesc, panim, m_pCurrentEntity->latched.prevframe);
 
 				panim += m_pStudioHeader->numbones;
-				StudioCalcRotations( pos4, q4, pseqdesc, panim, m_pCurrentEntity->latched.prevframe );
+				StudioCalcRotations(pos4, q4, pseqdesc, panim, m_pCurrentEntity->latched.prevframe);
 
 				s = (m_pCurrentEntity->latched.prevseqblending[0]) / 255.0;
-				StudioSlerpBones( q3, pos3, q4, pos4, s );
+				StudioSlerpBones(q3, pos3, q4, pos4, s);
 
 				s = (m_pCurrentEntity->latched.prevseqblending[1]) / 255.0;
-				StudioSlerpBones( q1b, pos1b, q3, pos3, s );
+				StudioSlerpBones(q1b, pos1b, q3, pos3, s);
 			}
 		}
 
-		s = 1.0 - (m_clTime - m_pCurrentEntity->latched.sequencetime) / 0.2;
-		StudioSlerpBones( q, pos, q1b, pos1b, s );
+		s = 1.0 - (m_clTime - m_pCurrentEntity->latched.sequencetime) / 0.01f;
+		StudioSlerpBones(q, pos, q1b, pos1b, s);
 	}
 	else
 	{
-		//Con_DPrintf("prevframe = %4.2f\n", f);
+		// Con_DPrintf("prevframe = %4.2f\n", f);
 		m_pCurrentEntity->latched.prevframe = f;
 	}
 
-	pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
+	pbones = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 	// calc gait animation
 	if (m_pPlayerInfo && m_pPlayerInfo->gaitsequence != 0)
 	{
-		pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pPlayerInfo->gaitsequence;
+		pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + m_pPlayerInfo->gaitsequence;
 
-		panim = StudioGetAnim( m_pRenderModel, pseqdesc );
-		StudioCalcRotations( pos2, q2, pseqdesc, panim, m_pPlayerInfo->gaitframe );
+		panim = StudioGetAnim(m_pRenderModel, pseqdesc);
+		StudioCalcRotations(pos2, q2, pseqdesc, panim, m_pPlayerInfo->gaitframe);
 
 		for (i = 0; i < m_pStudioHeader->numbones; i++)
 		{
-			if (strcmp( pbones[i].name, "Bip01 Spine") == 0)
+			if (strcmp(pbones[i].name, "Bip01 Spine") == 0)
 				break;
-			memcpy( pos[i], pos2[i], sizeof( pos[i] ));
-			memcpy( q[i], q2[i], sizeof( q[i] ));
+			memcpy(pos[i], pos2[i], sizeof(pos[i]));
+			memcpy(q[i], q2[i], sizeof(q[i]));
 		}
 	}
 
@@ -2940,6 +2940,21 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	IEngineStudio.SetRenderModel( m_pRenderModel );
 	StudioSetupTextureHeader();
 
+	// bluenighthawk - viewmodel animation interpolating
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+	{
+		static model_s* pPrevModel = nullptr;
+
+		m_pCurrentEntity->latched.sequencetime = m_pCurrentEntity->curstate.animtime;
+
+		if (pPrevModel != m_pRenderModel)
+		{
+			m_pCurrentEntity->latched.prevsequence = m_pCurrentEntity->curstate.sequence;
+			m_pCurrentEntity->latched.prevframe = 0.0f;
+			pPrevModel = m_pRenderModel;
+		}
+	}
+
 	if(!m_pTextureHeader)
 		return 1;
 
@@ -2965,7 +2980,11 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	if (flags & STUDIO_EVENTS)
 	{
 		StudioCalcAttachments();
-		IEngineStudio.StudioClientEvents();
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+			StudioClientEvents();
+		else
+			IEngineStudio.StudioClientEvents();
+
 
 		// copy attachments into global entity array
 		if ( m_pCurrentEntity->index > 0 )
@@ -3271,7 +3290,11 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (flags & STUDIO_EVENTS)
 	{
 		StudioCalcAttachments( );
-		IEngineStudio.StudioClientEvents( );
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+			StudioClientEvents();
+		else
+			IEngineStudio.StudioClientEvents();
+
 		// copy attachments into global entity array
 		if ( m_pCurrentEntity->index > 0 )
 		{
@@ -3362,6 +3385,63 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	for (i = 0; i < m_pStudioHeader->numattachments; i++)
 	{
 		VectorTransformSSE( pattachment[i].org, (*m_pbonetransform)[pattachment[i].bone],  m_pCurrentEntity->attachment[i] );
+	}
+}
+
+#include "Exports.h"
+/*
+====================
+StudioCalcAttachments
+
+====================
+*/
+void CStudioModelRenderer::StudioClientEvents()
+{
+	mstudioseqdesc_t* pseqdesc;
+	mstudioevent_t* pevent;
+	cl_entity_t* e = m_pCurrentEntity;
+	int i, sequence;
+	float end, start;
+
+	if ((e->curstate.effects & EF_MUZZLEFLASH) != 0)
+	{
+		dlight_t* el = gEngfuncs.pEfxAPI->CL_AllocElight(0);
+
+		e->curstate.effects &= ~EF_MUZZLEFLASH;
+		VectorCopy(e->attachment[0], el->origin);
+		el->die = m_clTime + 0.05f;
+		el->color.r = 255;
+		el->color.g = 192;
+		el->color.b = 64;
+		el->decay = 320;
+		el->radius = 24;
+	}
+
+	sequence = clamp(e->curstate.sequence, 0, m_pStudioHeader->numseq - 1);
+	pseqdesc = (mstudioseqdesc_t*)((byte*)m_pStudioHeader + m_pStudioHeader->seqindex) + sequence;
+
+	// no events for this animation
+	if (pseqdesc->numevents == 0)
+		return;
+
+	end = StudioEstimateFrame(pseqdesc);
+	start = end - e->curstate.framerate * (m_clTime - m_clOldTime) * pseqdesc->fps;
+	pevent = (mstudioevent_t*)((byte*)m_pStudioHeader + pseqdesc->eventindex);
+
+	if (e->latched.sequencetime == e->curstate.animtime)
+	{
+		if ((pseqdesc->flags & STUDIO_LOOPING) != 0)
+			start = -0.01f;
+	}
+
+	for (i = 0; i < pseqdesc->numevents; i++)
+	{
+		// ignore all non-client-side events
+		if (pevent[i].event < 5000)
+			continue;
+
+		if ((float)pevent[i].frame > start && pevent[i].frame <= end)
+			HUD_StudioEvent(&pevent[i], e);
 	}
 }
 
@@ -4382,11 +4462,14 @@ void CStudioModelRenderer::StudioChromeForMesh( int j, mstudiomesh_t *pmesh )
 	for(int i = 0, k = j; i < pmesh->numnorms; i++, k++)
 	{
 		DotProductSSE(&n, pstudionorms[k], m_vChromeRight[pnormbone[k]]);
-		m_fChrome[k][0] = (n + 1.0) * 32;
+		m_fChrome[k][0] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.x * 0.1f : 0) + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.angles[YAW] * 0.25f : 0);
 
 		DotProductSSE(&n, pstudionorms[k], m_vChromeUp[pnormbone[k]]);
-		m_fChrome[k][1] = (n + 1.0) * 32;
+		m_fChrome[k][1] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.y * 0.1f : 0);
 	}
+
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		gEngfuncs.Con_Printf("haha %f\n", gEngfuncs.GetLocalPlayer()->curstate.angles[YAW]);
 }
 
 /*

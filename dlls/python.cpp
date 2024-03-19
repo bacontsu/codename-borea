@@ -136,11 +136,13 @@ void CPython::SecondaryAttack()
 	{
 		m_pPlayer->targetFov = 0;  // 0 means reset to default fov
 		m_pPlayer->isScoping = false;
+		m_pPlayer->m_iScopeType = false;
 	}
-	else if ( m_pPlayer->targetFov != -50 )
+	else if ( m_pPlayer->targetFov != -30 )
 	{
-		m_pPlayer->targetFov = -50;
+		m_pPlayer->targetFov = -30;
 		m_pPlayer->isScoping = true;
+		m_pPlayer->m_iScopeType = WEAPON_PYTHON;
 	}
 
 	m_flNextSecondaryAttack = 0.5;

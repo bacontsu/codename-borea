@@ -883,6 +883,7 @@ public:
 	ref_params_s* pparams;
 	bool	m_bSliding = false;
 	float	m_fLight = 0.0f;
+	int		m_iScopeType;
 
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );

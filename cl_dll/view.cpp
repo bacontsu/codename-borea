@@ -912,6 +912,42 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	//view->angles[ROLL]  -= bob * 1;
 	//view->angles[PITCH] -= bob * 0.3;
 
+	// bacontsu - ADS
+	Vector targetLerp, targetLerpAngle;
+	static Vector curLerp, curLerpAng;
+	switch (gHUD.m_iScopeType)
+	{
+	case WEAPON_PYTHON:
+	case WEAPON_GLOCK:
+		targetLerp = Vector(-1.0f, -3.0f, 1);
+		targetLerpAngle = Vector(0, 0, 0);
+		break;
+
+	default:
+		targetLerp = targetLerpAngle = Vector(0, 0, 0);
+		break;
+
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		curLerp[i] = (targetLerp[i] * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (curLerp[i] * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
+		curLerpAng[i] = (targetLerpAngle[i] * 0.03f * 300 / (1 / gHUD.m_flTimeDelta)) + (curLerpAng[i] * (1.0 - 0.03f * 300 / (1 / gHUD.m_flTimeDelta)));
+	}
+
+	// testing purposes
+	//curLerp = Vector(CVAR_GET_FLOAT("test1"), CVAR_GET_FLOAT("test2"), CVAR_GET_FLOAT("test3"));
+	//curLerpAng = Vector(CVAR_GET_FLOAT("test4"), CVAR_GET_FLOAT("test5"), CVAR_GET_FLOAT("test6"));
+
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] += curLerp[0] * pparams->forward[i];
+		view->origin[i] += curLerp[1] * pparams->right[i];
+		view->origin[i] += curLerp[2] * pparams->up[i];
+	}
+	view->angles = view->angles + curLerpAng;
+
+
 	// Bacontsu - wallrun offsetting
 	float target;
 	if(gHUD.wallType == 2)
