@@ -3382,14 +3382,18 @@ void CBSPRenderer::BuildLightmap( msurface_t *surf, int surfindex, color24 *out 
 	else if(surf->dlightframe && surf->dlightframe != m_iFrameCount)
 		surf->dlightframe = 0;
 
+
 	for (int i = 0; i < size; i++)
 	{
 		// Darken pixels with low values, helps make maps darker
 		float flIntensity = (m_pBlockLights[i].r + m_pBlockLights[i].g + m_pBlockLights[i].b)/3;
 		flIntensity = flIntensity/50;
 
-		if(flIntensity > 1)
-			flIntensity = 1;
+		if(flIntensity > 0.8f)
+			flIntensity = 0.8f;
+
+		// bacontsu - override overbright
+		//flIntensity = 0.8f;
 
 		m_pBlockLights[i].r = m_pBlockLights[i].r*flIntensity;
 		m_pBlockLights[i].g = m_pBlockLights[i].g*flIntensity;
