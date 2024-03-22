@@ -746,11 +746,6 @@ void CImguiManager::DrawSpeeds()
 	std::string version = "OpenGL: " + (std::string)(const char*)glGetString(GL_VERSION);
 	ImGui::Text(version.c_str());
 
-	GLint stencilBits = 0;
-	glGetIntegerv(GL_STENCIL_BITS, &stencilBits);
-	std::string jaja = "Stencil: " + std::to_string(stencilBits);
-	ImGui::Text(jaja.c_str());
-
 	if(gBSPRenderer.m_pCvarSpeeds->value == 1.0f)
 	{
 		static float flLastTime;
