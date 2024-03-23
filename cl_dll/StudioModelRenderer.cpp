@@ -4470,8 +4470,8 @@ void CStudioModelRenderer::StudioChromeForMesh( int j, mstudiomesh_t *pmesh )
 		m_fChrome[k][1] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.y * 0.1f : 0);
 	}
 
-	if (m_pCurrentEntity == gEngfuncs.GetViewModel())
-		gEngfuncs.Con_Printf("haha %f\n", gEngfuncs.GetLocalPlayer()->curstate.angles[YAW]);
+	//if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		//gEngfuncs.Con_Printf("haha %f\n", gEngfuncs.GetLocalPlayer()->curstate.angles[YAW]);
 }
 
 /*
