@@ -4462,9 +4462,11 @@ void CStudioModelRenderer::StudioChromeForMesh( int j, mstudiomesh_t *pmesh )
 	for(int i = 0, k = j; i < pmesh->numnorms; i++, k++)
 	{
 		DotProductSSE(&n, pstudionorms[k], m_vChromeRight[pnormbone[k]]);
-		m_fChrome[k][0] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.x * 0.1f : 0) + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.angles[YAW] * 0.25f : 0);
+		// bacontsu - fake specular
+		m_fChrome[k][0] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.x * 0.1f : 0) + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? fabs(gEngfuncs.GetLocalPlayer()->curstate.angles[YAW]) * 0.25f : 0);
 
 		DotProductSSE(&n, pstudionorms[k], m_vChromeUp[pnormbone[k]]);
+		// bacontsu - fake specular
 		m_fChrome[k][1] = (n + 1.0) * 32 + (m_pCurrentEntity == gEngfuncs.GetViewModel() ? gEngfuncs.GetLocalPlayer()->curstate.origin.y * 0.1f : 0);
 	}
 
