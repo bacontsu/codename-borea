@@ -6896,9 +6896,6 @@ void CStudioModelRenderer::SetupModelExtraData(void)
 {
 	m_pCurretExtraData = &m_ExtraData[m_pRenderModel->name];
 
-	if (StudioReadData())
-		return;
-
 	if (m_pCurretExtraData->submodels.size() > 0)
 		return;
 
@@ -6946,8 +6943,6 @@ void CStudioModelRenderer::SetupModelExtraData(void)
 	}
 
 	gEngfuncs.Con_Printf("Done (%d polys, %d edges)\n", facecounter, edgecounter);
-
-	StudioWriteData();
 }
 
 /*
@@ -7162,8 +7157,6 @@ bool CStudioModelRenderer::StudioReadData(void)
 
 	std::string filename(m_pRenderModel->name);
 	sprintf(szFile, "%s/%s/%s.dat", gEngfuncs.pfnGetGameDirectory(), "models/shadowcache", filename.substr(0, filename.rfind('.')).c_str() + 7);
-
-	gEngfuncs.Con_Printf("%s\n", szFile);
 
 	std::ifstream fin(szFile, ios_base::in | ios_base::binary);
 
