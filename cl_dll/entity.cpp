@@ -317,8 +317,6 @@ void Beams()
 }
 #endif
 
-void ClearStencilBuffer();
-
 /*
 =========================
 HUD_CreateEntities
@@ -356,8 +354,6 @@ void DLLEXPORT HUD_CreateEntities()
 			SetupFlashlight(pView->origin + Vector(0, 0, 8), Vector(-pView->angles[0], pView->angles[1], pView->angles[2]), gEngfuncs.GetClientTime(), gHUD.m_flTimeDelta, false);
 	}
 	//RENDERERS END
-
-	ClearStencilBuffer();
 }
 
 #if defined( _TFC )

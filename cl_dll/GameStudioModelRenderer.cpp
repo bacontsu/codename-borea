@@ -103,16 +103,6 @@ void R_StudioInit()
 	g_StudioRenderer.Init();
 }
 
-/*
-====================
-R_StudioVidInit
-====================
-*/
-void R_StudioVidInit()
-{
-	g_StudioRenderer.m_bCacheShadowData = true;
-}
-
 // The simple drawing interface we'll pass back to the engine
 r_studio_interface_t studio =
 {
