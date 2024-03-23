@@ -107,86 +107,6 @@ void ClearBuffer(void);
 extern bool g_bShadows;
 
 
-
-model_t* g_pworld;
-int g_visframe;
-int g_framecount;
-Vector g_lightvec;
-
-void RecursiveDrawWorld(mnode_t* node)
-{
-	if (node->contents == CONTENTS_SOLID)
-		return;
-
-	if (node->visframe != g_visframe)
-		return;
-
-	if (node->contents < 0)
-		return; // faces already marked by engine
-
-	// recurse down the children, Order doesn't matter
-	RecursiveDrawWorld(node->children[0]);
-	RecursiveDrawWorld(node->children[1]);
-
-	// draw stuff
-	int c = node->numsurfaces;
-	if (c)
-	{
-		msurface_t* surf = g_pworld->surfaces + node->firstsurface;
-
-		for (; c; c--, surf++)
-		{
-			if (surf->visframe != g_framecount)
-				continue;
-
-			if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_UNDERWATER))
-				continue;
-
-			// cull from light vector
-
-			float dot;
-			mplane_t* plane = surf->plane;
-
-			switch (plane->type)
-			{
-			case PLANE_X:
-				dot = g_lightvec[0];
-				break;
-			case PLANE_Y:
-				dot = g_lightvec[1];
-				break;
-			case PLANE_Z:
-				dot = g_lightvec[2];
-				break;
-			default:
-				dot = DotProduct(g_lightvec, plane->normal);
-				break;
-			}
-
-			if ((dot > 0) && (surf->flags & SURF_PLANEBACK))
-				continue;
-
-			if ((dot < 0) && !(surf->flags & SURF_PLANEBACK))
-				continue;
-
-			glpoly_t* p = surf->polys;
-			float* v = p->verts[0];
-
-			glBegin(GL_POLYGON);
-			for (int i = 0; i < p->numverts; i++, v += VERTEXSIZE)
-			{
-				glTexCoord2f(v[3], v[4]);
-				glVertex3fv(v);
-			}
-			glEnd();
-		}
-	}
-}
-
-// buz end
-
-PFNGLACTIVETEXTUREARBPROC glActiveTextureARB = NULL;
-
 /*
 =================
 HUD_DrawNormalTriangles
@@ -203,57 +123,43 @@ void DLLEXPORT HUD_DrawNormalTriangles()
 	//2012-02-25
 	R_DrawNormalTriangles();
 	//RENDERERS END
-	
+
+    // buz start
+    // òóò ìîæíî áþëî ïðîñòî íàðèñîâàòü ñåðûé êâàäðàò íà âåñü ýêðàí, êàê ýòî ÷àñòî äåëàþò
+    // â ñòåíñèëüíûõ òåíÿõ òàêîãî ðîäà, îäíàêî âìåñòî ýòîãî ÿ ïðîáåãàþñü ïî ïîëèãîíàì world'à,
+    // è ðèñóþ ñåðûì òîëüêî òå, êîòîðûå îáðàùåíû ê "ñîëíûøêó", ÷òîáû òåíü íå ðèñîâàëàñü
+    // íà "îáðàòíûõ" ñòåíêàõ.
+    if (g_bShadows && IEngineStudio.IsHardware())
+    {
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+        // buz: workaround half-life's bug, when multitexturing left enabled after
+        // rendering brush entities
+        gBSPRenderer.glActiveTextureARB(GL_TEXTURE1_ARB);
+        glDisable(GL_TEXTURE_2D);
+        gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
+
+        glDepthMask(GL_FALSE);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(GL_ZERO, GL_ZERO, GL_ZERO, 0.5);
+
+        glStencilFunc(GL_NOTEQUAL, 0, ~0);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        glEnable(GL_STENCIL_TEST);
+
+        // draw world
+        gBSPRenderer.RecursiveWorldNodeSolid(gBSPRenderer.m_pWorld->nodes);
+
+        glPopAttrib();
+    }
+
+    g_bShadows = false;
+    // buz end
+
 	gHUD.m_Spectator.DrawOverview();
-
-	// buz start
-	// òóò ìîæíî áþëî ïðîñòî íàðèñîâàòü ñåðûé êâàäðàò íà âåñü ýêðàí, êàê ýòî ÷àñòî äåëàþò
-	// â ñòåíñèëüíûõ òåíÿõ òàêîãî ðîäà, îäíàêî âìåñòî ýòîãî ÿ ïðîáåãàþñü ïî ïîëèãîíàì world'à,
-	// è ðèñóþ ñåðûì òîëüêî òå, êîòîðûå îáðàùåíû ê "ñîëíûøêó", ÷òîáû òåíü íå ðèñîâàëàñü
-	// íà "îáðàòíûõ" ñòåíêàõ.
-	if (g_bShadows && IEngineStudio.IsHardware())
-	{
-		if (NULL == glActiveTextureARB)
-			glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-		// buz: workaround half-life's bug, when multitexturing left enabled after
-		// rendering brush entities
-		glActiveTextureARB(GL_TEXTURE1_ARB);
-		glDisable(GL_TEXTURE_2D);
-		glActiveTextureARB(GL_TEXTURE0_ARB);
-
-		glDepthMask(GL_FALSE);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_DST_COLOR, GL_ZERO);
-		glColor4f(0.5, 0.5, 0.5, 1);
-
-		glStencilFunc(GL_NOTEQUAL, 0, ~0);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-		glEnable(GL_STENCIL_TEST);
-
-		// get current visframe number
-		g_pworld = gEngfuncs.GetEntityByIndex(0)->model;
-		mleaf_t* leaf = Mod_PointInLeaf(g_StudioRenderer.m_vRenderOrigin, g_pworld);
-		g_visframe = leaf->visframe;
-
-		// get current frame number
-		g_framecount = g_StudioRenderer.m_nFrameCount;
-
-		// get light vector
-		g_StudioRenderer.GetShadowVector(g_lightvec);
-
-		// draw world
-		RecursiveDrawWorld(gBSPRenderer.m_pWorld->nodes);
-
-		glPopAttrib();
-	}
-
-	g_bShadows = false;
-	// buz end
 }
 
 #if defined( _TFC )
