@@ -82,6 +82,8 @@ void InitInput ();
 void EV_HookEvents( );
 void IN_Commands( );
 
+void R_StudioVidInit();
+
 /*
 ================================
 HUD_GetHullBounds
@@ -202,6 +204,8 @@ int DLLEXPORT HUD_VidInit()
 	gHUD.VidInit();
 
 	VGui_Startup();
+
+	R_StudioVidInit();
 	
 	return 1;
 }

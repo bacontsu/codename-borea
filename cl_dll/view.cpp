@@ -106,6 +106,8 @@ cvar_t	v_iyaw_level		= {"v_iyaw_level", "0.3", 0, 0.3};
 cvar_t	v_iroll_level		= {"v_iroll_level", "0.1", 0, 0.1};
 cvar_t	v_ipitch_level		= {"v_ipitch_level", "0.3", 0, 0.3};
 
+cvar_t* g_cvShadows; // buz
+
 float	v_idlescale;  // used by TFC for concussion grenade effect
 
 //=============================================================================
@@ -2103,6 +2105,7 @@ void V_CalcThirdPersonRefdef( struct ref_params_s * pparams )
 
 }
 
+void SetupBuffer();
 
 void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 {
@@ -2126,6 +2129,9 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 		V_CalcNormalRefdef ( pparams );
 	}
 
+	// buz
+	if (g_cvShadows->value)
+		SetupBuffer();
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha
 #define SF_TEST
@@ -2219,6 +2225,9 @@ void V_Init ()
 	cl_bobup			= gEngfuncs.pfnRegisterVariable( "cl_bobup","0.5", 0 );
 	cl_waterdist		= gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );
 	cl_chasedist		= gEngfuncs.pfnRegisterVariable( "cl_chasedist","112", 0 );
+
+	// buz
+	g_cvShadows = gEngfuncs.pfnRegisterVariable("gl_shadows", "1", FCVAR_ARCHIVE);
 
 	gEngfuncs.pfnAddCommand		( "thirdperson", CMD_ThirdPerson );	//G-Cont
 	gEngfuncs.pfnAddCommand		( "firstperson", CMD_FirstPerson );	//G-Cont
