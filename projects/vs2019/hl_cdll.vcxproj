@@ -168,6 +168,8 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\cl_dll\status_icons.cpp" />
     <ClCompile Include="..\..\cl_dll\StudioModelRenderer.cpp" />
     <ClCompile Include="..\..\cl_dll\studio_util.cpp" />
+    <ClCompile Include="..\..\cl_dll\svdformat.cpp" />
+    <ClCompile Include="..\..\cl_dll\svd_render.cpp" />
     <ClCompile Include="..\..\cl_dll\textureloader.cpp" />
     <ClCompile Include="..\..\cl_dll\text_message.cpp" />
     <ClCompile Include="..\..\cl_dll\train.cpp" />
@@ -282,6 +284,8 @@ EXIT /B 0</Command>
     <ClInclude Include="..\..\cl_dll\regs\reGS_patterns.hpp" />
     <ClInclude Include="..\..\cl_dll\rendererdefs.h" />
     <ClInclude Include="..\..\cl_dll\StudioModelRenderer.h" />
+    <ClInclude Include="..\..\cl_dll\svdformat.h" />
+    <ClInclude Include="..\..\cl_dll\svd_render.h" />
     <ClInclude Include="..\..\cl_dll\textureloader.h" />
     <ClInclude Include="..\..\cl_dll\tri.h" />
     <ClInclude Include="..\..\cl_dll\vgui_int.h" />

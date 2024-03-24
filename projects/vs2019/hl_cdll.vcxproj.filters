@@ -495,6 +495,12 @@
     <ClCompile Include="..\..\cl_dll\regs\reGS_enginehook.cpp">
       <Filter>Source Files\regs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\svdformat.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\svd_render.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cl_dll\kbutton.h">
@@ -1063,6 +1069,12 @@
     </ClInclude>
     <ClInclude Include="..\..\cl_dll\regs\reGS_patterns.hpp">
       <Filter>Source Files\regs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\svdformat.h">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cl_dll\svd_render.h">
+      <Filter>Source Files\cl_dll</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

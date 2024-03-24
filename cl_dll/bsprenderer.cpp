@@ -898,15 +898,6 @@ void CBSPRenderer::SetupPreFrame ( ref_params_t *pparams )
 	//Get additional lights here
 	GetAdditionalLights();
 
-	//Bind VBO at frame start
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uiBufferIndex);
-
-	// Set pointers up at start of frame
-	glVertexPointer(3, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, pos));
-	glNormalPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, normal));
-
-	if(m_bSpecialFog)
-		glFogCoordPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, fogcoord));
 }
 
 /*
@@ -1884,6 +1875,15 @@ EnableVertexArray
 */
 void CBSPRenderer::EnableVertexArray( )
 {
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uiBufferIndex);
+
+	// Set pointers up at start of frame
+	glVertexPointer(3, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, pos));
+	glNormalPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, normal));
+
+	if (m_bSpecialFog)
+		glFogCoordPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, fogcoord));
+
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	if(m_bSpecialFog)
@@ -1915,6 +1915,7 @@ void CBSPRenderer::DisableVertexArray( )
 
 	// 2010-09-30 -- Not setting this caused problems with Steam HL
 	glClientActiveTextureARB(GL_TEXTURE0_ARB);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 };
 
 /*
@@ -2329,7 +2330,7 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 			}
 		}
 		// bacontsu - fake specular
-		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect"))
+		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect") || stristr(pTexture->name, "glass"))
 		{
 			//gEngfuncs.Con_Printf("found spec\n");
 			while (psurface)

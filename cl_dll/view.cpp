@@ -28,6 +28,9 @@
 #include "watershader.h"
 //RENDERERS END
 
+#include "svdformat.h"
+#include "svd_render.h"
+
 	int CL_IsThirdPerson();
 	void CL_CameraOffset( float *ofs );
 
@@ -2125,6 +2128,8 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 		V_CalcNormalRefdef ( pparams );
 	}
+
+	SVD_CalcRefDef(pparams);
 
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha

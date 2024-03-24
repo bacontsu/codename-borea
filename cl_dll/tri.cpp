@@ -38,6 +38,8 @@ extern CGameStudioModelRenderer g_StudioRenderer;
 #include "glInclude.h"
 #include "blur.h"
 
+#include "svd_render.h"
+
 extern int g_iWaterLevel;
 extern Vector v_origin;
 
@@ -84,6 +86,8 @@ void DLLEXPORT HUD_DrawNormalTriangles()
 	//2012-02-25
 	R_DrawNormalTriangles();
 	//RENDERERS END
+
+    SVD_DrawNormalTriangles();
 	
 	gHUD.m_Spectator.DrawOverview();
 }

@@ -58,6 +58,8 @@ extern engine_studio_api_t IEngineStudio;
 
 #include "minhook/MinHook.h"
 
+#include "svdformat.h"
+
 extern void HWHook();
 
 cl_enginefunc_t gEngfuncs;
@@ -202,6 +204,8 @@ int DLLEXPORT HUD_VidInit()
 	gHUD.VidInit();
 
 	VGui_Startup();
+
+	SVD_VidInit();
 	
 	return 1;
 }

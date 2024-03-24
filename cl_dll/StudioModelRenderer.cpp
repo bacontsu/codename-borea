@@ -1595,6 +1595,8 @@ void CStudioModelRenderer::Init()
 	m_protationmatrix		= (float (*)[3][4])IEngineStudio.StudioGetRotationMatrix();
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
 
+	m_pCvarDrawShadows = CVAR_CREATE("gl_shadows", "2", FCVAR_ARCHIVE);
+
 	//
 	// Load ARB shaders
 	//
@@ -3483,12 +3485,29 @@ void CStudioModelRenderer::StudioRenderModel()
 
 /*
 ====================
+GL_StudioDrawShadow
+
+====================
+*/
+void CStudioModelRenderer::GL_StudioDrawShadow(void)
+{
+	
+}
+
+/*
+====================
 StudioRenderFinal
 
 ====================
 */
 void CStudioModelRenderer::StudioRenderFinal()
 {
+
+	if (StudioShouldDrawShadow())
+	{
+		StudioDrawShadow();
+	}
+
 	StudioSetupRenderer( m_pCurrentEntity->curstate.rendermode );
 	StudioSetChromeVectors();
 
@@ -3496,6 +3515,7 @@ void CStudioModelRenderer::StudioRenderFinal()
 	{
 		StudioSetupModel(i);
 		StudioDrawPoints();
+		GL_StudioDrawShadow();
 	}
 
 	StudioRestoreRenderer();
@@ -6624,4 +6644,236 @@ void CStudioModelRenderer::StudioDrawPointsSolidEXT()
 			glAlphaFunc(GL_GREATER, 0);
 		}
 	}
+}
+
+/*
+====================
+StudioSetupModelSVD
+
+====================
+*/
+void CStudioModelRenderer::StudioSetupModelSVD(int bodypart)
+{
+	if (bodypart > m_pSVDHeader->numbodyparts)
+		bodypart = 0;
+
+	svdbodypart_t* pbodypart = (svdbodypart_t*)((byte*)m_pSVDHeader + m_pSVDHeader->bodypartindex) + bodypart;
+
+	int index = m_pCurrentEntity->curstate.body / pbodypart->base;
+	index = index % pbodypart->numsubmodels;
+
+	m_pSVDSubModel = (svdsubmodel_t*)((byte*)m_pSVDHeader + pbodypart->submodelindex) + index;
+}
+
+/*
+====================
+StudioDrawShadow
+
+====================
+*/
+void CStudioModelRenderer::StudioDrawShadow(void)
+{
+	StudioSetBuffer();
+
+	// Set SVD header
+	m_pSVDHeader = (svdheader_t*)m_pRenderModel->visdata;
+
+	glDepthMask(GL_FALSE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // disable writes to color buffer
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 0, ~0);
+
+	for (int i = 0; i < m_pStudioHeader->numbodyparts; i++)
+	{
+		StudioSetupModelSVD(i);
+		StudioDrawShadowVolume();
+	}
+
+	glDepthMask(GL_TRUE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDisable(GL_STENCIL_TEST);
+
+	StudioClearBuffer();
+}
+
+
+
+/*
+====================
+StudioDrawShadowVolume
+
+====================
+*/
+void CStudioModelRenderer::StudioDrawShadowVolume(void)
+{
+	float plane[4];
+	Vector lightdir;
+	Vector* pv1, * pv2, * pv3;
+
+	if (!m_pSVDSubModel->numfaces)
+		return;
+
+	Vector* psvdverts = (Vector*)((byte*)m_pSVDHeader + m_pSVDSubModel->vertexindex);
+	byte* pvertbone = ((byte*)m_pSVDHeader + m_pSVDSubModel->vertinfoindex);
+
+	Vector shadeVector;
+	shadeVector[0] = 0.3;
+	shadeVector[1] = 0.5;
+	shadeVector[2] = 1;
+
+	m_vShadowLightOrigin = m_pCurrentEntity->origin + shadeVector * 8196;
+
+	// Calculate vertex coords
+	for (int i = 0, j = 0; i < m_pSVDSubModel->numverts; i++, j += 2)
+	{
+		VectorTransform(psvdverts[i], (*m_pbonetransform)[pvertbone[i]], m_vertexTransform[j]);
+
+		VectorSubtract(m_vertexTransform[j], m_vShadowLightOrigin, lightdir);
+		VectorNormalizeFast(lightdir);
+
+		VectorMA(m_vertexTransform[j], 4096, lightdir, m_vertexTransform[j + 1]);
+	}
+
+	// Process the faces
+	int numIndexes = 0;
+	svdface_t* pfaces = (svdface_t*)((byte*)m_pSVDHeader + m_pSVDSubModel->faceindex);
+
+	for (int i = 0; i < m_pSVDSubModel->numfaces; i++)
+	{
+		pv1 = &m_vertexTransform[pfaces[i].vertex0];
+		pv2 = &m_vertexTransform[pfaces[i].vertex1];
+		pv3 = &m_vertexTransform[pfaces[i].vertex2];
+
+		plane[0] = pv1->y * (pv2->z - pv3->z) + pv2->y * (pv3->z - pv1->z) + pv3->y * (pv1->z - pv2->z);
+		plane[1] = pv1->z * (pv2->x - pv3->x) + pv2->z * (pv3->x - pv1->x) + pv3->z * (pv1->x - pv2->x);
+		plane[2] = pv1->x * (pv2->y - pv3->y) + pv2->x * (pv3->y - pv1->y) + pv3->x * (pv1->y - pv2->y);
+		plane[3] = -(pv1->x * (pv2->y * pv3->z - pv3->y * pv2->z) + pv2->x * (pv3->y * pv1->z - pv1->y * pv3->z) + pv3->x * (pv1->y * pv2->z - pv2->y * pv1->z));
+
+		m_trianglesFacingLight[i] = (DotProduct(plane, m_vShadowLightOrigin) + plane[3]) > 0;
+
+		// comment this 'if' block if you want to use z-pass method
+		if (m_trianglesFacingLight[i])
+		{
+			m_shadowVolumeIndexes[numIndexes] = pfaces[i].vertex0;
+			m_shadowVolumeIndexes[numIndexes + 1] = pfaces[i].vertex2;
+			m_shadowVolumeIndexes[numIndexes + 2] = pfaces[i].vertex1;
+
+			m_shadowVolumeIndexes[numIndexes + 3] = pfaces[i].vertex0 + 1;
+			m_shadowVolumeIndexes[numIndexes + 4] = pfaces[i].vertex1 + 1;
+			m_shadowVolumeIndexes[numIndexes + 5] = pfaces[i].vertex2 + 1;
+
+			numIndexes += 6;
+		}
+	}
+
+	// Process the edges
+	svdedge_t* pedges = (svdedge_t*)((byte*)m_pSVDHeader + m_pSVDSubModel->edgeindex);
+	for (int i = 0; i < m_pSVDSubModel->numedges; i++)
+	{
+		if (m_trianglesFacingLight[pedges[i].face0])
+		{
+			if ((pedges[i].face1 != -1) && m_trianglesFacingLight[pedges[i].face1])
+				continue;
+
+			m_shadowVolumeIndexes[numIndexes] = pedges[i].vertex0;
+			m_shadowVolumeIndexes[numIndexes + 1] = pedges[i].vertex1;
+		}
+		else
+		{
+			if ((pedges[i].face1 == -1) || !m_trianglesFacingLight[pedges[i].face1])
+				continue;
+
+			m_shadowVolumeIndexes[numIndexes] = pedges[i].vertex1;
+			m_shadowVolumeIndexes[numIndexes + 1] = pedges[i].vertex0;
+		}
+
+		m_shadowVolumeIndexes[numIndexes + 2] = m_shadowVolumeIndexes[numIndexes] + 1;
+		m_shadowVolumeIndexes[numIndexes + 3] = m_shadowVolumeIndexes[numIndexes + 2];
+		m_shadowVolumeIndexes[numIndexes + 4] = m_shadowVolumeIndexes[numIndexes + 1];
+		m_shadowVolumeIndexes[numIndexes + 5] = m_shadowVolumeIndexes[numIndexes + 1] + 1;
+		numIndexes += 6;
+	}
+
+	// draw back faces incrementing stencil values when z fails
+	glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+	glCullFace(GL_BACK);
+	glDrawElements(GL_TRIANGLES, numIndexes, GL_UNSIGNED_SHORT, m_shadowVolumeIndexes);
+
+	// draw front faces decrementing stencil values when z fails
+	glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+	glCullFace(GL_FRONT);
+	glDrawElements(GL_TRIANGLES, numIndexes, GL_UNSIGNED_SHORT, m_shadowVolumeIndexes);
+}
+
+/*
+====================
+StudioSetBuffer
+
+====================
+*/
+void CStudioModelRenderer::StudioSetBuffer(void)
+{
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+	// Disable these to avoid slowdown bug
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE1);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE2);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE3);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(Vector), m_vertexTransform);
+	glEnableClientState(GL_VERTEX_ARRAY);
+}
+
+/*
+====================
+StudioClearBuffer
+
+====================
+*/
+void CStudioModelRenderer::StudioClearBuffer(void)
+{
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	glPopClientAttrib();
+}
+
+/*
+====================
+StudioShouldDrawShadow
+
+====================
+*/
+bool CStudioModelRenderer::StudioShouldDrawShadow(void)
+{
+	if (m_pCvarDrawShadows->value < 2)
+		return false;
+
+	// Entities flagged for no shadowing
+	if (m_pCurrentEntity->curstate.renderfx == 101)
+		return false;
+
+	if (IEngineStudio.IsHardware() != 1)
+		return false;
+
+	if (!m_pRenderModel->visdata)
+		return false;
+
+	// Fucking butt-ugly hack to make the shadows less annoying
+	pmtrace_t tr;
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(m_vRenderOrigin, m_pCurrentEntity->origin + Vector(0, 0, 1), PM_WORLD_ONLY, -1, &tr);
+
+	if (tr.fraction != 1.0)
+		return false;
+
+	return true;
 }
