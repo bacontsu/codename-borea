@@ -173,7 +173,7 @@ void SVD_DrawNormalTriangles ( void )
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(GL_ZERO, GL_ZERO, GL_ZERO, 0.5);
+	glColor4f(GL_ZERO, GL_ZERO, GL_ZERO, 0.25);
 
 	glStencilFunc(GL_NOTEQUAL, 0, ~0);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);

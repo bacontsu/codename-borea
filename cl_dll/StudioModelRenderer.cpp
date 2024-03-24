@@ -6717,10 +6717,42 @@ void CStudioModelRenderer::StudioDrawShadowVolume(void)
 	Vector* psvdverts = (Vector*)((byte*)m_pSVDHeader + m_pSVDSubModel->vertexindex);
 	byte* pvertbone = ((byte*)m_pSVDHeader + m_pSVDSubModel->vertinfoindex);
 
+	// search for closest elight
+	mlight_t closest_elight;
+	for (int i = 0; i < MAXRENDERENTS; i++)
+	{
+		auto light = gBSPRenderer.m_pModelLights[i];
+		if (light.radius != 0.0f)
+		{
+			// start
+			if (closest_elight.radius == 0.0f)
+				closest_elight = light;
+
+			// is this more closer to the entity?
+			if (Vector(light.origin - m_pCurrentEntity->curstate.origin).Length() < Vector(closest_elight.origin - m_pCurrentEntity->curstate.origin).Length())
+				closest_elight = light;
+		}
+	}
+
 	Vector shadeVector;
-	shadeVector[0] = 0.3;
-	shadeVector[1] = 0.5;
-	shadeVector[2] = 1;
+	if (Vector(closest_elight.origin - m_pCurrentEntity->curstate.origin).Length() < 500.0f)
+	{
+		shadeVector = Vector(closest_elight.origin - m_pCurrentEntity->curstate.origin).Normalize();
+	}
+	else if (m_pCvarSkyVecX->value != 0 || m_pCvarSkyVecY->value != 0 || m_pCvarSkyVecZ->value != 0 )
+	{
+		Vector skyvec(m_pCvarSkyVecX->value, m_pCvarSkyVecY->value, m_pCvarSkyVecZ->value);
+		skyvec = skyvec * -1;
+		shadeVector[0] = skyvec.x;
+		shadeVector[1] = skyvec.y;
+		shadeVector[2] = skyvec.z;
+	}
+	else
+	{
+		shadeVector[0] = 0.3;
+		shadeVector[1] = 0.5;
+		shadeVector[2] = 1;
+	}
 
 	m_vShadowLightOrigin = m_pCurrentEntity->origin + shadeVector * 8196;
 
