@@ -737,6 +737,12 @@ void CPropManager::RenderProps( )
 	if(m_pCvarDrawClientEntities->value == 2)
 		glDisable(GL_DEPTH_TEST);
 
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, gBSPRenderer.m_uiBufferIndex);
+
+	// Set pointers up at start of frame
+	glVertexPointer(3, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, pos));
+	glNormalPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, normal));
+
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, texcoord) );
@@ -830,6 +836,7 @@ void CPropManager::RenderProps( )
 	gBSPRenderer.m_iTotalFoliage = FoliageCount;
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -1170,6 +1177,12 @@ void CPropManager::RenderPropsSolid( )
 	if(g_StudioRenderer.m_pCvarDrawEntities->value < 1)
 		return;
 
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, gBSPRenderer.m_uiBufferIndex);
+
+	// Set pointers up at start of frame
+	glVertexPointer(3, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, pos));
+	glNormalPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, normal));
+
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
@@ -1201,6 +1214,7 @@ void CPropManager::RenderPropsSolid( )
 	}
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, NULL);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -1224,6 +1238,12 @@ void CPropManager::RenderSkyProps( )
 	if(g_StudioRenderer.m_pCvarDrawEntities->value < 1)
 		return;
 
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, gBSPRenderer.m_uiBufferIndex);
+
+	// Set pointers up at start of frame
+	glVertexPointer(3, GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, pos));
+	glNormalPointer(GL_FLOAT, sizeof(brushvertex_t), OFFSET_TRINITY(brushvertex_t, normal));
+
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
@@ -1242,6 +1262,7 @@ void CPropManager::RenderSkyProps( )
 	}
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	gBSPRenderer.glBindBufferARB(GL_ARRAY_BUFFER_ARB, NULL);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);

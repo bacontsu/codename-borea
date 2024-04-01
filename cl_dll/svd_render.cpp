@@ -158,6 +158,7 @@ void SVD_DrawNormalTriangles ( void )
 	if(IEngineStudio.IsHardware() != 1)
 		return;
 
+	// stencil pass start
 	glPushAttrib(GL_TEXTURE_BIT);
 
 	//gEngfuncs.Con_Printf("hihiih\n");
@@ -201,4 +202,6 @@ void SVD_DrawNormalTriangles ( void )
 
 	//g_StudioRenderer.StudioClearBuffer();
 	glPopAttrib();
+
+	// stencil pass end
 }

@@ -344,7 +344,11 @@ public:
 	// Tells if we should draw a shadow for this ent
 	virtual bool StudioShouldDrawShadow(void);
 
-	virtual void GL_StudioDrawShadow();
+	Vector verts[MAXSTUDIOVERTS];
+	void StudioGetVerts();
+	void GL_StudioDrawShadow();
+	void StudioSetupModel(int bodypart, void** ppbodypart, void** ppsubmodel);
+	void StudioDrawPointsShadow();
 
 	// Should we draw shadows?
 	cvar_t* m_pCvarDrawShadows;

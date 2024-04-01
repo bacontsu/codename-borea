@@ -3485,24 +3485,12 @@ void CStudioModelRenderer::StudioRenderModel()
 
 /*
 ====================
-GL_StudioDrawShadow
-
-====================
-*/
-void CStudioModelRenderer::GL_StudioDrawShadow(void)
-{
-	
-}
-
-/*
-====================
 StudioRenderFinal
 
 ====================
 */
 void CStudioModelRenderer::StudioRenderFinal()
 {
-
 	if (StudioShouldDrawShadow())
 	{
 		StudioDrawShadow();
@@ -3513,10 +3501,24 @@ void CStudioModelRenderer::StudioRenderFinal()
 
 	for (int i = 0; i < m_pStudioHeader->numbodyparts; i++)
 	{
+		// draw actual model
 		StudioSetupModel(i);
 		StudioDrawPoints();
+
+		/*
+		// draw shadow pass
+		StudioSetupModel(i, (void**)&m_pBodyPart, (void**)&m_pSubModel);
+		StudioGetVerts();
 		GL_StudioDrawShadow();
+		*/
 	}
+
+	/*
+	* if (StudioShouldDrawShadow())
+	{
+		StudioDrawShadow();
+	}
+	*/
 
 	StudioRestoreRenderer();
 	StudioDrawDecals();
@@ -6908,4 +6910,157 @@ bool CStudioModelRenderer::StudioShouldDrawShadow(void)
 		return false;
 
 	return true;
+}
+
+/*
+===============
+GL_StudioDrawShadow
+g-cont: don't modify this code it's 100% matched with
+original GoldSrc code and used in some mods to enable
+studio shadows with some asm tricks
+===============
+*/
+void CStudioModelRenderer::GL_StudioDrawShadow()
+{
+	// magic nipples - shadows | changed r_shadows.value to -> to prevent error
+	if (m_pCvarDrawShadows->value)
+	{
+		// stencil pass start
+		glPushAttrib(GL_TEXTURE_BIT);
+
+		glDepthMask(GL_FALSE);
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(GL_ZERO, GL_ZERO, GL_ZERO, 0.25f);
+
+		glStencilFunc(GL_NOTEQUAL, 0, ~0);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		glEnable(GL_STENCIL_TEST);
+
+		StudioDrawPointsShadow();
+
+		glDepthMask(GL_TRUE);
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDisable(GL_STENCIL_TEST);
+
+		//g_StudioRenderer.StudioClearBuffer();
+		glPopAttrib();
+
+		// stencil pass end
+
+		//glDepthMask(GL_TRUE);
+	}
+}
+
+/*
+===============
+StudioDrawPointsShadow
+===============
+*/
+void CStudioModelRenderer::StudioDrawPointsShadow()
+{
+	float* av, height;
+	float vec_x, vec_y;
+	mstudiomesh_t* pmesh;
+	Vector point;
+	int i, k;
+
+	// height = g_studio.lightspot[2] + 1.0f;
+	// vec_x = -g_studio.lightvec[0] * 8.0f;
+	// vec_y = -g_studio.lightvec[1] * 8.0f;
+
+	// magic nipples - no more shadows from lightsources because it looks bad
+
+	for (k = 0; k < m_pSubModel->nummesh; k++)
+	{
+		short* ptricmds;
+
+		pmesh = (mstudiomesh_t*)((byte*)m_pStudioHeader + m_pSubModel->meshindex) + k;
+		ptricmds = (short*)((byte*)m_pStudioHeader + pmesh->triindex);
+
+		while (i = *(ptricmds++))
+		{
+			if (i < 0)
+			{
+				glBegin(GL_TRIANGLE_FAN);
+				i = -i;
+			}
+			else
+			{
+				glBegin(GL_TRIANGLE_STRIP);
+			}
+
+
+			for (; i > 0; i--, ptricmds += 4)
+			{
+				av = verts[ptricmds[0]];
+				point[0] = av[0];
+				point[1] = av[1];
+				point[2] = av[2];
+
+				glVertex3fv(point);
+			}
+
+			glEnd();
+		}
+	}
+
+}
+
+void Matrix3x4_VectorTransform(const float(*in)[4], const float v[3], float out[3])
+{
+	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
+	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2] + in[1][3];
+	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2] + in[2][3];
+}
+/*
+===============
+R_StudioDrawPoints
+===============
+*/
+void CStudioModelRenderer::StudioGetVerts()
+{
+	int i;
+	byte* pvertbone;
+	Vector* pstudioverts;
+
+	if (!m_pStudioHeader)
+		return;
+
+	// safety bounding the skinnum
+	pvertbone = ((byte*)m_pStudioHeader + m_pSubModel->vertinfoindex);
+	pstudioverts = (Vector*)((byte*)m_pStudioHeader + m_pSubModel->vertindex);
+
+	for (i = 0; i < m_pSubModel->numverts; i++)
+	{
+		Matrix3x4_VectorTransform((*m_pbonetransform)[pvertbone[i]], pstudioverts[i], verts[i]);
+	}
+}
+
+/*
+===============
+pfnStudioSetupModel
+===============
+*/
+void CStudioModelRenderer::StudioSetupModel(int bodypart, void** ppbodypart, void** ppsubmodel)
+{
+	int index;
+
+	if (bodypart > m_pStudioHeader->numbodyparts)
+		bodypart = 0;
+
+	m_pBodyPart = (mstudiobodyparts_t*)((byte*)m_pStudioHeader + m_pStudioHeader->bodypartindex) + bodypart;
+
+	index = m_pCurrentEntity->curstate.body / m_pBodyPart->base;
+	index = index % m_pBodyPart->nummodels;
+
+	m_pSubModel = (mstudiomodel_t*)((byte*)m_pStudioHeader + m_pBodyPart->modelindex) + index;
+
+	if (ppbodypart)
+		*ppbodypart = m_pBodyPart;
+	if (ppsubmodel)
+		*ppsubmodel = m_pSubModel;
 }
