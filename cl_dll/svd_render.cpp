@@ -69,6 +69,10 @@ int			g_visFrame;
 int			g_frameCount;
 Vector		g_viewOrigin;
 
+// msurface_t struct size
+int			g_msurfaceStructSize = 0;
+
+
 /*
 ====================
 Mod_PointInLeaf
@@ -80,12 +84,161 @@ extern mleaf_t* Mod_PointInLeaf(Vector p, model_t* model); // quake's func
 
 /*
 ====================
+SVD_DrawBrushModel
+
+====================
+*/
+void SVD_DrawBrushModel(cl_entity_t* pentity)
+{
+	model_t* pmodel = pentity->model;
+
+	Vector vlocalview;
+	Vector vmins, vmaxs;
+
+	// set model-local view origin
+	VectorCopy(g_viewOrigin, vlocalview);
+
+	if (pentity->angles[0] || pentity->angles[1] || pentity->angles[2])
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			vmins[i] = pentity->origin[i] - pmodel->radius;
+			vmaxs[i] = pentity->origin[i] + pmodel->radius;
+		}
+	}
+	else
+	{
+		VectorAdd(pentity->origin, pmodel->mins, vmins);
+		VectorAdd(pentity->origin, pmodel->maxs, vmaxs);
+	}
+	VectorSubtract(vlocalview, pentity->origin, vlocalview);
+
+	if (pentity->angles[0] || pentity->angles[1] || pentity->angles[2])
+	{
+		Vector	vtemp, vforward, vright, vup;
+		VectorCopy(vlocalview, vtemp);
+		AngleVectors(pentity->angles, vforward, vright, vup);
+		vlocalview[0] = DotProduct(vtemp, vforward);
+		vlocalview[1] = -DotProduct(vtemp, vright);
+		vlocalview[2] = DotProduct(vtemp, vup);
+	}
+
+	if (pentity->curstate.origin[0] || pentity->curstate.origin[1] || pentity->curstate.origin[2]
+		|| pentity->curstate.angles[0] || pentity->curstate.angles[1] || pentity->curstate.angles[2])
+	{
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+
+		glTranslatef(pentity->curstate.origin[0], pentity->curstate.origin[1], pentity->curstate.origin[2]);
+
+		glRotatef(pentity->curstate.angles[1], 0, 0, 1);
+		glRotatef(pentity->curstate.angles[0], 0, 1, 0);
+		glRotatef(pentity->curstate.angles[2], 1, 0, 0);
+	}
+
+	byte* pfirstsurfbyteptr = reinterpret_cast<byte*>(g_pWorld->surfaces);
+	for (int i = 0; i < pmodel->nummodelsurfaces; i++)
+	{
+		msurface_t* psurface = reinterpret_cast<msurface_t*>(pfirstsurfbyteptr + g_msurfaceStructSize * (pmodel->firstmodelsurface + i));
+		mplane_t* pplane = psurface->plane;
+
+		float fldot = DotProduct(vlocalview, pplane->normal) - pplane->dist;
+
+		if (((psurface->flags & SURF_PLANEBACK) && (fldot < -BACKFACE_EPSILON))
+			|| (!(psurface->flags & SURF_PLANEBACK) && (fldot > BACKFACE_EPSILON)))
+		{
+			if (psurface->flags & SURF_DRAWSKY)
+				continue;
+
+			if (psurface->flags & SURF_DRAWTURB)
+				continue;
+
+			glpoly_t* p = psurface->polys;
+			float* v = p->verts[0];
+
+			glBegin(GL_POLYGON);
+			for (int j = 0; j < p->numverts; j++, v += VERTEXSIZE)
+			{
+				glTexCoord2f(v[3], v[4]);
+				glVertex3fv(v);
+			}
+			glEnd();
+		}
+	}
+
+	if (pentity->curstate.origin[0] || pentity->curstate.origin[1] || pentity->curstate.origin[2]
+		|| pentity->curstate.angles[0] || pentity->curstate.angles[1] || pentity->curstate.angles[2])
+	{
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+}
+
+/*
+====================
+R_DetermineSurfaceStructSize
+
+====================
+*/
+int R_DetermineSurfaceStructSize(void)
+{
+	model_t* pworld = IEngineStudio.GetModelByIndex(1);
+	assert(pworld);
+
+	mplane_t* pplanes = pworld->planes;
+	msurface_t* psurfaces = pworld->surfaces;
+
+	// Try to find second texinfo ptr
+	byte* psecondsurfbytedata = reinterpret_cast<byte*>(&psurfaces[1]);
+
+	// Size of msurface_t with that stupid displaylist junk
+	static const int MAXOFS = 108;
+
+	int byteoffs = 0;
+	while (byteoffs <= MAXOFS)
+	{
+		mplane_t** pplaneptr = reinterpret_cast<mplane_t**>(psecondsurfbytedata + byteoffs);
+
+		int i = 0;
+		for (; i < pworld->numplanes; i++)
+		{
+			if (&pplanes[i] == *pplaneptr)
+				break;
+		}
+
+		if (i != pworld->numplanes)
+		{
+			break;
+		}
+
+		byteoffs++;
+	}
+
+	if (byteoffs >= MAXOFS)
+	{
+		gEngfuncs.Con_Printf("%s - Failed to determine msurface_t struct size.\n");
+		return sizeof(msurface_t);
+	}
+	else
+	{
+		mplane_t** pfirstsurftexinfoptr = &psurfaces[0].plane;
+		byte* psecondptr = reinterpret_cast<byte*>(psecondsurfbytedata) + byteoffs;
+		byte* ptr = reinterpret_cast<byte*>(pfirstsurftexinfoptr);
+		return ((unsigned int)psecondptr - (unsigned int)ptr);
+	}
+}
+
+/*
+====================
 SVD_RecursiveDrawWorld
 
 ====================
 */
 void SVD_RecursiveDrawWorld ( mnode_t *node )
 {
+	if (!g_msurfaceStructSize)
+		g_msurfaceStructSize = R_DetermineSurfaceStructSize();
+
 	if (node->contents == CONTENTS_SOLID)
 		return;
 
@@ -194,6 +347,27 @@ void SVD_DrawNormalTriangles ( void )
 
 	// draw world
 	SVD_RecursiveDrawWorld( g_pWorld->nodes );
+
+	// Get local player
+	cl_entity_t* plocalplayer = gEngfuncs.GetLocalPlayer();
+
+	for (int i = 1; i < 512; i++)
+	{
+		cl_entity_t* pentity = gEngfuncs.GetEntityByIndex(i);
+		if (!pentity)
+			break;
+
+		if (!pentity->model || pentity->model->type != mod_brush)
+			continue;
+
+		if (pentity->curstate.messagenum != plocalplayer->curstate.messagenum)
+			continue;
+
+		if (pentity->curstate.rendermode != kRenderNormal)
+			continue;
+
+		SVD_DrawBrushModel(pentity);
+	}
 
 	glDepthMask(GL_TRUE);
 	glEnable(GL_CULL_FACE);
