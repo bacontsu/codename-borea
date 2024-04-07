@@ -348,6 +348,8 @@ void SVD_DrawNormalTriangles ( void )
 	// draw world
 	SVD_RecursiveDrawWorld( g_pWorld->nodes );
 
+	// draw brushmodels
+	
 	// Get local player
 	cl_entity_t* plocalplayer = gEngfuncs.GetLocalPlayer();
 
@@ -357,17 +359,29 @@ void SVD_DrawNormalTriangles ( void )
 		if (!pentity)
 			break;
 
-		if (!pentity->model || pentity->model->type != mod_brush)
-			continue;
+		// brushmodels
+		if(!(!pentity->model || pentity->model->type != mod_brush) && !(pentity->curstate.messagenum != plocalplayer->curstate.messagenum) && !(pentity->curstate.rendermode != kRenderNormal))
+			SVD_DrawBrushModel(pentity);
 
-		if (pentity->curstate.messagenum != plocalplayer->curstate.messagenum)
-			continue;
+		/*
+		// studiomodels
+		else if (!(!pentity->model || pentity->model->type != mod_studio))
+		{
+			auto restore = g_StudioRenderer.m_pStudioHeader;
+			g_StudioRenderer.m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(pentity->model);
 
-		if (pentity->curstate.rendermode != kRenderNormal)
-			continue;
+			for (int i = 0; i < g_StudioRenderer.m_pStudioHeader->numbodyparts; i++)
+			{
+				g_StudioRenderer.StudioSetupModel(i, (void**)&g_StudioRenderer.m_pBodyPart, (void**)&g_StudioRenderer.m_pSubModel);
+				g_StudioRenderer.StudioGetVerts();
+				g_StudioRenderer.StudioDrawPointsShadow();
+			}
 
-		SVD_DrawBrushModel(pentity);
+			g_StudioRenderer.m_pStudioHeader = restore;
+		}
+		*/
 	}
+
 
 	glDepthMask(GL_TRUE);
 	glEnable(GL_CULL_FACE);
