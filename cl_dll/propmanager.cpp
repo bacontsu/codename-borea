@@ -606,6 +606,13 @@ void CPropManager::LoadEntVars( )
 			}
 
 			m_pEntities[m_iNumEntities].curstate.iuser3 = ValueForKey(&m_pBSPEntities[i], "prop_grass") || isGrass;
+			
+			// bacontsu - grass swaying
+			if (m_pEntities[m_iNumEntities].curstate.iuser3 != 0)
+			{
+				m_pEntities[m_iNumEntities].curstate.fuser3 = gEngfuncs.pfnRandomFloat(1.0f, 5.0f);
+				m_pEntities[m_iNumEntities].curstate.fuser4 = gEngfuncs.pfnRandomFloat(1.0f, 5.0f);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
 			if(pValue && strlen(pValue))
@@ -816,8 +823,8 @@ void CPropManager::RenderProps( )
 			}
 			else
 			{
-				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x;
-				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z;
+				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x = lerp(m_pEntities[i].curstate.angles.x, sin(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser3) * 1.5f, gHUD.m_flTimeDelta * 10.0f);
+				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z = lerp(m_pEntities[i].curstate.angles.x, cos(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser4) * 1.5f, gHUD.m_flTimeDelta * 10.0f);;
 				m_pEntities[i].curstate.angles.y = 0;
 			}
 
