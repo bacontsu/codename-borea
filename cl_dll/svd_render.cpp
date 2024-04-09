@@ -364,7 +364,7 @@ void SVD_DrawNormalTriangles ( void )
 			SVD_DrawBrushModel(pentity);
 
 		/*
-		// studiomodels
+		// studiomodels - not ready yet
 		else if (!(!pentity->model || pentity->model->type != mod_studio))
 		{
 			auto restore = g_StudioRenderer.m_pStudioHeader;
