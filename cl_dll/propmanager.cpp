@@ -730,7 +730,7 @@ RenderModels
 
 ====================
 */
-void CPropManager::RenderProps( )
+void CPropManager::RenderProps( bool isWater )
 {
 	if(m_pCvarDrawClientEntities->value < 1)
 		return;
@@ -779,11 +779,15 @@ void CPropManager::RenderProps( )
 			continue;
 
 		// bacontsu - interactive grass
+#define GRASS_SWAY_RADIUS 500.0f
 #define GRASS_RADIUS 40.0f
 #define GRASS_ANGLE 15.0f
 
 		if (m_pEntities[i].curstate.iuser3 == 1)
 		{
+			if(isWater)
+				continue;
+
 			// get base params
 			Vector clientOrg = gEngfuncs.GetLocalPlayer()->curstate.origin;
 			Vector grassOrg = m_pEntities[i].curstate.origin;
@@ -821,10 +825,16 @@ void CPropManager::RenderProps( )
 				m_pEntities[i].curstate.angles.y = 0;
 
 			}
-			else
+			else if (dist.Length2D() < GRASS_SWAY_RADIUS)
 			{
 				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x = lerp(m_pEntities[i].curstate.angles.x, sin(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser3) * 2.5f, gHUD.m_flTimeDelta * 10.0f);
 				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z = lerp(m_pEntities[i].curstate.angles.x, cos(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser4) * 2.5f, gHUD.m_flTimeDelta * 10.0f);;
+				m_pEntities[i].curstate.angles.y = 0;
+			}
+			else
+			{
+				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x = 0;// = lerp(m_pEntities[i].curstate.angles.x, sin(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser3) * 2.5f, gHUD.m_flTimeDelta * 10.0f);
+				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z = 0; // lerp(m_pEntities[i].curstate.angles.x, cos(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser4) * 2.5f, gHUD.m_flTimeDelta * 10.0f);;
 				m_pEntities[i].curstate.angles.y = 0;
 			}
 

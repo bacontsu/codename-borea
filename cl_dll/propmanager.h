@@ -42,7 +42,7 @@ public:
 	void SetupVBO( );
 
 	void Reset( );
-	void RenderProps( );
+	void RenderProps(bool isWater = false);
 	void RenderSkyProps( );
 	void RenderPropsSolid( );
 

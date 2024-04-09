@@ -965,7 +965,7 @@ void CWaterShader::DrawScene( ref_params_t *pparams, bool isrefracting )
 	}
 
 	// Render any props
-	gPropManager.RenderProps();
+	gPropManager.RenderProps(true);
 
 	// Render any transparent triangles
 	gBSPRenderer.DrawTransparentTriangles();
