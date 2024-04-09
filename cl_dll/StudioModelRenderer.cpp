@@ -6724,7 +6724,7 @@ void CStudioModelRenderer::StudioDrawShadowVolume(void)
 	for (int i = 0; i < MAXRENDERENTS; i++)
 	{
 		auto light = gBSPRenderer.m_pModelLights[i];
-		if (light.radius != 0.0f)
+		if (light.radius != 0.0f && !light.flashlight)
 		{
 			// start
 			if (closest_elight.radius == 0.0f)
