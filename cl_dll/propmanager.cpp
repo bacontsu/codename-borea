@@ -823,8 +823,8 @@ void CPropManager::RenderProps( )
 			}
 			else
 			{
-				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x = lerp(m_pEntities[i].curstate.angles.x, sin(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser3) * 1.5f, gHUD.m_flTimeDelta * 10.0f);
-				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z = lerp(m_pEntities[i].curstate.angles.x, cos(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser4) * 1.5f, gHUD.m_flTimeDelta * 10.0f);;
+				m_pEntities[i].curstate.angles.x = m_pEntities[i].baseline.angles.x = lerp(m_pEntities[i].curstate.angles.x, sin(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser3) * 2.5f, gHUD.m_flTimeDelta * 10.0f);
+				m_pEntities[i].curstate.angles.z = m_pEntities[i].baseline.angles.z = lerp(m_pEntities[i].curstate.angles.x, cos(gEngfuncs.GetAbsoluteTime() + m_pEntities[i].curstate.fuser4) * 2.5f, gHUD.m_flTimeDelta * 10.0f);;
 				m_pEntities[i].curstate.angles.y = 0;
 			}
 
