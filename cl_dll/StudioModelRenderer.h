@@ -353,6 +353,9 @@ public:
 	// Should we draw shadows?
 	cvar_t* m_pCvarDrawShadows;
 
+	// Render distance
+	cvar_t* m_pCvarRenderDistance;
+
 
 	// Array of transformed vertexes
 	Vector			m_vertexTransform[MAXSTUDIOVERTS * 2];
