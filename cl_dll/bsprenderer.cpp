@@ -5067,6 +5067,7 @@ void CBSPRenderer::SetupDynLight( )
 	// light color (bind dummy texture)
 	glActiveTextureARB( GL_TEXTURE1_ARB );
 	Bind2DTexture(GL_TEXTURE1_ARB, m_iLightDummy);
+
 }
 
 /*
@@ -6083,11 +6084,11 @@ void CBSPRenderer::DrawShadowPasses( )
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < time || !dl->radius || !dl->cone_size || dl->noshadow)
+		if (dl->die < time || !dl->radius || dl->noshadow || !dl->cone_size)
 			continue;
 
 		m_pCurrentDynLight = dl;
-		CreateShadowMap();
+		CreateShadowMap(false);
 	}
 	R_RestoreGLStates();
 }
@@ -6098,7 +6099,7 @@ CreateShadowMap
 
 ====================
 */
-void CBSPRenderer::CreateShadowMap( )
+void CBSPRenderer::CreateShadowMap( bool isPointLight )
 {
 	float flProj[16];
 	float flModel[16];
@@ -6127,43 +6128,80 @@ void CBSPRenderer::CreateShadowMap( )
 	SetTexEnvs(ENVSTATE_OFF, ENVSTATE_OFF, ENVSTATE_OFF, ENVSTATE_OFF);
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 
-	float flSize = tan((M_PI/360) * m_pCurrentDynLight->cone_size);
+	float flSize;
+	int side;
+	Vector vAngles[6];
+
+	if (isPointLight)
+	{
+		flSize = tan((M_PI / 360) * m_pCurrentDynLight->radius);
+		side = 6;
+		vAngles[0] = Vector(0, 0, 0);
+		vAngles[1] = Vector(0, 90, 0);
+		vAngles[2] = Vector(0, 180, 0);
+		vAngles[3] = Vector(0, 270, 0);
+		vAngles[4] = Vector(90, 0, 0);
+		vAngles[5] = Vector(270, 0, 0);
+
+	}
+	else
+	{
+		flSize = tan((M_PI / 360) * m_pCurrentDynLight->cone_size);
+		side = 1;
+		vAngles[0] = m_pCurrentDynLight->angles;
+	}
+
 	float flFrustum[] = {2/(flSize*2), 0, 0, 0, 0, 2/(flSize*2), 0, 0, 0, 0, -1, -1, 0, 0, -2, 0 };
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMultMatrixf(flFrustum);
 
-	// Asscawks
-	Vector vAngles = m_pCurrentDynLight->angles;
-	FixVectorForSpotlight(vAngles);
-	AngleVectors(vAngles, m_vCurSpotForward, nullptr, nullptr);
 
-	int bReversed = IsPitchReversed(m_pCurrentDynLight->angles[PITCH]);
-	Vector vTarget = m_pCurrentDynLight->origin + (m_vCurSpotForward * m_pCurrentDynLight->radius);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	MyLookAt(m_pCurrentDynLight->origin[0], m_pCurrentDynLight->origin[1], m_pCurrentDynLight->origin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, bReversed ? -1 : 1);
-
-	DrawWorldSolid();
-
-	for(int i = 0; i < m_iNumRenderEntities; i++)
+	for (int j = 0; j < side; j++)
 	{
-		if(m_pRenderEntities[i]->model->type != mod_studio)
-			continue;
+		Vector forwrd, origin;
+		AngleVectors(m_pCurrentDynLight->angles, forwrd, null, null);
+		pmtrace_t pTrace;
+		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+		gEngfuncs.pEventAPI->EV_PlayerTrace(m_pCurrentDynLight->origin, m_pCurrentDynLight->origin + forwrd * 8192.0f, PM_WORLD_ONLY, -2, &pTrace);
 
-		if(!m_pRenderEntities[i]->player)
+		if (isPointLight)
+			origin = pTrace.endpos;
+		else
+			origin = m_pCurrentDynLight->origin;
+
+		// Asscawks
+		//Vector vAngles = m_pCurrentDynLight->angles;
+		FixVectorForSpotlight(vAngles[j]);
+		AngleVectors(vAngles[j], m_vCurSpotForward, nullptr, nullptr);
+
+		int bReversed = IsPitchReversed(m_pCurrentDynLight->angles[PITCH]);
+		Vector vTarget = origin + (m_vCurSpotForward * m_pCurrentDynLight->radius);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		MyLookAt(m_pCurrentDynLight->origin[0], m_pCurrentDynLight->origin[1], m_pCurrentDynLight->origin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, bReversed ? -1 : 1);
+
+		DrawWorldSolid();
+
+		for (int i = 0; i < m_iNumRenderEntities; i++)
 		{
-			g_StudioRenderer.m_pCurrentEntity = gBSPRenderer.m_pRenderEntities[i];
-			g_StudioRenderer.StudioDrawModelSolid();
+			if (m_pRenderEntities[i]->model->type != mod_studio)
+				continue;
+
+			if (!m_pRenderEntities[i]->player)
+			{
+				g_StudioRenderer.m_pCurrentEntity = gBSPRenderer.m_pRenderEntities[i];
+				g_StudioRenderer.StudioDrawModelSolid();
+			}
 		}
+
+		gPropManager.RenderPropsSolid();
+
+		// Render any cables
+		gPropManager.DrawCables();
 	}
-
-	gPropManager.RenderPropsSolid();
-
-	// Render any cables
-	gPropManager.DrawCables();
 
 	// Save Depth Buffer
 	glBindTexture(GL_TEXTURE_2D, m_pCurrentDynLight->depth);
