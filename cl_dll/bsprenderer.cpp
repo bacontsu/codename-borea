@@ -276,6 +276,7 @@ void CBSPRenderer::Init( )
 	glActiveTextureARB				= (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
 	glClientActiveTextureARB		= (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
 	glMultiTexCoord2fARB			= (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
+	glMultiTexCoord4fARB			= (PFNGLMULTITEXCOORD4FARBPROC)wglGetProcAddress("glMultiTexCoord4fARB");
 
 	glBindBufferARB					= (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
 	glGenBuffersARB					= (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
@@ -3037,42 +3038,158 @@ DrawScrollingPoly
 */
 void CBSPRenderer::DrawScrollingPolyCustom(msurface_t* s)
 {
-	glpoly_t* p = s->polys;
-	float* v = p->verts[0];
+	msurface_t* fa = s;
+	mtexinfo_t* tex = fa->texinfo;
+	float scale = 1.0f, scale_speed = 0.0025f;
+	float* v;
+	int j;
 
-	Vector backward;
-	Vector ang;
-	ang[YAW] = m_vViewAngles[YAW];
-	AngleVectors(ang, backward, nullptr, nullptr);
-	float speed_x = -gEngfuncs.GetLocalPlayer()->curstate.origin.x * 0.0025f * 0.5f + (backward.x * 0.05f);
-	float speed_y = gEngfuncs.GetLocalPlayer()->curstate.origin.y * 0.0025f * 0.5f - (backward.y * 0.05f);
+	glBegin(GL_POLYGON);
 
+	float bigx = 0, bigy = 0;
 
-	brushface_t* pFace = &m_pFacesExtraData[p->flags];
-	brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
-
-	glBegin(GL_TRIANGLES);
-	if (m_iTexPointer[0] == TC_LIGHTMAP)
+	//I'm so sorry for the code below. I hope someone makes this better one day...
+	for (j = 0, v = fa->polys->verts[0]; j < fa->polys->numverts; j++, v += VERTEXSIZE)
 	{
-		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		if (fa->plane->normal[0] == 1) //PLANE_X
 		{
-			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
-			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, pVert->texcoord[0] + speed_x, pVert->texcoord[1] + speed_y);
-			glMultiTexCoord2fARB(GL_TEXTURE2_ARB, pVert->detailtexcoord[0] + speed_x, pVert->detailtexcoord[1] + speed_y);
-			glVertex3fv(pVert->pos);
+			bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
 		}
-	}
-	else
-	{
-		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		else if (fa->plane->normal[1] == 1) //PLANE_Y
 		{
-			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, pVert->texcoord[0] + speed_x, pVert->texcoord[1] + speed_y);
-			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, pVert->detailtexcoord[0] + speed_x, pVert->detailtexcoord[1] + speed_y);
-			glVertex3fv(pVert->pos);
+			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
 		}
+		else if (fa->plane->normal[2] == 1) //PLANE_Z
+		{
+			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+			bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
+		}
+		else
+		{
+			if (fa->plane->normal[2] == 0) //vertical walls with angle other then 0 or 45 degrees...
+			{
+				if (fa->plane->normal[0] == fa->plane->normal[1]) //45 degree matching plane
+					bigx = v[3] + (m_vRenderOrigin[1] * ((-fa->plane->normal[1]) * scale_speed)) - (m_vRenderOrigin[0] * ((-fa->plane->normal[0]) * scale_speed));
+				else if (fabs(fa->plane->normal[0] == fabs(fa->plane->normal[1]))) //45 degree matching plane but ones negative
+					bigx = v[3] + (m_vRenderOrigin[1] * ((fa->plane->normal[1]) * scale_speed)) - (m_vRenderOrigin[0] * ((fa->plane->normal[0]) * scale_speed));
+				else
+				{
+					if (fabs(fa->plane->normal[1] > fabs(fa->plane->normal[0])))
+						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+					else
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+				}
+				bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
+			}
+			else //slanted walls
+			{
+				if (fabs(fa->plane->normal[2]) > fabs(fa->plane->normal[0]) && fabs(fa->plane->normal[2]) > fabs(fa->plane->normal[1])) //slanted wall but less than 45 upright
+				{
+					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+					bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
+
+					if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0)
+					{
+						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+					}
+					else if (fa->plane->normal[0] < 0 && fa->plane->normal[1] > 0)
+					{
+						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+					}
+					else if (fa->plane->normal[0] < 0 && fa->plane->normal[1] < 0)
+					{
+						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy += m_vRenderOrigin[2] * (scale_speed * 0.5);
+					}
+					else if (fa->plane->normal[0] > 0 && fa->plane->normal[1] < 0)
+					{
+						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy += m_vRenderOrigin[2] * (scale_speed * 0.5);
+					}
+					else if (fa->plane->normal[0] > 0)
+						bigx += m_vRenderOrigin[2] * scale_speed;
+					else if (fa->plane->normal[0] < 0)
+						bigx -= m_vRenderOrigin[2] * scale_speed;
+					else if (fa->plane->normal[1] > 0)
+						bigy -= m_vRenderOrigin[2] * scale_speed;
+					else
+						bigy += m_vRenderOrigin[2] * scale_speed;
+
+				}
+				else if (fabs(fa->plane->normal[2]) < fabs(fa->plane->normal[0]) && fabs(fa->plane->normal[2]) < fabs(fa->plane->normal[1]))
+				{
+					bigy = v[4];
+
+					if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0 && fa->plane->normal[2] > 0)
+					{
+						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+
+						bigx += m_vRenderOrigin[1] * scale_speed;
+						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed;
+					}
+					else if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0 && fa->plane->normal[2] < 0)
+					{
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+
+						bigx += m_vRenderOrigin[0] * scale_speed;
+						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed;
+					}
+					else //if (fa->plane->normal[0] > 0 && fa->plane->normal[1] < 0 && fa->plane->normal[2] > 0)
+					{
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+
+						bigx -= m_vRenderOrigin[0] * scale_speed;
+						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed;
+					}
+				}
+				else if (fabs(fa->plane->normal[0]) > 0)
+				{
+					bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+
+					if (fa->plane->normal[2] > 0)
+						bigy = v[4] - (m_vRenderOrigin[0] * scale_speed);
+					else
+						bigy = v[4] + (m_vRenderOrigin[0] * scale_speed);
+					bigy += m_vRenderOrigin[2] * scale_speed;
+				}
+				else if (fabs(fa->plane->normal[1]) > 0)
+				{
+					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+
+					if (fa->plane->normal[2] > 0)
+						bigy = v[4] - (m_vRenderOrigin[1] * scale_speed);
+					else
+						bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
+					bigy += m_vRenderOrigin[2] * scale_speed;
+				}
+			}
+		}
+
+		brushface_t* pFace = &m_pFacesExtraData[s->polys->flags];
+		brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
+
+		if (m_iTexPointer[0] == TC_LIGHTMAP)
+		{
+			glMultiTexCoord4fARB(GL_TEXTURE0_ARB, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1], 0, scale);
+			glMultiTexCoord4fARB(GL_TEXTURE1_ARB, bigx, bigy, 0, scale);
+		}
+		else
+		{
+			glMultiTexCoord4fARB(GL_TEXTURE0_ARB, bigx, bigy, 0, scale);
+		}
+
+		glVertex3fv(v);
 	}
 	glEnd();
 }
+
 
 /*
 ====================

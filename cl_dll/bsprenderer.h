@@ -47,7 +47,7 @@ public:
 	void CheckTextures( );
 
 	void DrawShadowPasses( );
-	void CreateShadowMap( );
+	void CreateShadowMap( bool isPointLight = false );
 	void DrawWorldSolid( );
 	void SetupSpotlightVis( );
 
@@ -310,6 +310,7 @@ public:
 	PFNGLCLIENTACTIVETEXTUREARBPROC	glClientActiveTextureARB;
 	PFNGLACTIVETEXTUREARBPROC		glActiveTextureARB;
 	PFNGLMULTITEXCOORD2FARBPROC		glMultiTexCoord2fARB;
+	PFNGLMULTITEXCOORD4FARBPROC		glMultiTexCoord4fARB;
 
 	PFNGLBINDBUFFERARBPROC			glBindBufferARB;
 	PFNGLGENBUFFERSARBPROC			glGenBuffersARB;
