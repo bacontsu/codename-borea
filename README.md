@@ -11,10 +11,11 @@
 * [HLFX.ru](https://hlfx.ru/forum/index.php?s=) - Site filled with wonderful tutorials and guides, many features are also from here
 
 ## Gallery:
-![image](https://github.com/bacontsu/codename-borea/assets/62763382/57069663-1fc6-4f21-b120-f0bf86f9fdb2)
 
-![image](https://github.com/bacontsu/codename-borea/assets/62763382/821af269-4338-4049-b7ad-c558617e216a)
 ![image](https://github.com/bacontsu/codename-borea/assets/62763382/4c16b345-e99a-4b4f-a3c0-5a78ab9eeda4)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/7328bfa8-d115-431f-8d66-72e0e2f3e983)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/ee2afd49-3c2f-4616-8583-13a01814ca3e)
+![image](https://github.com/bacontsu/codename-borea/assets/62763382/b84c58e3-77e7-4594-907a-db7d066db6c5)
 
 
 
