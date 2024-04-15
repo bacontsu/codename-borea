@@ -1,6 +1,6 @@
-# Codename Bor3λ Source Code
+# ReTrinity - Codename Bor3λ Source Code
 
-[My own mod](https://www.moddb.com/mods/codename-borea) that im currently working on very slowly, mostly steals features from other people. Use on your own risk (unfinished codebase)
+[My own mod with its custom renderer](https://www.moddb.com/mods/codename-borea) that im currently working on very slowly, mostly steals features from other people. Use on your own risk (unfinished codebase)
 
 ## Credits:
 * [Spirinity](https://github.com/edgarbarney/halflife-planckepoch) - Codebase that this mod is working on
