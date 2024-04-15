@@ -3040,7 +3040,7 @@ void CBSPRenderer::DrawScrollingPolyCustom(msurface_t* s)
 {
 	msurface_t* fa = s;
 	mtexinfo_t* tex = fa->texinfo;
-	float scale = 1.0f, scale_speed = 0.0025f;
+	float scale = 1.0f, scale_speed = 0.001f;
 	float* v;
 	int j;
 
