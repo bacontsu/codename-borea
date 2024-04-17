@@ -2843,7 +2843,7 @@ void CBSPRenderer::DrawBrushModel ( cl_entity_t *pEntity, bool bStatic )
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-		float alpha = 1.0 - (float)m_pCurrentEntity->curstate.renderamt/255.0;
+		float alpha = (float)m_pCurrentEntity->curstate.renderamt/255.0;
 		glColor4f(1, 1, 1, alpha);
 	}
 	else if (m_pCurrentEntity->curstate.rendermode == kRenderTransTexture )
