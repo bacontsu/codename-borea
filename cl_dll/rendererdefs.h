@@ -488,6 +488,9 @@ struct cl_water_t
 
 	msurface_t **surfaces;
 	int numsurfaces;
+
+	// bacontsu - custom res per water surface
+	float res = 0.0f;
 };
 
 //==================================================

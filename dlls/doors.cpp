@@ -295,6 +295,11 @@ void CBaseDoor::KeyValue( KeyValueData *pkvd )
 		m_iSpeedMode = atof(pkvd->szValue);
 		pkvd->fHandled = TRUE;
 	}
+	else if (FStrEq(pkvd->szKeyName, "res")) //AJH for changing door speeds (for 'usemode' acceleration)
+	{
+		pev->sequence = atoi(pkvd->szValue);
+		pkvd->fHandled = TRUE;
+	}
 	else
 		CBaseToggle::KeyValue( pkvd );
 }

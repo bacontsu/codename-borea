@@ -658,6 +658,8 @@ void CWaterShader::AddEntity( cl_entity_t *entity )
 		isurfacecount++;
 	}
 
+	pWater->res = entity->curstate.sequence;
+
 	// Allocate array of pointers
 	pWater->surfaces = (msurface_t **)malloc(sizeof(msurface_t *)*isurfacecount);
 
@@ -888,6 +890,8 @@ void CWaterShader::DrawWaterPasses( ref_params_t *pparams )
 		DrawScene(m_pViewParams, true);
 		FinishRefract();
 
+		//gEngfuncs.Con_Printf("res: %f\n", m_pCurWater->res);
+
 		if(ShouldReflect(i))
 		{
 			SetupReflect();
@@ -1014,7 +1018,11 @@ void CWaterShader::SetupRefract( )
 	glRotatef(-m_pViewParams->viewangles[1], 0, 0, 1);
 	glTranslatef(-m_vViewOrigin[0], -m_vViewOrigin[1], -m_vViewOrigin[2]);
 
-	glViewport(GL_ZERO, GL_ZERO, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value);
+	// bacontsu - custom per mirror resolution
+	if (!m_pCurWater->res)
+		glViewport(GL_ZERO, GL_ZERO, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value);
+	else
+		glViewport(GL_ZERO, GL_ZERO, m_pCurWater->res, m_pCurWater->res);
 
 	if (GetWaterOrigin().z < m_vViewOrigin[2])
 	{
@@ -1047,7 +1055,12 @@ void CWaterShader::FinishRefract( )
 {
 	//Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurWater->refract);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value, 0);
+
+	// bacontsu - custom per water surface res
+	if (!m_pCurWater->res)
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value, 0);
+	else
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCurWater->res, m_pCurWater->res, 0);
 
 	//Completely clear everything
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ONE);
@@ -1104,7 +1117,11 @@ void CWaterShader::SetupReflect( )
 	glRotatef(-m_pWaterParams.viewangles[1], 0, 0, 1);
 	glTranslatef(-m_pWaterParams.vieworg[0], -m_pWaterParams.vieworg[1], -m_pWaterParams.vieworg[2]);
 
-	glViewport(GL_ZERO, GL_ZERO, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value);
+	// bacontsu - custom per mirror resolution
+	if (!m_pCurWater->res)
+		glViewport(GL_ZERO, GL_ZERO, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value);
+	else
+		glViewport(GL_ZERO, GL_ZERO, m_pCurWater->res, m_pCurWater->res);
 
 	// Cull everything below the water plane
 	VectorCopy(gBSPRenderer.m_pWorld->maxs, vMaxs);
@@ -1126,7 +1143,12 @@ void CWaterShader::FinishReflect( )
 {
 	//Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurWater->reflect);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value, 0);
+
+	// bacontsu - custom per water surface res
+	if (!m_pCurWater->res)
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarWaterResolution->value, m_pCvarWaterResolution->value, 0);
+	else
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCurWater->res, m_pCurWater->res, 0);
 
 	//Completely clear everything
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ONE);
