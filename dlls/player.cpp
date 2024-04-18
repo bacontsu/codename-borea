@@ -6169,7 +6169,7 @@ void CBasePlayer::RunningThink()
 		!(pev->button & IN_JUMP) && playerStamina != 0 && !isScoping)
 	{
 		isRunning = true;
-		targetFov = 10;
+		targetFov = 5;
 
 		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
 		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
@@ -6184,9 +6184,9 @@ void CBasePlayer::RunningThink()
 			pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
 		}
 
-		if (pev->velocity.Length2D() > 500)
+		if (pev->velocity.Length2D() > 320)
 		{
-			pev->velocity = pev->velocity.Normalize() * 500;
+			pev->velocity = pev->velocity.Normalize() * 320;
 		}
 	}
 	else if (isRunning)
@@ -6649,7 +6649,7 @@ void CBasePlayer::SlidingThink()
 {
 	float SlidingTime = 1.25f;
 	int SlidingCounter = (int)(SlidingTime / 0.05f);
-	if (pev->velocity.Length2D() > 350.0f && (pev->button & IN_DUCK) && m_iSlidingStage == 0 && m_flSlidingCooldown < gpGlobals->time && (pev->flags & FL_ONGROUND))
+	if (pev->velocity.Length2D() > 310.0f && (pev->button & IN_DUCK) && m_iSlidingStage == 0 && m_flSlidingCooldown < gpGlobals->time && (pev->flags & FL_ONGROUND))
 	{
 		m_vecSlidingDir = pev->velocity;
 		m_iSlidingStage = 1;

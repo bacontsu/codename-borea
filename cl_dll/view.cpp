@@ -443,7 +443,7 @@ void V_AddIdle ( struct ref_params_s *pparams )
 	pparams->viewangles[YAW] += v_idlescale * sin(pparams->time*v_iyaw_cycle.value) * v_iyaw_level.value;
 }
 
- 
+float sideSaved = 0.0f;
 /*
 ==============
 V_CalcViewRoll
@@ -460,7 +460,7 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	if ( !viewentity )
 		return;
 
-	side = V_CalcRoll ( viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value);
+	sideSaved = side = V_CalcRoll ( viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value);
 
 	pparams->viewangles[ROLL] += side;
 
@@ -1010,10 +1010,13 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL] += slidelerp * 2.5f;
 	pparams->viewangles[ROLL] += slidelerp;
 
+	view->angles[ROLL] += sideSaved * 4.5f;
+
 	VectorCopy(view->angles, view->curstate.angles);
 	
 	pparams->viewangles[ROLL] += bobRight * 0.15;
 	pparams->viewangles[PITCH] += bobRight * 0.55;
+
 
 	gHUD.bobValue[0] = bobRight;
 	gHUD.bobValue[1] = bobUp;
