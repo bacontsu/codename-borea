@@ -514,6 +514,9 @@ struct cl_mirror_t
 	bool draw;
 
 	GLuint texture;
+
+	// bacontsu - custom res
+	float res = 0.0f;
 };
 //==============================
 //		STUDIO RENDERER DEFS

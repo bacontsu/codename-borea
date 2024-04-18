@@ -138,6 +138,7 @@ void CMirrorManager::AllocNewMirror( cl_entity_t *entity )
 	pMirror->origin[1] = (pMirror->mins[1] + pMirror->maxs[1]) * 0.5f;
 	pMirror->origin[2] = (pMirror->mins[2] + pMirror->maxs[2]) * 0.5f;
 	pMirror->surface = psurf;
+	pMirror->res = entity->curstate.scale;
 
 	glBindTexture(GL_TEXTURE_2D, pMirror->texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -293,7 +294,7 @@ void CMirrorManager::DrawMirrorPass( )
 		}
 	}
 	// Draw props
-	gPropManager.RenderProps();
+	gPropManager.RenderProps(true);
 
 	// Draw Transparent world polys
 	gBSPRenderer.DrawTransparentTriangles();
@@ -346,7 +347,11 @@ void CMirrorManager::SetupMirrorPass( )
 	glRotatef(-m_pMirrorParams.viewangles[1], 0, 0, 1);
 	glTranslatef(-m_pMirrorParams.vieworg[0], -m_pMirrorParams.vieworg[1], -m_pMirrorParams.vieworg[2]);
 
-	glViewport(GL_ZERO, GL_ZERO, m_pCvarMirrorResolution->value, m_pCvarMirrorResolution->value);
+	// bacontsu - custom per mirror resolution
+	if(!m_pCurrentMirror->res)
+		glViewport(GL_ZERO, GL_ZERO, m_pCvarMirrorResolution->value, m_pCvarMirrorResolution->value);
+	else
+		glViewport(GL_ZERO, GL_ZERO, m_pCurrentMirror->res, m_pCurrentMirror->res);
 
 	glCullFace(GL_FRONT);
 	glColor4f(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
@@ -365,7 +370,12 @@ void CMirrorManager::FinishMirrorPass( )
 {
 	//Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurrentMirror->texture);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarMirrorResolution->value, m_pCvarMirrorResolution->value, 0);
+
+	// bacontsu - custom per mirror resolution
+	if (!m_pCurrentMirror->res)
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCvarMirrorResolution->value, m_pCvarMirrorResolution->value, 0);
+	else
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, m_pCurrentMirror->res, m_pCurrentMirror->res, 0);
 
 	//Completely clear everything
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ONE);
