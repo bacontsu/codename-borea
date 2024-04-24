@@ -1010,7 +1010,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL] += slidelerp * 2.5f;
 	pparams->viewangles[ROLL] += slidelerp;
 
-	view->angles[ROLL] += sideSaved * 4.5f;
+	view->angles[ROLL] += sideSaved * 4.0f;
 
 	VectorCopy(view->angles, view->curstate.angles);
 	

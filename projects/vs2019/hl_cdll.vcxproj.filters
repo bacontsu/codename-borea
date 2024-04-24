@@ -85,6 +85,9 @@
     <Filter Include="Source Files\regs">
       <UniqueIdentifier>{e4159116-63c6-4f0f-a595-b14210387267}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\glew">
+      <UniqueIdentifier>{5b5ddcde-88a3-4039-9396-d90354f653b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -500,6 +503,9 @@
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\svd_render.cpp">
       <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\gl\glew.c">
+      <Filter>Source Files\glew</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
