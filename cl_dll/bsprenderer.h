@@ -104,7 +104,7 @@ public:
 
 	void SurfaceToChain( msurface_t *s, bool dynlit );
 	void DrawScrollingPoly( msurface_t *s );
-	void DrawScrollingPolyCustom(msurface_t* s);
+	void DrawLowQualitySpecular(msurface_t* s);
 	void EmitWaterPolys( msurface_t *fa );
 	void DrawPolyFromArray( glpoly_t *p );
 
@@ -141,6 +141,10 @@ public:
 	void Bind2DTexture( GLenum texture, GLuint id );
 
 	texture_t *TextureAnimation( texture_t *base, int frame );
+
+	void LoadGLSLShaders();
+	void DrawGLSLTextures();
+
 
 public:
 	void DrawDecals( );
@@ -413,6 +417,9 @@ public:
 
 	// Use the program
 	void Use();
+
+	// Unuse the program
+	void Unuse();
 
 	// Delete the program
 	void Delete();

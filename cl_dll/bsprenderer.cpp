@@ -164,7 +164,10 @@ char shadow_fp[] =
 //===========================================
 
 GLenum glew;
-ShaderUtil shaderUtil;
+ShaderUtil cloudShader;
+ShaderUtil auroraShader;
+GLuint g_uiScreenTex;
+GLuint g_cloudShader;
 
 unsigned int ShaderUtil::GetCompiledShader(unsigned int shader_type, const std::string& shader_source, const std::string& path)
 {
@@ -198,18 +201,20 @@ unsigned int ShaderUtil::GetCompiledShader(unsigned int shader_type, const std::
 
 bool ShaderUtil::Load(const std::string& vertexShaderFile, const std::string& fragmentShaderFile)
 {
-	std::ifstream is_vs(vertexShaderFile);
-	const std::string f_vs((std::istreambuf_iterator<char>(is_vs)), std::istreambuf_iterator<char>());
+	//std::ifstream is_vs(vertexShaderFile);
+	//const std::string f_vs((std::istreambuf_iterator<char>(is_vs)), std::istreambuf_iterator<char>());
 
 	std::ifstream is_fs(fragmentShaderFile);
 	const std::string f_fs((std::istreambuf_iterator<char>(is_fs)), std::istreambuf_iterator<char>());
 
 	bool failToLoad = false;
+	/*
 	if (!std::filesystem::exists(vertexShaderFile))
 	{
 		gEngfuncs.Con_DPrintf("[GLEW] Cannot find %s shader!\n", vertexShaderFile.c_str());
 		failToLoad = true;
 	}
+	*/
 	if (!std::filesystem::exists(fragmentShaderFile))
 	{
 		gEngfuncs.Con_DPrintf("[GLEW] Cannot find %s shader!\n", fragmentShaderFile.c_str());
@@ -242,9 +247,103 @@ void ShaderUtil::Use()
 	glUseProgram(mProgramId);
 }
 
+void ShaderUtil::Unuse()
+{
+	glUseProgram(0);
+}
+
 void ShaderUtil::Delete()
 {
 	glDeleteProgram(mProgramId);
+}
+
+void CBSPRenderer::LoadGLSLShaders()
+{
+	// create a load of blank pixels to create textures with
+	unsigned char* pBlankTex = new unsigned char[ScreenWidth * ScreenHeight * 3];
+	memset(pBlankTex, 0, ScreenWidth * ScreenHeight * 3);
+
+	// Create the SCREEN-HOLDING TEXTURE
+	glGenTextures(1, &g_uiScreenTex);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+
+	// Create the SCREEN-HOLDING TEXTURE
+	glGenTextures(1, &g_cloudShader);
+	glBindTexture(GL_TEXTURE_2D, g_cloudShader);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+
+	// free the memory
+	delete[] pBlankTex;
+
+	// load shaders
+	cloudShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_cloud.glsl"));
+}
+
+void CBSPRenderer::DrawGLSLTextures()
+{
+	// enable some OpenGL stuff
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+	glEnable(GL_TEXTURE_RECTANGLE_NV);
+	glColor3f(1, 1, 1);
+	glDisable(GL_DEPTH_TEST);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, 1, 1, 0, 0.1, 100);
+
+	// STEP 1: Grab the screen and put it into a texture
+
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
+	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB, 0, 0, ScreenWidth, ScreenHeight, 0);
+
+
+	// draw pass here
+
+	// skysphere pass
+	glDisable(GL_TEXTURE_2D);
+	cloudShader.Use();
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
+	glViewport(0, 0, 512, 512);
+	glColor4f(1, 1, 1, 1);
+	glBegin(GL_QUADS);
+	gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
+	glEnd();
+	cloudShader.Unuse();
+	glViewport(0, 0, 512, 512);
+	glBindTexture(GL_TEXTURE_2D, g_cloudShader);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 512, 512, 0);
+
+	// restore screen
+	if (1)
+	{
+		glViewport(0, 0, ScreenWidth, ScreenHeight);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
+		glColor4f(1, 1, 1, 1);
+		glBegin(GL_QUADS);
+		gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
+		glEnd();
+	}
+
+	// reset state
+	glViewport(0, 0, ScreenWidth, ScreenHeight);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glDisable(GL_TEXTURE_RECTANGLE_NV);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
 }
 
 /*
@@ -393,7 +492,7 @@ void CBSPRenderer::Init( )
 	else
 	{
 		gEngfuncs.Con_DPrintf("[GLEW] Initialize success!\n");
-		shaderUtil.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fs.shaders"));
+		LoadGLSLShaders();
 	}
 
 	//
@@ -2436,7 +2535,7 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 			//gEngfuncs.Con_Printf("found spec\n");
 			while (psurface)
 			{
-				DrawScrollingPolyCustom(psurface);
+				DrawLowQualitySpecular(psurface);
 				psurface = psurface->texturechain;
 				m_iWorldPolyCounter++;
 			}
@@ -2618,7 +2717,7 @@ void CBSPRenderer::RenderFinalPasses( )
 			//gEngfuncs.Con_Printf("found spec\n");
 			while (psurface)
 			{
-				DrawScrollingPolyCustom(psurface);
+				DrawLowQualitySpecular(psurface);
 				psurface = psurface->texturechain;
 				m_iWorldPolyCounter++;
 			}
@@ -3136,7 +3235,7 @@ DrawScrollingPoly
 
 ====================
 */
-void CBSPRenderer::DrawScrollingPolyCustom(msurface_t* s)
+void CBSPRenderer::DrawLowQualitySpecular(msurface_t* s)
 {
 	msurface_t* fa = s;
 	mtexinfo_t* tex = fa->texinfo;

@@ -452,9 +452,9 @@ void SVD_CheckInit( void )
 			continue;
 
 		if(!SVD_LoadSVDForModel(pmodel))
-			gEngfuncs.Con_Printf("Failed to set SVD data for %s\n", pmodel->name);
+			gEngfuncs.Con_DPrintf("Failed to set SVD data for %s\n", pmodel->name);
 		else
-			gEngfuncs.Con_Printf("Success to set SVD data for %s\n", pmodel->name);
+			gEngfuncs.Con_DPrintf("Success to set SVD data for %s\n", pmodel->name);
 	}
 
 	g_bNeedLoadSVD = false;

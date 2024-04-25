@@ -3394,6 +3394,8 @@ void CStudioModelRenderer::StudioCalcAttachments()
 	}
 }
 
+extern GLuint g_cloudShader;
+
 #include "Exports.h"
 /*
 ====================
@@ -3459,6 +3461,30 @@ StudioRenderModel
 */
 void CStudioModelRenderer::StudioRenderModel()
 {
+	// HACK HACK - replace hardcoded textures
+	std::vector<mstudiotexture_t> savedtexture;
+	studiohdr_t* pHdr = (studiohdr_t*)m_pStudioHeader;
+	mstudiotexture_t* pTexture = (mstudiotexture_t*)((byte*)m_pRenderModel->cache.data + pHdr->textureindex);
+
+	bool needToRestoreTexture = false;
+	if (!strcmp(m_pCurrentEntity->model->name, "models/skysphere.mdl"))
+	{
+		if (pHdr->textureindex > 0)
+		{
+			for (int i = 0; i < pHdr->numtextures; i++)
+			{
+				savedtexture.push_back(pTexture[i]);
+				// memcpy(&pTexture[i], &pTexture[pHdr->numtextures + 1], sizeof(mstudiotexture_t));
+				if (!strcmp(pTexture[i].name, "white.bmp"))
+				{
+					pTexture[i].index = g_cloudShader;
+				}
+			}
+		}
+
+		needToRestoreTexture = true;
+	}
+
 	// bacontsu - render distance, credit to Aynekko (Diffusion)
 	if ((m_pCurrentEntity->curstate.origin - gEngfuncs.GetLocalPlayer()->curstate.origin).Length() > m_pCvarRenderDistance->value && m_pCurrentEntity != gEngfuncs.GetViewModel())
 		return;
@@ -3503,6 +3529,14 @@ void CStudioModelRenderer::StudioRenderModel()
 
 	// Restore saved states
 	R_RestoreGLStates();
+
+	if (needToRestoreTexture)
+	{
+		for (int i = 0; i < pHdr->numtextures; i++)
+		{
+			memcpy(&pTexture[i], &savedtexture[i], sizeof(mstudiotexture_t));
+		}
+	}
 }
 
 /*

@@ -90,6 +90,8 @@ void DLLEXPORT HUD_DrawNormalTriangles()
     SVD_DrawNormalTriangles();
 	
 	gHUD.m_Spectator.DrawOverview();
+
+    gBSPRenderer.DrawGLSLTextures();
 }
 
 #if defined( _TFC )
