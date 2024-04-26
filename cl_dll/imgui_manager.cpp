@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "stdio.h"
 #include "stdlib.h"
 #include <string>
@@ -32,7 +33,7 @@ SDL_GLContext mainContext;
 #include "stb_image.h"
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width = nullptr, int* out_height = nullptr)
+bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width = nullptr, int* out_height = nullptr, int filter = GL_LINEAR, int wrap = GL_CLAMP_TO_EDGE)
 {
 	// Load from file
 	int image_width = 0;
@@ -47,10 +48,10 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_wid
 	glBindTexture(GL_TEXTURE_2D, image_texture);
 
 	// Setup filtering parameters for display
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap); // This is required on WebGL for non power-of-two textures
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap); // Same
 
 	// Upload pixels into texture
 #if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
@@ -69,10 +70,15 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_wid
 	return true;
 }
 
-void PRECACHE_IMAGE(std::string name, GLuint* texture, int* x, int* y)
+void PRECACHE_IMAGE(std::string name, GLuint* texture, int* x = nullptr, int* y = nullptr, int filter = GL_LINEAR, int wrap = GL_CLAMP_TO_EDGE)
 {
 	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/") + name;
-	bool pathCheck = LoadTextureFromFile(path.c_str(), texture, x, y);
+	bool pathCheck = LoadTextureFromFile(path.c_str(), texture, x, y, filter, wrap);
+
+	if (std::filesystem::exists(path))
+		gEngfuncs.Con_DPrintf("%s is found!\n", path.c_str());
+	else
+		gEngfuncs.Con_DPrintf("%s cant be found!\n", path.c_str());
 	//	IM_ASSERT(pathCheck);
 }
 
@@ -232,6 +238,9 @@ GLuint thumbnail4 = 0;
 GLuint thumbnail5 = 0;
 GLuint thumbnail6 = 0;
 
+GLuint noise1 = 0;
+GLuint noise2 = 0;
+
 void __CmdFunc_OpenChapter()
 {
 	EngineClientCmd("disconnect");
@@ -273,6 +282,9 @@ bool CImguiManager::Init()
 	PRECACHE_IMAGE(LoadChapterConfig("cancelbtn"), &cancelbtn, &cancelSizeX, &cancelSizeY);
 	PRECACHE_IMAGE(LoadChapterConfig("nextbtn"), &nextbtn, &nextSizeX, &nextSizeY);
 	PRECACHE_IMAGE(LoadChapterConfig("backbtn"), &backbtn, &backSizeX, &backSizeY);
+
+	PRECACHE_IMAGE("noise1.png", &noise1, &binX, &binY, GL_LINEAR_MIPMAP_LINEAR, GL_MIRRORED_REPEAT);
+	PRECACHE_IMAGE("noise2.png", &noise2, &binX, &binY, GL_NEAREST, GL_MIRRORED_REPEAT);
 
 	return true;
 }

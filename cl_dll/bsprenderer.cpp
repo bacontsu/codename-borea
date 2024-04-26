@@ -168,6 +168,9 @@ ShaderUtil cloudShader;
 ShaderUtil auroraShader;
 GLuint g_uiScreenTex;
 GLuint g_cloudShader;
+GLuint g_auroraShader;
+extern GLuint noise1;
+extern GLuint noise2;
 
 unsigned int ShaderUtil::GetCompiledShader(unsigned int shader_type, const std::string& shader_source, const std::string& path)
 {
@@ -277,15 +280,25 @@ void CBSPRenderer::LoadGLSLShaders()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
 
+	// Create the SCREEN-HOLDING TEXTURE
+	glGenTextures(1, &g_auroraShader);
+	glBindTexture(GL_TEXTURE_2D, g_auroraShader);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+
 	// free the memory
 	delete[] pBlankTex;
 
 	// load shaders
-	cloudShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_cloud.glsl"));
+	cloudShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_sky.glsl"));
+	auroraShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_aurora.glsl"));
 }
 
 void CBSPRenderer::DrawGLSLTextures()
 {
+	R_SaveGLStates();
+
 	// enable some OpenGL stuff
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -310,10 +323,20 @@ void CBSPRenderer::DrawGLSLTextures()
 	// draw pass here
 
 	// skysphere pass
-	glDisable(GL_TEXTURE_2D);
 	cloudShader.Use();
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
-	glViewport(0, 0, 512, 512);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime() + 20.0f);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+	
+	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel0"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, noise1);
+
+	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel1"), 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, noise2);
+
+	glViewport(0, 0, 800, 450);
 	glColor4f(1, 1, 1, 1);
 	glBegin(GL_QUADS);
 	gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
@@ -323,8 +346,23 @@ void CBSPRenderer::DrawGLSLTextures()
 	glBindTexture(GL_TEXTURE_2D, g_cloudShader);
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 512, 512, 0);
 
+	// aurora
+	auroraShader.Use();
+	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
+	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
+	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+	glViewport(0, 0, 512, 512);
+	glColor4f(1, 1, 1, 1);
+	glBegin(GL_QUADS);
+	//gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
+	glEnd();
+	auroraShader.Unuse();
+	glViewport(0, 0, 512, 512);
+	glBindTexture(GL_TEXTURE_2D, g_auroraShader);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 512, 512, 0);
+
 	// restore screen
-	if (1)
+	if (0)
 	{
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
@@ -344,6 +382,8 @@ void CBSPRenderer::DrawGLSLTextures()
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
+
+	R_RestoreGLStates();
 }
 
 /*
