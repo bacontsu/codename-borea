@@ -327,14 +327,70 @@ void CBSPRenderer::DrawGLSLTextures()
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime() + 20.0f);
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+
+	static GLuint noise_texture;
+	static GLuint noise_texture2;
+
+	if(noise_texture == null)
+	{
+		glGenTextures(1, &noise_texture);
+		glBindTexture(GL_TEXTURE_2D, noise_texture);
+
+		const int noiseTexRes = 256;
+		const int noiseTexChannelCount = 4;
+		const int noiseTexSize = noiseTexRes * noiseTexRes * noiseTexChannelCount;
+		static char noiseTex[noiseTexSize]; // 256x256 texture, 4 channels (RGBA)
+
+		for (int i = 0; i < noiseTexSize; i += 4)
+		{
+			noiseTex[i] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+			noiseTex[i + 1] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+			noiseTex[i + 2] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+			noiseTex[i + 3] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+		}
+
+		// Setup filtering parameters for display
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes, noiseTexRes, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex);
+
+
+
+		glGenTextures(1, &noise_texture2);
+		glBindTexture(GL_TEXTURE_2D, noise_texture2);
+
+		const int noiseTexRes2 = 1024;
+		const int noiseTexChannelCount2 = 4;
+		const int noiseTexSize2 = noiseTexRes2 * noiseTexRes2 * noiseTexChannelCount2;
+		static char noiseTex2[noiseTexSize2]; // 256x256 texture, 4 channels (RGBA)
+
+		for (int i = 0; i < noiseTexSize2; i += 4)
+		{
+			noiseTex2[i] = (char)gEngfuncs.pfnRandomLong(-128, 120);
+			noiseTex2[i + 1] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+			noiseTex2[i + 2] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+			noiseTex2[i + 3] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+		}
+
+		// Setup filtering parameters for display
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes2, noiseTexRes2, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex2);
+	}
 	
 	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel0"), 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, noise1);
+	glBindTexture(GL_TEXTURE_2D, noise_texture);
 
 	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel1"), 1);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, noise2);
+	glBindTexture(GL_TEXTURE_2D, noise_texture2);
 
 	glViewport(0, 0, 800, 450);
 	glColor4f(1, 1, 1, 1);
