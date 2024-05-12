@@ -166,6 +166,7 @@ char shadow_fp[] =
 GLenum glew;
 ShaderUtil cloudShader;
 ShaderUtil auroraShader;
+ShaderUtil bumpmapShader;
 GLuint g_uiScreenTex;
 GLuint g_cloudShader;
 GLuint g_auroraShader;
@@ -204,20 +205,21 @@ unsigned int ShaderUtil::GetCompiledShader(unsigned int shader_type, const std::
 
 bool ShaderUtil::Load(const std::string& vertexShaderFile, const std::string& fragmentShaderFile)
 {
-	//std::ifstream is_vs(vertexShaderFile);
-	//const std::string f_vs((std::istreambuf_iterator<char>(is_vs)), std::istreambuf_iterator<char>());
+	std::ifstream is_vs(vertexShaderFile);
+	const std::string f_vs((std::istreambuf_iterator<char>(is_vs)), std::istreambuf_iterator<char>());
 
 	std::ifstream is_fs(fragmentShaderFile);
 	const std::string f_fs((std::istreambuf_iterator<char>(is_fs)), std::istreambuf_iterator<char>());
 
+	bool dontUseVertex = false;
 	bool failToLoad = false;
-	/*
+	
 	if (!std::filesystem::exists(vertexShaderFile))
 	{
 		gEngfuncs.Con_DPrintf("[GLEW] Cannot find %s shader!\n", vertexShaderFile.c_str());
-		failToLoad = true;
+		dontUseVertex = true;
 	}
-	*/
+	
 	if (!std::filesystem::exists(fragmentShaderFile))
 	{
 		gEngfuncs.Con_DPrintf("[GLEW] Cannot find %s shader!\n", fragmentShaderFile.c_str());
@@ -230,16 +232,20 @@ bool ShaderUtil::Load(const std::string& vertexShaderFile, const std::string& fr
 
 	mProgramId = glCreateProgram();
 
-	//unsigned int vs = GetCompiledShader(GL_VERTEX_SHADER, f_vs, vertexShaderFile);
+	unsigned int vs = null;
+	if(!dontUseVertex)
+		vs = GetCompiledShader(GL_VERTEX_SHADER, f_vs, vertexShaderFile);
 	unsigned int fs = GetCompiledShader(GL_FRAGMENT_SHADER, f_fs, fragmentShaderFile);
 
-	//glAttachShader(mProgramId, vs);
+	if (!dontUseVertex)
+		glAttachShader(mProgramId, vs);
 	glAttachShader(mProgramId, fs);
 
 	glLinkProgram(mProgramId);
 	glValidateProgram(mProgramId);
 
-	//glDeleteShader(vs);
+	if (!dontUseVertex)
+		glDeleteShader(vs);
 	glDeleteShader(fs);
 
 	return true;
@@ -275,17 +281,17 @@ void CBSPRenderer::LoadGLSLShaders()
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &g_cloudShader);
-	glBindTexture(GL_TEXTURE_2D, g_cloudShader);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_cloudShader);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &g_auroraShader);
-	glBindTexture(GL_TEXTURE_2D, g_auroraShader);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// free the memory
 	delete[] pBlankTex;
@@ -293,6 +299,7 @@ void CBSPRenderer::LoadGLSLShaders()
 	// load shaders
 	cloudShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_sky.glsl"));
 	auroraShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_aurora.glsl"));
+	bumpmapShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vp_bump.glsl"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_bump.glsl"));
 }
 
 void CBSPRenderer::DrawGLSLTextures()
@@ -321,104 +328,110 @@ void CBSPRenderer::DrawGLSLTextures()
 
 
 	// draw pass here
-
-	// skysphere pass
-	cloudShader.Use();
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime() + 20.0f);
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
-
-	static GLuint noise_texture;
-	static GLuint noise_texture2;
-
-	if(noise_texture == null)
+	if(0)
 	{
-		glGenTextures(1, &noise_texture);
+		// skysphere pass
+		cloudShader.Use();
+		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime() + 20.0f);
+		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
+		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+
+		static GLuint noise_texture;
+		static GLuint noise_texture2;
+
+		if (noise_texture == null)
+		{
+			glGenTextures(1, &noise_texture);
+			glBindTexture(GL_TEXTURE_2D, noise_texture);
+
+			const int noiseTexRes = 256;
+			const int noiseTexChannelCount = 4;
+			const int noiseTexSize = noiseTexRes * noiseTexRes * noiseTexChannelCount;
+			static char noiseTex[noiseTexSize]; // 256x256 texture, 4 channels (RGBA)
+
+			for (int i = 0; i < noiseTexSize; i += 4)
+			{
+				noiseTex[i] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+				noiseTex[i + 1] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+				noiseTex[i + 2] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+				noiseTex[i + 3] = (char)gEngfuncs.pfnRandomLong(-128, 127);
+			}
+
+			// Setup filtering parameters for display
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes, noiseTexRes, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex);
+
+
+
+			glGenTextures(1, &noise_texture2);
+			glBindTexture(GL_TEXTURE_2D, noise_texture2);
+
+			const int noiseTexRes2 = 1024;
+			const int noiseTexChannelCount2 = 4;
+			const int noiseTexSize2 = noiseTexRes2 * noiseTexRes2 * noiseTexChannelCount2;
+			static char noiseTex2[noiseTexSize2]; // 256x256 texture, 4 channels (RGBA)
+
+			for (int i = 0; i < noiseTexSize2; i += 4)
+			{
+				noiseTex2[i] = (char)gEngfuncs.pfnRandomLong(-128, 120);
+				noiseTex2[i + 1] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+				noiseTex2[i + 2] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+				noiseTex2[i + 3] = (char)gEngfuncs.pfnRandomLong(-110, -100);
+			}
+
+			// Setup filtering parameters for display
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes2, noiseTexRes2, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex2);
+		}
+
+		glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel0"), 0);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, noise_texture);
 
-		const int noiseTexRes = 256;
-		const int noiseTexChannelCount = 4;
-		const int noiseTexSize = noiseTexRes * noiseTexRes * noiseTexChannelCount;
-		static char noiseTex[noiseTexSize]; // 256x256 texture, 4 channels (RGBA)
-
-		for (int i = 0; i < noiseTexSize; i += 4)
-		{
-			noiseTex[i] = (char)gEngfuncs.pfnRandomLong(-128, 127);
-			noiseTex[i + 1] = (char)gEngfuncs.pfnRandomLong(-128, 127);
-			noiseTex[i + 2] = (char)gEngfuncs.pfnRandomLong(-128, 127);
-			noiseTex[i + 3] = (char)gEngfuncs.pfnRandomLong(-128, 127);
-		}
-
-		// Setup filtering parameters for display
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes, noiseTexRes, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex);
-
-
-
-		glGenTextures(1, &noise_texture2);
+		glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel1"), 1);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, noise_texture2);
 
-		const int noiseTexRes2 = 1024;
-		const int noiseTexChannelCount2 = 4;
-		const int noiseTexSize2 = noiseTexRes2 * noiseTexRes2 * noiseTexChannelCount2;
-		static char noiseTex2[noiseTexSize2]; // 256x256 texture, 4 channels (RGBA)
+		glViewport(0, 0, 800, 450);
+		glColor4f(1, 1, 1, 1);
+		glBegin(GL_QUADS);
+		gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
+		glEnd();
+		cloudShader.Unuse();
+		glViewport(0, 0, 800, 450);
 
-		for (int i = 0; i < noiseTexSize2; i += 4)
-		{
-			noiseTex2[i] = (char)gEngfuncs.pfnRandomLong(-128, 120);
-			noiseTex2[i + 1] = (char)gEngfuncs.pfnRandomLong(-110, -100);
-			noiseTex2[i + 2] = (char)gEngfuncs.pfnRandomLong(-110, -100);
-			noiseTex2[i + 3] = (char)gEngfuncs.pfnRandomLong(-110, -100);
-		}
-
-		// Setup filtering parameters for display
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // This is required on WebGL for non power-of-two textures
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Same
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, noiseTexRes2, noiseTexRes2, 0, GL_RGBA, GL_UNSIGNED_BYTE, noiseTex2);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_cloudShader);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB, 0, 0, 800, 450, 0);
 	}
-	
-	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel0"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, noise_texture);
-
-	glUniform1i(glGetUniformLocation(cloudShader.GetProgramID(), "iChannel1"), 1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, noise_texture2);
-
-	glViewport(0, 0, 800, 450);
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUADS);
-	gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
-	glEnd();
-	cloudShader.Unuse();
-	glViewport(0, 0, 512, 512);
-	glBindTexture(GL_TEXTURE_2D, g_cloudShader);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 512, 512, 0);
 
 	// aurora
-	auroraShader.Use();
-	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
-	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
-	glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
-	glViewport(0, 0, 512, 512);
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUADS);
-	//gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
-	glEnd();
-	auroraShader.Unuse();
-	glViewport(0, 0, 512, 512);
-	glBindTexture(GL_TEXTURE_2D, g_auroraShader);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 512, 512, 0);
+	if(1)
+	{
+		auroraShader.Use();
+		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
+		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
+		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+		glViewport(0, 0, 800, 450);
+		glColor4f(1, 1, 1, 1);
+		glBegin(GL_QUADS);
+		gHUD.gBloomRenderer.DrawQuad(ScreenWidth, ScreenHeight);
+		glEnd();
+		auroraShader.Unuse();
+		glViewport(0, 0, 800, 450);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB, 0, 0, 800, 450, 0);
+	}
 
 	// restore screen
-	if (0)
+	if (1)
 	{
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_uiScreenTex);
@@ -2640,9 +2653,37 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 		{
 			while(psurface)
 			{
+
+				DrawPolyFromArray(psurface->polys);
+
+				/*
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+				bumpmapShader.Use();
+
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightPos"), 0, 0, 0);  //light position (is the same as the player position)
+
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mambient"), 1.0, 1.0, 1.0);  //setting the material property
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mdiffuse"), 0.7, 0.7, 0.7);
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mspecular"), 1.0, 1.0, 1.0);
+
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lambient"), 1.0, 1.0, 1.0);  //setting light property
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "ldiffuse"), 0.7, 0.7, 0.7);
+				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lspecular"), 1.0, 1.0, 1.0);
+
+				glUniform1f(glGetUniformLocation(bumpmapShader.GetProgramID(), "shininess"), 128.0);    //shininess
+				glNormal3f(m_pFacesExtraData[psurface->polys->flags].normal.x, m_pFacesExtraData[psurface->polys->flags].normal.y, m_pFacesExtraData[psurface->polys->flags].normal.z);
+
 				DrawPolyFromArray(psurface->polys);
 				psurface = psurface->texturechain;
 				m_iWorldPolyCounter++;
+
+				bumpmapShader.Unuse();
+
+				glDisable(GL_BLEND);
+
+				*/
 			}
 		}
 
@@ -6101,104 +6142,51 @@ void CBSPRenderer::DrawSky( )
 	if ( !m_bDrawSky )
 		return;
 
-	if(gHUD.m_pSkyFogSettings.active)
+	if (m_bMirroring)
+		return;
+
+	R_SaveGLStates();
+
+	// enable some OpenGL stuff
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+	glEnable(GL_TEXTURE_RECTANGLE_NV);
+	glColor3f(1, 1, 1);
+	glDisable(GL_DEPTH_TEST);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, 1, 1, 0, 0.1, 100);
+
+	// restore screen
+	if (1)
 	{
-		memcpy(&pSaved, &gHUD.m_pFogSettings, sizeof(fog_settings_t));
-		memcpy(&gHUD.m_pFogSettings, &gHUD.m_pSkyFogSettings, sizeof(fog_settings_t));
-		gHUD.m_pFogSettings.end = gHUD.m_pFogSettings.end/m_fSkySpeed;
-		gHUD.m_pFogSettings.start = gHUD.m_pFogSettings.start/m_fSkySpeed;
-		ClearToFogColor();
-		RenderFog();
+		glViewport(0, 0, ScreenWidth, ScreenHeight);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
+		glColor4f(1, 1, 1, 1);
+		glBegin(GL_QUADS);
+		gHUD.gBloomRenderer.DrawQuad(ScreenWidth * 800 / ScreenWidth, ScreenHeight * 450 / ScreenHeight);
+		glEnd();
 	}
 
-	if ( gHUD.m_pFogSettings.active )
-	{
-		if(!gHUD.m_pFogSettings.affectsky)
-			glDisable(GL_FOG);
-	}
+	// reset state
+	glViewport(0, 0, ScreenWidth, ScreenHeight);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glDisable(GL_TEXTURE_RECTANGLE_NV);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
 
-	if(m_bMirroring)	
-	{
-		glMatrixMode(GL_PROJECTION);
-		glGetFloatv(GL_PROJECTION_MATRIX, projection);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-	}
+	R_RestoreGLStates();
 
-	if ( !gHUD.m_pFogSettings.affectsky || !gHUD.m_pFogSettings.active )
-	{
-		glDisable(GL_BLEND);
-		glDepthMask(GL_FALSE);
-		glDepthFunc(GL_LEQUAL);
 
-		SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_OFF, ENVSTATE_OFF, ENVSTATE_OFF);
-
-		Vector m_vPoints[8];
-		m_vPoints[0] = m_vRenderOrigin + Vector(0, -10, 0) - Vector(10, 0, 0) + Vector(0, 0, -10);
-		m_vPoints[1] = m_vRenderOrigin + Vector(0, -10, 0) + Vector(10, 0, 0) + Vector(0, 0, -10);
-		m_vPoints[2] = m_vRenderOrigin - Vector(0, -10, 0) + Vector(10, 0, 0) + Vector(0, 0, -10);
-		m_vPoints[3] = m_vRenderOrigin - Vector(0, -10, 0) - Vector(10, 0, 0) + Vector(0, 0, -10);
-		m_vPoints[4] = m_vRenderOrigin + Vector(0, -10, 0) - Vector(10, 0, 0) - Vector(0, 0, -10);
-		m_vPoints[5] = m_vRenderOrigin + Vector(0, -10, 0) + Vector(10, 0, 0) - Vector(0, 0, -10);
-		m_vPoints[6] = m_vRenderOrigin - Vector(0, -10, 0) + Vector(10, 0, 0) - Vector(0, 0, -10);
-		m_vPoints[7] = m_vRenderOrigin - Vector(0, -10, 0) - Vector(10, 0, 0) - Vector(0, 0, -10);
-
-		int m_iIDs[6][4] = {
-			{1, 2, 6, 5},{2, 3, 7, 6},{3, 0, 4, 7},
-			{0, 1, 5, 4},{2, 1, 0, 3},{7, 4, 5, 6}};
-
-		glDepthMask(GL_FALSE);
-		for (int i = 0; i < 6; i++)
-		{
-			Bind2DTexture(GL_TEXTURE0_ARB, m_iSkyTextures[i]);
-			glBegin(GL_POLYGON);
-				glTexCoord2i(0, 1);
-				glVertex3fv(m_vPoints[m_iIDs[i][0]]);
-				glTexCoord2i(1, 1);
-				glVertex3fv(m_vPoints[m_iIDs[i][1]]);
-				glTexCoord2i(1, 0);
-				glVertex3fv(m_vPoints[m_iIDs[i][2]]);
-				glTexCoord2i(0, 0);
-				glVertex3fv(m_vPoints[m_iIDs[i][3]]);
-			glEnd();
-		}
-		glDepthMask(GL_TRUE);
-	}
-
-	if(gHUD.m_pFogSettings.active)
-		glEnable(GL_FOG);
-
-	//Render all skybox solid ents
-	EnableVertexArray();
-	for(int i = 0; i < m_iNumRenderEntities; i++)
-	{
-		if(m_pRenderEntities[i]->curstate.renderfx == 70)
-			DrawBrushModel(m_pRenderEntities[i], false);
-	}
-
-	ResetRenderer();
-	DisableVertexArray();
-
-	//Render all skybox prop entities
-	gPropManager.RenderSkyProps();
-
-	//Clear depth buffer for the final time
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	if(gHUD.m_pSkyFogSettings.active)
-	{
-		memcpy(&gHUD.m_pFogSettings, &pSaved, sizeof(fog_settings_t));
-		RenderFog();
-	}
-
-	if(m_bMirroring)	
-	{
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadMatrixf(projection);
-
-		glMatrixMode(GL_MODELVIEW);
-	}
 };
 
 /*
