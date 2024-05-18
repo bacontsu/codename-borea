@@ -1077,11 +1077,20 @@ void GenDetail( )
 	gEngfuncs.Con_Printf("List of missing textures written.");
 	fclose(fList);
 }
+
+extern int g_iFlashLight;
+
 //===============================
 // buz: flashlight managenemt
 //===============================
 void SetupFlashlight(Vector origin, Vector angles, float time, float frametime, bool isNV)
 {
+	static float mult = 0;
+	mult = lerp(mult, (float)g_iFlashLight, gHUD.m_flTimeDelta * 10);
+
+	if (mult <= 0.001)
+		return;
+
 	pmtrace_t tr;
 	Vector fwd, right, up;
 
@@ -1128,18 +1137,18 @@ void SetupFlashlight(Vector origin, Vector angles, float time, float frametime, 
 		if (isNV)
 		{
 			flashlight->radius = 700;
-			flashlight->color.x = 1.0;
-			flashlight->color.y = 1.0;
-			flashlight->color.z = 1.0;
+			flashlight->color.x = 1.0 * mult;
+			flashlight->color.y = 1.0 * mult;
+			flashlight->color.z = 1.0 * mult;
 			flashlight->cone_size = 200;
 			flashlight->noshadow = TRUE;
 		}
 		else
 		{
 			flashlight->radius = 700;
-			flashlight->color.x = 1.0;
-			flashlight->color.y = 1.0;
-			flashlight->color.z = 1.0;
+			flashlight->color.x = 1.0 * mult;
+			flashlight->color.y = 1.0 * mult;
+			flashlight->color.z = 1.0 * mult;
 			flashlight->cone_size = 50 + add;
 		}
 		flashlight->die = time + 0.01;

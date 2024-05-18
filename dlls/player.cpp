@@ -3969,7 +3969,7 @@ void CBasePlayer :: FlashlightTurnOn()
 
 	if ( (pev->weapons & (1<<WEAPON_SUIT)) )
 	{
-		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_ON, 1.0, ATTN_NORM, 0, PITCH_NORM );
+		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_ON, 5.0, ATTN_NORM, 0, PITCH_NORM );
 		SetBits(pev->effects, EF_DIMLIGHT);
 		MESSAGE_BEGIN( MSG_ONE, gmsgFlashlight, nullptr, pev );
 			WRITE_BYTE(1);
@@ -3984,7 +3984,7 @@ void CBasePlayer :: FlashlightTurnOn()
 
 void CBasePlayer :: FlashlightTurnOff()
 {
-	EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_OFF, 1.0, ATTN_NORM, 0, PITCH_NORM );
+	EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_OFF, 5.0, ATTN_NORM, 0, PITCH_NORM );
 	ClearBits(pev->effects, EF_DIMLIGHT );
 	MESSAGE_BEGIN( MSG_ONE, gmsgFlashlight, nullptr, pev );
 		WRITE_BYTE(0);
@@ -6649,7 +6649,7 @@ void CBasePlayer::SlidingThink()
 {
 	float SlidingTime = 1.25f;
 	int SlidingCounter = (int)(SlidingTime / 0.05f);
-	if (pev->velocity.Length2D() > 310.0f && (pev->button & IN_DUCK) && m_iSlidingStage == 0 && m_flSlidingCooldown < gpGlobals->time && (pev->flags & FL_ONGROUND))
+	if (pev->velocity.Length2D() > 280.0f && (pev->button & IN_DUCK) && m_iSlidingStage == 0 && m_flSlidingCooldown < gpGlobals->time && (pev->flags & FL_ONGROUND))
 	{
 		m_vecSlidingDir = pev->velocity;
 		m_iSlidingStage = 1;

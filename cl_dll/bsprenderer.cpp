@@ -328,7 +328,7 @@ void CBSPRenderer::DrawGLSLTextures()
 
 
 	// draw pass here
-	if(0)
+	if(1)
 	{
 		// skysphere pass
 		cloudShader.Use();
@@ -413,7 +413,7 @@ void CBSPRenderer::DrawGLSLTextures()
 	}
 
 	// aurora
-	if(1)
+	if(0)
 	{
 		auroraShader.Use();
 		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
@@ -2653,37 +2653,11 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 		{
 			while(psurface)
 			{
-
-				DrawPolyFromArray(psurface->polys);
-
-				/*
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-				bumpmapShader.Use();
-
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightPos"), 0, 0, 0);  //light position (is the same as the player position)
-
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mambient"), 1.0, 1.0, 1.0);  //setting the material property
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mdiffuse"), 0.7, 0.7, 0.7);
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mspecular"), 1.0, 1.0, 1.0);
-
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lambient"), 1.0, 1.0, 1.0);  //setting light property
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "ldiffuse"), 0.7, 0.7, 0.7);
-				glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lspecular"), 1.0, 1.0, 1.0);
-
-				glUniform1f(glGetUniformLocation(bumpmapShader.GetProgramID(), "shininess"), 128.0);    //shininess
-				glNormal3f(m_pFacesExtraData[psurface->polys->flags].normal.x, m_pFacesExtraData[psurface->polys->flags].normal.y, m_pFacesExtraData[psurface->polys->flags].normal.z);
-
+				
 				DrawPolyFromArray(psurface->polys);
 				psurface = psurface->texturechain;
 				m_iWorldPolyCounter++;
 
-				bumpmapShader.Unuse();
-
-				glDisable(GL_BLEND);
-
-				*/
 			}
 		}
 
@@ -6166,7 +6140,7 @@ void CBSPRenderer::DrawSky( )
 	if (1)
 	{
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
-		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_cloudShader);
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUADS);
 		gHUD.gBloomRenderer.DrawQuad(ScreenWidth * 800 / ScreenWidth, ScreenHeight * 450 / ScreenHeight);

@@ -988,8 +988,8 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 	{
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 
-		if ( !pPlayer || !(pPlayer->pev->flags & FL_ONGROUND) )	// Don't shake if not onground
-			continue;
+		//if ( !pPlayer || !(pPlayer->pev->flags & FL_ONGROUND) )	// Don't shake if not onground
+			//continue;
 
 		localAmplitude = 0;
 
@@ -1002,7 +1002,7 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 	
 			// Had to get rid of this falloff - it didn't work well
 			if ( distance < radius )
-				localAmplitude = amplitude;//radius - distance;
+				localAmplitude = radius - distance;
 		}
 		if ( localAmplitude )
 		{

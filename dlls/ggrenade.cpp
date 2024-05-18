@@ -108,7 +108,8 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		WRITE_COORD( pev->origin.z );
 		if (iContents != CONTENTS_WATER)
 		{
-			WRITE_SHORT( g_sModelIndexFireball );
+			//WRITE_SHORT( g_sModelIndexFireball );
+			WRITE_SHORT(0);
 		}
 		else
 		{
@@ -121,6 +122,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 //RENDERERS START
 	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 2, 50);
+	UTIL_ScreenShake(pev->origin, 100, 30, 1, 400);
 
 	if(iContents != CONTENTS_WATER)
 		UTIL_Particle("explosion_cluster.txt", pev->origin, g_vecZero, 1);
@@ -526,6 +528,8 @@ void CGrenade :: BounceSound()
 	case 1:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/grenade_hit2.wav", 0.25, ATTN_NORM);	break;
 	case 2:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/grenade_hit3.wav", 0.25, ATTN_NORM);	break;
 	}
+
+	FranUtils::EmitDlight(Vector(pev->origin.x, pev->origin.y, pev->origin.z + 10.0f), 8, {255, 0, 0}, 2.0f, 100);
 }
 
 void CGrenade :: TumbleThink()

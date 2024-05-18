@@ -346,13 +346,12 @@ void DLLEXPORT HUD_CreateEntities()
 	// Do this here, not in refdef
 	gBSPRenderer.SetupRenderer();
 
-	if(g_iFlashLight)
-	{
-		cl_entity_t *pView = gEngfuncs.GetViewModel();
 
-		if(pView)
-			SetupFlashlight(pView->origin + Vector(0, 0, 8), Vector(-pView->angles[0], pView->angles[1], pView->angles[2]), gEngfuncs.GetClientTime(), gHUD.m_flTimeDelta, false);
-	}
+	cl_entity_t* pView = gEngfuncs.GetViewModel();
+
+	if (pView)
+		SetupFlashlight(pView->origin + Vector(0, 0, 8), Vector(-pView->angles[0], pView->angles[1], pView->angles[2]), gEngfuncs.GetClientTime(), gHUD.m_flTimeDelta, false);
+
 	//RENDERERS END
 }
 
@@ -395,7 +394,7 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 	dlight->color.z = (float)160 / 255;
 	dlight->radius = 200;
 	dlight->origin = VecSrc;
-	dlight->cone_size = 150;
+	dlight->cone_size = 120;
 	dlight->angles = Vector(gHUD.pparams->viewangles[PITCH], angles.y, angles.z);
 	dlight->die = gEngfuncs.GetClientTime() + 0.05f;
 	dlight->textureindex = gBSPRenderer.m_pFlashlightTextures[0]->iIndex;

@@ -362,6 +362,7 @@ public:
 
 	Vector m_vShadowLightOrigin;
 
+	PFNGLACTIVESTENCILFACEEXTPROC	glActiveStencilFaceEXT;
 
 private:
 	// Pointer to the shadow volume data

@@ -1848,7 +1848,12 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 
 			case BULLET_PLAYER_BUCKSHOT:	
 				 // make distance based!
-				pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, DMG_BULLET); 
+			{
+				pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, DMG_ALWAYSGIB);
+				pEntity->pev->velocity.x = vecDirShooting.x * 200.0f;
+				pEntity->pev->velocity.y = vecDirShooting.y * 200.0f;
+				pEntity->pev->velocity.z = 200.0f;
+			}
 				break;
 			
 			case BULLET_PLAYER_357:		

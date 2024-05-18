@@ -360,7 +360,7 @@ void SVD_DrawNormalTriangles ( void )
 			break;
 
 		// brushmodels
-		if(!(!pentity->model || pentity->model->type != mod_brush) && !(pentity->curstate.messagenum != plocalplayer->curstate.messagenum) && !(pentity->curstate.rendermode != kRenderNormal))
+		if(!(!pentity->model || pentity->model->type != mod_brush) && !(pentity->curstate.messagenum != plocalplayer->curstate.messagenum) && (!(pentity->curstate.rendermode != kRenderNormal) || (pentity->curstate.rendermode == kRenderTransTexture && pentity->curstate.renderamt == 30)))
 			SVD_DrawBrushModel(pentity);
 
 		/*

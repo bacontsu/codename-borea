@@ -191,12 +191,8 @@ void CShotgun::PrimaryAttack()
 
 void CShotgun::SecondaryAttack()
 {
-	if (!m_pPlayer->isSlowmo)
-	{
-		m_pPlayer->isSlowmo = true;
-	}
 
-	/*
+	
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
@@ -233,11 +229,6 @@ void CShotgun::SecondaryAttack()
 	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
-#ifndef CLIENT_DLL
-	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
-	FranUtils::EmitDlight(m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 6, 16, { 255, 255, 160 }, 0.05f, 0);
-	UTIL_Particle("smokegun.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5, gpGlobals->v_forward * 5, 0);
-#endif
 
 	Vector vecDir;
 	
@@ -273,7 +264,16 @@ void CShotgun::SecondaryAttack()
 		m_flTimeWeaponIdle = 1.5;
 
 	m_fInSpecialReload = 0;
-	*/
+
+#ifndef CLIENT_DLL
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+	Vector vecInvPushDir = gpGlobals->v_forward * 200.0;
+
+	m_pPlayer->pev->velocity = -gpGlobals->v_forward * 300;
+	UTIL_ScreenShake(m_pPlayer->pev->origin, 100, 30, 1, 300);
+
+#endif
 
 }
 

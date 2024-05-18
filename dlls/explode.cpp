@@ -207,7 +207,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 			WRITE_COORD( pev->origin.y );
 			WRITE_COORD( pev->origin.z );
 			WRITE_SHORT( g_sModelIndexFireball );
-			WRITE_BYTE( (BYTE)m_spriteScale ); // scale * 10
+			WRITE_BYTE( 0 ); // scale * 10
 			WRITE_BYTE( 15  ); // framerate
 			WRITE_BYTE( TE_EXPLFLAG_NONE );
 		MESSAGE_END();
@@ -228,6 +228,7 @@ void CEnvExplosion::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
 
 	FranUtils::EmitDlight(pev->origin, 16, { 255, 255, 160 }, 2, 50);
 	UTIL_Particle("explosion_cluster.txt", pev->origin, g_vecZero, 1);
+	UTIL_ScreenShake(pev->origin, 100, 30, 1, 400);
 
 	// do damage
 	if ( !( pev->spawnflags & SF_ENVEXPLOSION_NODAMAGE ) )
