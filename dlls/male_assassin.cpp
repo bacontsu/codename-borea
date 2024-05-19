@@ -171,6 +171,8 @@ public:
 	void GibMonster() override;
 	void SpeakSentence();
 
+	void MonsterThink() override;
+
 	int	Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 	
@@ -215,6 +217,10 @@ public:
 	int		m_iSentence;
 
 	int m_iAssassinHead;
+
+	float m_flRealNextThink;
+	float m_flLerpedTurn;
+	float m_flNextShoot;
 
 	static const char *pGruntSentences[];
 };
@@ -291,6 +297,71 @@ void CMOFAssassin :: SpeakSentence()
 		SENTENCEG_PlayRndSz( ENT(pev), pGruntSentences[ m_iSentence ], MASSASSIN_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
 		JustSpoke();
 	}
+}
+
+
+void CMOFAssassin::MonsterThink()
+{
+	if (m_flRealNextThink < gpGlobals->time)
+	{
+		CSquadMonster::MonsterThink();
+		m_flRealNextThink = gpGlobals->time + 0.05f;
+	}
+
+	if (m_hEnemy)
+	{
+
+		float ang;
+		Vector forward, enemy;
+		Vector dist = m_hEnemy->pev->origin - pev->origin;
+
+
+		if (true)
+		{
+			dist = dist.Normalize();
+			VectorAngles(dist, enemy);
+
+			ALERT(at_console, "%f\n", enemy.y - pev->angles.y);
+
+			float controller = enemy.y - pev->angles.y;
+			controller += 360;
+			m_flLerpedTurn = lerp(m_flLerpedTurn, controller, gpGlobals->frametime * 10);
+		}
+
+		// do our custom logic here
+
+		if (m_flNextShoot < gpGlobals->time)
+		{
+			if ((m_Activity == ACT_WALK || m_Activity == ACT_RUN || m_Activity == ACT_RANGE_ATTACK1) && (enemy.y - pev->angles.y) <= 45.0f && (enemy.y - pev->angles.y) >= -45.0)
+			{
+				Shoot();
+
+				if (FBitSet(pev->weapons, MAssassinWeaponFlag::MP5))
+				{
+					// the first round of the three round burst plays the sound and puts a sound in the world sound list.
+					if (RANDOM_LONG(0, 1))
+					{
+						EMIT_SOUND(ENT(pev), CHAN_WEAPON, "hgrunt/gr_mgun1.wav", 1, ATTN_NORM);
+					}
+					else
+					{
+						EMIT_SOUND(ENT(pev), CHAN_WEAPON, "hgrunt/gr_mgun2.wav", 1, ATTN_NORM);
+					}
+				}
+				else
+				{
+					EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/sniper_fire.wav", 1, ATTN_NORM);
+				}
+
+				CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3);
+			}
+			m_flNextShoot = gpGlobals->time + 0.1f;
+		}
+
+		SetBoneController(3, m_flLerpedTurn - 360);
+	}
+
+	SetNextThink(0.001f);
 }
 
 //=========================================================
@@ -900,32 +971,13 @@ void CMOFAssassin :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case MASSASSIN_AE_BURST1:
 		{
-			Shoot();
-
-			if ( FBitSet( pev->weapons, MAssassinWeaponFlag::MP5 ))
-			{
-				// the first round of the three round burst plays the sound and puts a sound in the world sound list.
-				if ( RANDOM_LONG(0,1) )
-				{
-					EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hgrunt/gr_mgun1.wav", 1, ATTN_NORM );
-				}
-				else
-				{
-					EMIT_SOUND( ENT(pev), CHAN_WEAPON, "hgrunt/gr_mgun2.wav", 1, ATTN_NORM );
-				}
-			}
-			else
-			{
-				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/sniper_fire.wav", 1, ATTN_NORM );
-			}
-		
-			CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );
+			
 		}
 		break;
 
 		case MASSASSIN_AE_BURST2:
 		case MASSASSIN_AE_BURST3:
-			Shoot();
+			//Shoot();
 			break;
 
 		case MASSASSIN_AE_KICK:
@@ -1020,6 +1072,8 @@ void CMOFAssassin :: Spawn()
 	m_fStandingGround = m_flStandGroundRange != 0;
 
 	CTalkMonster::g_talkWaitTime = 0;
+
+	InitBoneControllers();
 
 	MonsterInit();
 }
