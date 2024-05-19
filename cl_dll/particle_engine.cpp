@@ -424,7 +424,7 @@ particle_system_t *CParticleEngine::CreateSystem( char *szPath, Vector origin, V
 	}
 	else
 	{
-		if(pSystem->shapetype != SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
+		if ((pSystem->shapetype != SYSTEM_SHAPE_PLANE_ABOVE_PLAYER) && (pSystem->shapetype != SYSTEM_SHAPE_BOX_AROUND_PLAYER))
 		{
 			// create all starting particles
 			for(int i = 0; i < pSystem->startparticles; i++)
@@ -455,29 +455,41 @@ void CParticleEngine::EnvironmentCreateFirst( particle_system_t *pSystem )
 	// Spawn particles inbetween the view origin and maxheight
 	for(int i = 0; i < iNumParticles; i++)
 	{
-		vOrigin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-		vOrigin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-		
-		if(pSystem->maxheight)
+		if(pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
 		{
-			vOrigin[2] = vPlayer[2] + pSystem->maxheight;
+			vOrigin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			vOrigin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 
-			if(vOrigin[2] > pSystem->skyheight)
+			if (pSystem->maxheight)
+			{
+				vOrigin[2] = vPlayer[2] + pSystem->maxheight;
+
+				if (vOrigin[2] > pSystem->skyheight)
+					vOrigin[2] = pSystem->skyheight;
+			}
+			else
+			{
 				vOrigin[2] = pSystem->skyheight;
+			}
+
+			vOrigin[2] = gEngfuncs.pfnRandomFloat(vPlayer[2], vOrigin[2]);
+
+			pmtrace_t pmtrace;
+			gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(vOrigin, Vector(vOrigin[0], vOrigin[1], pSystem->skyheight - 8), PM_WORLD_ONLY, -1, &pmtrace);
+
+			if (pmtrace.allsolid || pmtrace.fraction != 1.0)
+				continue;
 		}
-		else
+		else if (pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
 		{
-			vOrigin[2] = pSystem->skyheight;
+			Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
+			vOrigin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			vOrigin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			vOrigin[2] = vPlayer[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+
+			//gEngfuncs.Con_Printf("idk if this works \n");
 		}
-
-		vOrigin[2] = gEngfuncs.pfnRandomFloat(vPlayer[2], vOrigin[2]);
-
-		pmtrace_t pmtrace;
-		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-		gEngfuncs.pEventAPI->EV_PlayerTrace(vOrigin, Vector(vOrigin[0], vOrigin[1], pSystem->skyheight-8), PM_WORLD_ONLY, -1, &pmtrace);
-
-		if(pmtrace.allsolid || pmtrace.fraction != 1.0)
-			continue;
 
 		CreateParticle(pSystem, vOrigin);
 	}
@@ -502,7 +514,7 @@ void CParticleEngine::CreateParticle( particle_system_t *pSystem, float *flOrigi
 	pParticle->spawntime = gEngfuncs.GetClientTime();
 	pParticle->frame = -1;
 
-	if(pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
+	if(pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER || pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
 	{
 		vForward[0] = 0;
 		vForward[1] = 0;
@@ -579,6 +591,15 @@ void CParticleEngine::CreateParticle( particle_system_t *pSystem, float *flOrigi
 		pParticle->origin[0] = vBaseOrigin[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 		pParticle->origin[1] = vBaseOrigin[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 		pParticle->origin[2] = vBaseOrigin[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+	}
+	else if (pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
+	{
+		Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
+		pParticle->origin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+		pParticle->origin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+		pParticle->origin[2] = vPlayer[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+
+		//gEngfuncs.Con_Printf("idk if this works \n");
 	}
 	else if(pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
 	{
