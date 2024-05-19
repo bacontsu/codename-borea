@@ -1199,6 +1199,11 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pParticle )
 					for(int i = 0; i < pSystem->watersystem->startparticles; i++)
 						CreateParticle(pSystem->watersystem, pmtrace.endpos, pmtrace.plane.normal);
 				}
+				if (pSystem->deathcreate[0] != 0)
+				{
+					//gEngfuncs.Con_Printf("CALLED!\n");
+					CreateSystem(pSystem->deathcreate, pParticle->origin, pParticle->velocity.Normalize(), 0);
+				}
 				if(gEngfuncs.PM_PointContents(pmtrace.endpos, nullptr) != CONTENTS_SKY && pSystem->create[0] != 0)
 				{
 					for(int i = 0; i < pSystem->createsystem->startparticles; i++)
@@ -1411,6 +1416,14 @@ void CParticleEngine::RenderParticle( cl_particle_t *pParticle, float flUp, floa
 
 	if(pParticle->alpha == 0)
 		return;
+
+	/*
+	if (pParticle->pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
+	{
+		pParticle->velocity[0] = gHUD.pparams->simvel[0];
+		pParticle->velocity[1] = gHUD.pparams->simvel[1];
+	}
+	*/
 
 	VectorSubtract(pParticle->origin, gBSPRenderer.m_vRenderOrigin, vDir);
 	if(gHUD.m_pFogSettings.active)
