@@ -370,6 +370,10 @@ public:
 
 	CBasePlayer	*m_pPlayer;
 	CBasePlayerItem *m_pNext;
+
+	float lerp[2];
+	int m_iPropType = 1;
+
 	int		m_iId;												// WEAPON_???
 #ifndef CLIENT_DLL//AJH Test Debug
 	void Spawn() override;

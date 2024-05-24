@@ -562,11 +562,11 @@ void CBasePlayerItem :: SetObjectCollisionBox()
 //=========================================================
 void CBasePlayerItem :: FallInit()
 {
-	pev->movetype = MOVETYPE_TOSS;
+	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
 	UTIL_SetOrigin( this, pev->origin );
-	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0) );//pointsize until it lands on the ground.
+	UTIL_SetSize(pev, Vector( 0,0,0 ), Vector(5, 5, 5) );//pointsize until it lands on the ground.
 	
 	SetTouch( &CBasePlayerItem::DefaultTouch );
 	SetThink( &CBasePlayerItem::FallThink );
@@ -583,24 +583,35 @@ void CBasePlayerItem :: FallInit()
 //=========================================================
 void CBasePlayerItem::FallThink ()
 {
-	SetNextThink( 0.1 );
 
-	if ( pev->flags & FL_ONGROUND )
+	// HACKHACK - On ground isn't always set, so look for ground underneath
+	TraceResult tr;
+	UTIL_TraceLine(pev->origin, pev->origin + Vector(0, 0, pev->mins.z - 10), ignore_monsters, edict(), &tr);
+
+
+	if (tr.flFraction < 1.0)
 	{
-		// clatter if we have an owner (i.e., dropped by someone)
-		// don't clatter if the gun is waiting to respawn (if it's waiting, it is invisible!)
-		if ( !FNullEnt( pev->owner ) )
-		{
-			int pitch = 95 + RANDOM_LONG(0,29);
-			EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "items/weapondrop1.wav", 1, ATTN_NORM, 0, pitch);	
-		}
+		float target[2] = { 0, 0 };
 
-		// lie flat
-		pev->angles.x = 0;
-		pev->angles.z = 0;
+		lerp[0] = (target[0] * 0.03f * 300 * gpGlobals->frametime) + (lerp[0] * (1.0 - 0.03f * 300 * gpGlobals->frametime));
+		pev->angles.x = lerp[0];
 
-		Materialize(); 
+		lerp[1] = (target[1] * 0.03f * 300 * gpGlobals->frametime) + (lerp[1] * (1.0 - 0.03f * 300 * gpGlobals->frametime));
+		pev->angles.z = lerp[1];
+
 	}
+	else
+	{
+
+		pev->avelocity = pev->velocity * 2;
+
+		lerp[0] = pev->angles.x;
+		lerp[1] = pev->angles.z;
+	}
+
+	//Materialize();
+
+	pev->nextthink = gpGlobals->time + 0.001f;
 }
 
 //=========================================================
@@ -690,6 +701,19 @@ CBaseEntity* CBasePlayerItem::Respawn()
 
 void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 {
+	pev->velocity = pev->velocity / 2;
+
+	if (!(pev->flags & FL_ONGROUND) && pev->velocity.Length2D() > 10)
+	{
+		switch (RANDOM_LONG(0, 2))
+		{
+		case 0:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/g_bounce1.wav", 1, ATTN_NORM);	break;
+		case 1:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/g_bounce2.wav", 1, ATTN_NORM);	break;
+		case 2:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/g_bounce3.wav", 1, ATTN_NORM);	break;
+		}
+	}
+
+
 	// if it's not a player, ignore
 	if ( pOther && !pOther->IsPlayer() )
 		return;
