@@ -58,6 +58,8 @@ void VectorAngles( const float *forward, float *angles );
 extern engine_studio_api_t IEngineStudio;
 
 extern kbutton_t	in_mlook;
+extern kbutton_t	in_attack;
+extern kbutton_t	in_attack2;
 
 /*
 The view is allowed to move slightly from it's true position for bobbing,
@@ -973,7 +975,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// Bacontsu - running hold down viewmodel
 	float holdTarget = 0;
 	float holdTargetYaw = 0;
-	if (gHUD.isRunning)
+	if (gHUD.isRunning && !(in_attack.state & 3) && !(in_attack2.state & 3))
 	{
 		holdTarget = -20;
 		holdTargetYaw = 50 * (90 - abs(pparams->viewangles[PITCH])) /90;
