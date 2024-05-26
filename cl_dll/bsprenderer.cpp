@@ -328,7 +328,7 @@ void CBSPRenderer::DrawGLSLTextures()
 
 
 	// draw pass here
-	if(1)
+	if(0)
 	{
 		// skysphere pass
 		cloudShader.Use();
@@ -413,7 +413,7 @@ void CBSPRenderer::DrawGLSLTextures()
 	}
 
 	// aurora
-	if(0)
+	if(1)
 	{
 		auroraShader.Use();
 		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
@@ -3350,7 +3350,6 @@ void CBSPRenderer::DrawLowQualitySpecular(msurface_t* s)
 {
 	msurface_t* fa = s;
 	mtexinfo_t* tex = fa->texinfo;
-	float scale = 1.0f, scale_speed = 0.001f;
 	float* v;
 	int j;
 
@@ -3358,76 +3357,104 @@ void CBSPRenderer::DrawLowQualitySpecular(msurface_t* s)
 
 	float bigx = 0, bigy = 0;
 
-	//I'm so sorry for the code below. I hope someone makes this better one day...
+	// Magic Nipples - I'm so sorry for the code below. I hope someone makes this better one day...
 	for (j = 0, v = fa->polys->verts[0]; j < fa->polys->numverts; j++, v += VERTEXSIZE)
 	{
+
+		brushface_t* pFace = &m_pFacesExtraData[s->polys->flags];
+		brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
+
+		// bacontsu - calculate texture scale (max - min)
+		float scale = 1;
+		float scale_speed[2];
+
+		brushvertex_t* pEndVert = &m_pBufferData[pFace->start_vertex];
+
+		for (int verti = 1; verti < pFace->num_vertexes; verti++)
+		{
+			// check for all vert
+			if ((m_pBufferData[pFace->start_vertex + verti].pos - m_pBufferData[pFace->start_vertex].pos).Length() > (pEndVert->pos - m_pBufferData[pFace->start_vertex].pos).Length())
+			{
+				pEndVert = &m_pBufferData[pFace->start_vertex + verti];
+			}
+		}
+
+		scale_speed[0] = fabs((pEndVert->texcoord[0]) - (pVert->texcoord[0])) / (pEndVert->pos - pVert->pos).Length();
+		scale_speed[1] = fabs((pEndVert->texcoord[1]) - (pVert->texcoord[1])) / (pEndVert->pos - pVert->pos).Length();
+
+		gEngfuncs.Con_Printf("texturescale is %f %f\n", scale_speed[0], scale_speed[1]);
+
+		scale_speed[0] = 1.0 * scale_speed[0];
+		scale_speed[1] = 1.0 * scale_speed[1];
+
+
 		if (fa->plane->normal[0] == 1) //PLANE_X
 		{
-			bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
-			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
+			bigx = v[3] - (m_vRenderOrigin[1] * scale_speed[0]);
+			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed[1]);
 		}
 		else if (fa->plane->normal[1] == 1) //PLANE_Y
 		{
-			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
-			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
+			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
+			bigy = v[4] + (m_vRenderOrigin[2] * scale_speed[1]);
 		}
 		else if (fa->plane->normal[2] == 1) //PLANE_Z
 		{
-			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
-			bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
+			bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
+			bigy = v[4] + (m_vRenderOrigin[1] * scale_speed[1]);
 		}
 		else
 		{
 			if (fa->plane->normal[2] == 0) //vertical walls with angle other then 0 or 45 degrees...
 			{
 				if (fa->plane->normal[0] == fa->plane->normal[1]) //45 degree matching plane
-					bigx = v[3] + (m_vRenderOrigin[1] * ((-fa->plane->normal[1]) * scale_speed)) - (m_vRenderOrigin[0] * ((-fa->plane->normal[0]) * scale_speed));
+					bigx = v[3] + (m_vRenderOrigin[1] * ((-fa->plane->normal[1]) * scale_speed[0])) - (m_vRenderOrigin[0] * ((-fa->plane->normal[0]) * scale_speed[0]));
 				else if (fabs(fa->plane->normal[0] == fabs(fa->plane->normal[1]))) //45 degree matching plane but ones negative
-					bigx = v[3] + (m_vRenderOrigin[1] * ((fa->plane->normal[1]) * scale_speed)) - (m_vRenderOrigin[0] * ((fa->plane->normal[0]) * scale_speed));
+					bigx = v[3] + (m_vRenderOrigin[1] * ((fa->plane->normal[1]) * scale_speed[0])) - (m_vRenderOrigin[0] * ((fa->plane->normal[0]) * scale_speed[0]));
 				else
 				{
 					if (fabs(fa->plane->normal[1] > fabs(fa->plane->normal[0])))
-						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
 					else
-						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed[0]);
 				}
-				bigy = v[4] + (m_vRenderOrigin[2] * scale_speed);
+				bigy = v[4] + (m_vRenderOrigin[2] * scale_speed[1]);
 			}
 			else //slanted walls
 			{
 				if (fabs(fa->plane->normal[2]) > fabs(fa->plane->normal[0]) && fabs(fa->plane->normal[2]) > fabs(fa->plane->normal[1])) //slanted wall but less than 45 upright
 				{
-					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
-					bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
+					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
+					bigy = v[4] + (m_vRenderOrigin[1] * scale_speed[1]);
 
 					if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0)
 					{
-						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigx += m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy -= m_vRenderOrigin[2] * (scale_speed[1] * 0.5);
 					}
 					else if (fa->plane->normal[0] < 0 && fa->plane->normal[1] > 0)
 					{
-						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy -= m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigx -= m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy -= m_vRenderOrigin[2] * (scale_speed[1] * 0.5);
 					}
 					else if (fa->plane->normal[0] < 0 && fa->plane->normal[1] < 0)
 					{
-						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy += m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigx -= m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy += m_vRenderOrigin[2] * (scale_speed[1] * 0.5);
 					}
 					else if (fa->plane->normal[0] > 0 && fa->plane->normal[1] < 0)
 					{
-						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy += m_vRenderOrigin[2] * (scale_speed * 0.5);
+						bigx += m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy += m_vRenderOrigin[2] * (scale_speed[1] * 0.5);
 					}
 					else if (fa->plane->normal[0] > 0)
-						bigx += m_vRenderOrigin[2] * scale_speed;
+						bigx += m_vRenderOrigin[2] * scale_speed[0];
 					else if (fa->plane->normal[0] < 0)
-						bigx -= m_vRenderOrigin[2] * scale_speed;
+						bigx -= m_vRenderOrigin[2] * scale_speed[0];
 					else if (fa->plane->normal[1] > 0)
-						bigy -= m_vRenderOrigin[2] * scale_speed;
+						bigy -= m_vRenderOrigin[2] * scale_speed[1];
 					else
-						bigy += m_vRenderOrigin[2] * scale_speed;
+						bigy += m_vRenderOrigin[2] * scale_speed[1];
 
 				}
 				else if (fabs(fa->plane->normal[2]) < fabs(fa->plane->normal[0]) && fabs(fa->plane->normal[2]) < fabs(fa->plane->normal[1]))
@@ -3436,58 +3463,56 @@ void CBSPRenderer::DrawLowQualitySpecular(msurface_t* s)
 
 					if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0 && fa->plane->normal[2] > 0)
 					{
-						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+						bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
 
-						bigx += m_vRenderOrigin[1] * scale_speed;
-						bigx += m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy += m_vRenderOrigin[2] * scale_speed;
+						bigx += m_vRenderOrigin[1] * scale_speed[0];
+						bigx += m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed[1];
 					}
 					else if (fa->plane->normal[0] > 0 && fa->plane->normal[1] > 0 && fa->plane->normal[2] < 0)
 					{
-						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed[0]);
 
-						bigx += m_vRenderOrigin[0] * scale_speed;
-						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy += m_vRenderOrigin[2] * scale_speed;
+						bigx += m_vRenderOrigin[0] * scale_speed[0];
+						bigx -= m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed[1];
 					}
 					else //if (fa->plane->normal[0] > 0 && fa->plane->normal[1] < 0 && fa->plane->normal[2] > 0)
 					{
-						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+						bigx = v[3] - (m_vRenderOrigin[1] * scale_speed[0]);
 
-						bigx -= m_vRenderOrigin[0] * scale_speed;
-						bigx -= m_vRenderOrigin[2] * (scale_speed * 0.5);
-						bigy += m_vRenderOrigin[2] * scale_speed;
+						bigx -= m_vRenderOrigin[0] * scale_speed[0];
+						bigx -= m_vRenderOrigin[2] * (scale_speed[0] * 0.5);
+						bigy += m_vRenderOrigin[2] * scale_speed[1];
 					}
 				}
 				else if (fabs(fa->plane->normal[0]) > 0)
 				{
-					bigx = v[3] - (m_vRenderOrigin[1] * scale_speed);
+					bigx = v[3] - (m_vRenderOrigin[1] * scale_speed[0]);
 
 					if (fa->plane->normal[2] > 0)
-						bigy = v[4] - (m_vRenderOrigin[0] * scale_speed);
+						bigy = v[4] - (m_vRenderOrigin[0] * scale_speed[1]);
 					else
-						bigy = v[4] + (m_vRenderOrigin[0] * scale_speed);
-					bigy += m_vRenderOrigin[2] * scale_speed;
+						bigy = v[4] + (m_vRenderOrigin[0] * scale_speed[1]);
+					bigy += m_vRenderOrigin[2] * scale_speed[1];
 				}
 				else if (fabs(fa->plane->normal[1]) > 0)
 				{
-					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed);
+					bigx = v[3] - (m_vRenderOrigin[0] * scale_speed[0]);
 
 					if (fa->plane->normal[2] > 0)
-						bigy = v[4] - (m_vRenderOrigin[1] * scale_speed);
+						bigy = v[4] - (m_vRenderOrigin[1] * scale_speed[1]);
 					else
-						bigy = v[4] + (m_vRenderOrigin[1] * scale_speed);
-					bigy += m_vRenderOrigin[2] * scale_speed;
+						bigy = v[4] + (m_vRenderOrigin[1] * scale_speed[1]);
+					bigy += m_vRenderOrigin[2] * scale_speed[1];
 				}
 			}
 		}
 
-		brushface_t* pFace = &m_pFacesExtraData[s->polys->flags];
-		brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
 
 		if (m_iTexPointer[0] == TC_LIGHTMAP)
 		{
-			glMultiTexCoord4fARB(GL_TEXTURE0_ARB, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1], 0, scale);
+			glMultiTexCoord4fARB(GL_TEXTURE0_ARB, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1], 0, 1.0);
 			glMultiTexCoord4fARB(GL_TEXTURE1_ARB, bigx, bigy, 0, scale);
 		}
 		else
@@ -6140,7 +6165,7 @@ void CBSPRenderer::DrawSky( )
 	if (1)
 	{
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
-		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_cloudShader);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUADS);
 		gHUD.gBloomRenderer.DrawQuad(ScreenWidth * 800 / ScreenWidth, ScreenHeight * 450 / ScreenHeight);
