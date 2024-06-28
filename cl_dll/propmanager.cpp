@@ -788,8 +788,16 @@ void CPropManager::RenderProps( bool isWater )
 			if(isWater)
 				continue;
 
+			// run thru all entites
+			Vector closestEntVec;
+			for (int j = 1; j < 512; j++)
+			{
+				if ((gEngfuncs.GetEntityByIndex(j)->curstate.origin - m_pEntities[i].curstate.origin).Length2D() < (closestEntVec - m_pEntities[i].curstate.origin).Length2D())
+					closestEntVec = gEngfuncs.GetEntityByIndex(j)->curstate.origin;
+			}
+
 			// get base params
-			Vector clientOrg = gEngfuncs.GetLocalPlayer()->curstate.origin;
+			Vector clientOrg = closestEntVec;
 			Vector grassOrg = m_pEntities[i].curstate.origin;
 
 			// calculate distance of x and y axis from player
