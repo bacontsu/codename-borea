@@ -172,6 +172,8 @@ GLuint g_cloudShader;
 GLuint g_auroraShader;
 extern GLuint noise1;
 extern GLuint noise2;
+ShaderUtil postProcessShader;
+ShaderUtil FXAAShader;
 
 unsigned int ShaderUtil::GetCompiledShader(unsigned int shader_type, const std::string& shader_source, const std::string& path)
 {
@@ -300,6 +302,8 @@ void CBSPRenderer::LoadGLSLShaders()
 	cloudShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_sky.glsl"));
 	auroraShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_aurora.glsl"));
 	bumpmapShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vp_bump.glsl"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_bump.glsl"));
+	postProcessShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_postprocess.glsl"));
+	FXAAShader.Load(std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/vs.shaders"), std::string(gEngfuncs.pfnGetGameDirectory() + (std::string)"/shaders/fp_fxaa.glsl"));
 }
 
 void CBSPRenderer::DrawGLSLTextures()
@@ -328,7 +332,7 @@ void CBSPRenderer::DrawGLSLTextures()
 
 
 	// draw pass here
-	if(0)
+	if(1)
 	{
 		// skysphere pass
 		cloudShader.Use();
@@ -413,7 +417,7 @@ void CBSPRenderer::DrawGLSLTextures()
 	}
 
 	// aurora
-	if(1)
+	if(0)
 	{
 		auroraShader.Use();
 		glUniform1f(glGetUniformLocation(auroraShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime());
@@ -2649,6 +2653,19 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 				m_iWorldPolyCounter++;
 			}
 		}
+		/*
+		// bacontsu - bumpmapping
+		else if (stristr(pTexture->name, "dev"))
+		{
+			//gEngfuncs.Con_Printf("found spec\n");
+			while (psurface)
+			{
+				DrawBumpmap(psurface);
+				psurface = psurface->texturechain;
+				m_iWorldPolyCounter++;
+			}
+		}
+		*/
 		else
 		{
 			while(psurface)
@@ -2833,6 +2850,19 @@ void CBSPRenderer::RenderFinalPasses( )
 				m_iWorldPolyCounter++;
 			}
 		}
+		/*
+		// bacontsu - bumpmapping
+		else if (stristr(pTexture->name, "dev"))
+		{
+			//gEngfuncs.Con_Printf("found spec\n");
+			while (psurface)
+			{
+				DrawBumpmap(psurface);
+				psurface = psurface->texturechain;
+				m_iWorldPolyCounter++;
+			}
+		}
+		*/
 		else
 		{
 			while(psurface)
@@ -3339,6 +3369,71 @@ void CBSPRenderer::DrawScrollingPoly(msurface_t *s)
 	}
 	glEnd();
 }
+
+/*
+====================
+DrawScrollingPoly
+
+====================
+*/
+void CBSPRenderer::DrawBumpmap(msurface_t* s)
+{
+
+	glpoly_t* p = s->polys;
+	float* v = p->verts[0];
+
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE2);
+	glDisable(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE3);
+	glDisable(GL_TEXTURE_2D);
+
+	brushface_t* pFace = &m_pFacesExtraData[p->flags];
+	brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
+
+	bumpmapShader.Use();
+
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightPos"), 0, 0, 0);  //light position (is the same as the player position)
+
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mambient"), 1.0, 1.0, 1.0);  //setting the material property
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mdiffuse"), 0.7, 0.7, 0.7);
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "mspecular"), 1.0, 1.0, 1.0);
+
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lambient"), 1.0, 1.0, 1.0);  //setting light property
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "ldiffuse"), 0.7, 0.7, 0.7);
+	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lspecular"), 1.0, 1.0, 1.0);
+
+	glUniform1f(glGetUniformLocation(bumpmapShader.GetProgramID(), "shininess"), 32.0);    //shininess
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightmapTex"), 0);
+	glBindTexture(GL_TEXTURE_2D, m_iEngineLightmapIndex);
+
+	glActiveTexture(GL_TEXTURE1);
+	glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "diffuseTex"), 1);
+	glBindTexture(GL_TEXTURE_2D, s->texinfo->texture->gl_texturenum);
+
+	glBegin(GL_TRIANGLES);
+
+	for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+	{
+		glMultiTexCoord2f(GL_TEXTURE0, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
+		glMultiTexCoord2f(GL_TEXTURE1, pVert->texcoord[0], pVert->texcoord[1]);
+		glNormal3f(pFace->normal.x, pFace->normal.y, pFace->normal.z);
+		glVertex3fv(pVert->pos);
+	}
+	glEnd();
+
+	bumpmapShader.Unuse();
+}
+
 
 /*
 ====================
@@ -6165,7 +6260,7 @@ void CBSPRenderer::DrawSky( )
 	if (1)
 	{
 		glViewport(0, 0, ScreenWidth, ScreenHeight);
-		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_auroraShader);
+		glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_cloudShader);
 		glColor4f(1, 1, 1, 1);
 		glBegin(GL_QUADS);
 		gHUD.gBloomRenderer.DrawQuad(ScreenWidth * 800 / ScreenWidth, ScreenHeight * 450 / ScreenHeight);
