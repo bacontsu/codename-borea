@@ -105,7 +105,7 @@ public:
 	void SurfaceToChain( msurface_t *s, bool dynlit );
 	void DrawScrollingPoly( msurface_t *s );
 	void DrawLowQualitySpecular(msurface_t* s);
-	void DrawBumpmap(msurface_t* s);
+	void DrawBumpmap(msurface_t* s, bool lightmapOnly = false);
 	void EmitWaterPolys( msurface_t *fa );
 	void DrawPolyFromArray( glpoly_t *p );
 

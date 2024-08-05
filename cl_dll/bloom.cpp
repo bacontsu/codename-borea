@@ -109,6 +109,8 @@ void CBloom::Draw(void)
     FXAAShader.Use();
 
     glUniform1i(glGetUniformLocation(FXAAShader.GetProgramID(), "iChannel0"), 0);
+    glUniform1i(glGetUniformLocation(FXAAShader.GetProgramID(), "iWidth"), ScreenWidth);
+    glUniform1i(glGetUniformLocation(FXAAShader.GetProgramID(), "iHeight"), ScreenHeight);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_uiScreenTex);
 
@@ -136,6 +138,8 @@ void CBloom::Draw(void)
  
     glUniform1i(glGetUniformLocation(postProcessShader.GetProgramID(), "iChannel0"), 0);
     glUniform1f(glGetUniformLocation(postProcessShader.GetProgramID(), "mult"), glow_mult);
+    glUniform1i(glGetUniformLocation(FXAAShader.GetProgramID(), "iWidth"), ScreenWidth);
+    glUniform1i(glGetUniformLocation(FXAAShader.GetProgramID(), "iHeight"), ScreenHeight);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_uiScreenTex);
 

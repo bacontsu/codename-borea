@@ -75,10 +75,12 @@ void PRECACHE_IMAGE(std::string name, GLuint* texture, int* x = nullptr, int* y 
 	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/") + name;
 	bool pathCheck = LoadTextureFromFile(path.c_str(), texture, x, y, filter, wrap);
 
+	/*
 	if (std::filesystem::exists(path))
 		gEngfuncs.Con_DPrintf("%s is found!\n", path.c_str());
 	else
 		gEngfuncs.Con_DPrintf("%s cant be found!\n", path.c_str());
+		*/
 	//	IM_ASSERT(pathCheck);
 }
 

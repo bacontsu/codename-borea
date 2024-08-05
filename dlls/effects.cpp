@@ -4875,7 +4875,7 @@ void CEnvFog :: SendData ( Vector col, int iFadeTime, int iStartDist, int iEndDi
 	}
 }
 
-LINK_ENTITY_TO_CLASS( env_fog, CEnvFog );
+//LINK_ENTITY_TO_CLASS( env_fog, CEnvFog );
 
 //=========================================================
 // LRC - env_sky, an unreal tournament-style sky effect

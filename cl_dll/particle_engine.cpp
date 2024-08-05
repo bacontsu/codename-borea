@@ -483,12 +483,15 @@ void CParticleEngine::EnvironmentCreateFirst( particle_system_t *pSystem )
 		}
 		else if (pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
 		{
-			Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
-			Vector vSpeed = gHUD.pparams->simvel;
+			if(gEngfuncs.GetLocalPlayer() && gHUD.pparams)
+			{
+				Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
+				Vector vSpeed = gHUD.pparams->simvel;
 
-			vOrigin[0] = vPlayer[0] + vSpeed[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-			vOrigin[1] = vPlayer[1] + vSpeed[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-			vOrigin[2] = vPlayer[2] + vSpeed[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+				vOrigin[0] = vPlayer[0] + vSpeed[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+				vOrigin[1] = vPlayer[1] + vSpeed[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+				vOrigin[2] = vPlayer[2] + vSpeed[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			}
 
 			//gEngfuncs.Con_Printf("idk if this works \n");
 		}

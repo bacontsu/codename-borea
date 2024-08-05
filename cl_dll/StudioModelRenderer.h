@@ -213,8 +213,8 @@ public:
 	virtual void	StudioEntityLight( );
 	virtual bool	StudioCullBBox( const Vector &mins, const Vector &maxs );
 
-	virtual void	StudioSetupLighting( );
-	virtual int		StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_t *node, const Vector &start, const Vector &end, Vector &color );
+	virtual void	StudioSetupLighting( bool bStatic = false );
+	virtual int		StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_t *node, const Vector &start, const Vector &end, Vector &color , bool bStatic = false);
 	
 	virtual void	StudioSetTextureFlags( );
 	virtual void	StudioSetChromeVectors( );
@@ -362,7 +362,6 @@ public:
 
 	Vector m_vShadowLightOrigin;
 
-	PFNGLACTIVESTENCILFACEEXTPROC	glActiveStencilFaceEXT;
 
 private:
 	// Pointer to the shadow volume data

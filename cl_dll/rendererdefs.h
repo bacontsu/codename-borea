@@ -349,6 +349,9 @@ struct brushface_t
 	Vector	normal;
 	Vector	s_tangent;
 	Vector	t_tangent;
+
+	GLuint gl_normal_id;
+	GLuint gl_specular_id;
 };
 
 typedef struct detailtexentry_s
@@ -695,6 +698,7 @@ struct entextrainfo_t
 	int surfindex;
 	int lightstyles[4];
 	Vector prevpos;
+	int run_count = 0; // bacontsu - weird fucking workaround because static entities lightmap are shit the first time they take the value;
 
 	lighting_ext pLighting;
 	cl_entity_t *pEntity;
