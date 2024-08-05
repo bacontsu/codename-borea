@@ -308,6 +308,8 @@ void CBSPRenderer::LoadGLSLShaders()
 
 void CBSPRenderer::DrawGLSLTextures()
 {
+	return;
+
 	R_SaveGLStates();
 
 	// enable some OpenGL stuff
@@ -332,13 +334,16 @@ void CBSPRenderer::DrawGLSLTextures()
 
 
 	// draw pass here
-	if(1)
+	if(0)
 	{
 		// skysphere pass
 		cloudShader.Use();
 		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "iTime"), gEngfuncs.GetAbsoluteTime() + 20.0f);
 		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "yaw"), gHUD.pparams->viewangles[YAW]);
 		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "pitch"), gHUD.pparams->viewangles[PITCH]);
+		glUniform1f(glGetUniformLocation(cloudShader.GetProgramID(), "roll"), gHUD.pparams->viewangles[ROLL]);
+
+		gEngfuncs.Con_Printf("YAW %f\n", gHUD.pparams->viewangles[YAW]);
 
 		static GLuint noise_texture;
 		static GLuint noise_texture2;
@@ -2643,7 +2648,7 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 			}
 		}
 		// bacontsu - fake specular
-		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect") || stristr(pTexture->name, "glass"))
+		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect") || stristr(pTexture->name, "chrome"))
 		{
 			//gEngfuncs.Con_Printf("found spec\n");
 			while (psurface)
@@ -2763,6 +2768,18 @@ void CBSPRenderer::RenderFirstPass( bool bSecond )
 			glDisable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0);
 		}
+		/*
+		else if (stristr(pTexture->name, "dev"))
+		{
+			//gEngfuncs.Con_Printf("found spec\n");
+			while (psurface)
+			{
+				DrawBumpmap(psurface);
+				psurface = psurface->texturechain;
+				m_iWorldPolyCounter++;
+			}
+		}
+		*/
 		else
 		{
 			SetTexEnvs( ENVSTATE_REPLACE );
@@ -2840,7 +2857,7 @@ void CBSPRenderer::RenderFinalPasses( )
 			}
 		}
 		// bacontsu - fake specular
-		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect"))
+		else if (stristr(pTexture->name, "spec") || stristr(pTexture->name, "reflect") || stristr(pTexture->name, "chrome"))
 		{
 			//gEngfuncs.Con_Printf("found spec\n");
 			while (psurface)
@@ -3376,7 +3393,7 @@ DrawScrollingPoly
 
 ====================
 */
-void CBSPRenderer::DrawBumpmap(msurface_t* s)
+void CBSPRenderer::DrawBumpmap(msurface_t* s, bool lightmapOnly)
 {
 
 	glpoly_t* p = s->polys;
@@ -3397,6 +3414,23 @@ void CBSPRenderer::DrawBumpmap(msurface_t* s)
 	brushface_t* pFace = &m_pFacesExtraData[p->flags];
 	brushvertex_t* pVert = &m_pBufferData[pFace->start_vertex];
 
+	if (m_iTexPointer[0] == TC_LIGHTMAP && lightmapOnly)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_iEngineLightmapIndex);
+
+		glBegin(GL_TRIANGLES);
+
+		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		{
+			glMultiTexCoord2f(GL_TEXTURE0, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
+			glMultiTexCoord2f(GL_TEXTURE1, pVert->texcoord[0], pVert->texcoord[1]);
+			glNormal3f(pFace->normal.x, pFace->normal.y, pFace->normal.z);
+			glVertex3fv(pVert->pos);
+		}
+		glEnd();
+	}
+
 	bumpmapShader.Use();
 
 	glUniform3f(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightPos"), 0, 0, 0);  //light position (is the same as the player position)
@@ -3411,25 +3445,48 @@ void CBSPRenderer::DrawBumpmap(msurface_t* s)
 
 	glUniform1f(glGetUniformLocation(bumpmapShader.GetProgramID(), "shininess"), 32.0);    //shininess
 
-
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightmapTex"), 0);
-	glBindTexture(GL_TEXTURE_2D, m_iEngineLightmapIndex);
-
-	glActiveTexture(GL_TEXTURE1);
-	glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "diffuseTex"), 1);
-	glBindTexture(GL_TEXTURE_2D, s->texinfo->texture->gl_texturenum);
-
-	glBegin(GL_TRIANGLES);
-
-	for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+	if (m_iTexPointer[0] == TC_LIGHTMAP && !lightmapOnly)
 	{
-		glMultiTexCoord2f(GL_TEXTURE0, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
-		glMultiTexCoord2f(GL_TEXTURE1, pVert->texcoord[0], pVert->texcoord[1]);
-		glNormal3f(pFace->normal.x, pFace->normal.y, pFace->normal.z);
-		glVertex3fv(pVert->pos);
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "lightmapTex"), 0);
+		glBindTexture(GL_TEXTURE_2D, m_iEngineLightmapIndex);
+
+		glActiveTexture(GL_TEXTURE1);
+		glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "diffuseTex"), 1);
+		glBindTexture(GL_TEXTURE_2D, s->texinfo->texture->gl_texturenum);
+
+		glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "second"), 0);
+
+		glBegin(GL_TRIANGLES);
+
+		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		{
+			glMultiTexCoord2f(GL_TEXTURE0, pVert->lightmaptexcoord[0], pVert->lightmaptexcoord[1]);
+			glMultiTexCoord2f(GL_TEXTURE1, pVert->texcoord[0], pVert->texcoord[1]);
+			glNormal3f(pFace->normal.x, pFace->normal.y, pFace->normal.z);
+			glVertex3fv(pVert->pos);
+		}
+		glEnd();
 	}
-	glEnd();
+	else
+	{
+
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "diffuseTex"), 0);
+		glBindTexture(GL_TEXTURE_2D, s->texinfo->texture->gl_texturenum);
+
+		glUniform1i(glGetUniformLocation(bumpmapShader.GetProgramID(), "second"), 1);
+
+		glBegin(GL_TRIANGLES);
+
+		for (int i = 0; i < pFace->num_vertexes; i++, pVert++)
+		{
+			glMultiTexCoord2f(GL_TEXTURE0, pVert->texcoord[0], pVert->texcoord[1]);
+			glNormal3f(pFace->normal.x, pFace->normal.y, pFace->normal.z);
+			glVertex3fv(pVert->pos);
+		}
+		glEnd();
+	}
 
 	bumpmapShader.Unuse();
 }
@@ -3477,7 +3534,7 @@ void CBSPRenderer::DrawLowQualitySpecular(msurface_t* s)
 		scale_speed[0] = fabs((pEndVert->texcoord[0]) - (pVert->texcoord[0])) / (pEndVert->pos - pVert->pos).Length();
 		scale_speed[1] = fabs((pEndVert->texcoord[1]) - (pVert->texcoord[1])) / (pEndVert->pos - pVert->pos).Length();
 
-		gEngfuncs.Con_Printf("texturescale is %f %f\n", scale_speed[0], scale_speed[1]);
+		//gEngfuncs.Con_Printf("texturescale is %f %f\n", scale_speed[0], scale_speed[1]);
 
 		scale_speed[0] = 1.0 * scale_speed[0];
 		scale_speed[1] = 1.0 * scale_speed[1];
@@ -6230,6 +6287,7 @@ DrawSky
 */
 void CBSPRenderer::DrawSky( )
 {
+	/*
 	fog_settings_t pSaved;
 	static float projection[16];
 
@@ -6280,6 +6338,112 @@ void CBSPRenderer::DrawSky( )
 
 	R_RestoreGLStates();
 
+	*/
+
+	fog_settings_t pSaved;
+	static float projection[16];
+
+	if (!m_bDrawSky)
+		return;
+
+	if (gHUD.m_pSkyFogSettings.active)
+	{
+		memcpy(&pSaved, &gHUD.m_pFogSettings, sizeof(fog_settings_t));
+		memcpy(&gHUD.m_pFogSettings, &gHUD.m_pSkyFogSettings, sizeof(fog_settings_t));
+		gHUD.m_pFogSettings.end = gHUD.m_pFogSettings.end / m_fSkySpeed;
+		gHUD.m_pFogSettings.start = gHUD.m_pFogSettings.start / m_fSkySpeed;
+		ClearToFogColor();
+		RenderFog();
+	}
+
+	if (gHUD.m_pFogSettings.active)
+	{
+		if (!gHUD.m_pFogSettings.affectsky)
+			glDisable(GL_FOG);
+	}
+
+	if (m_bMirroring)
+	{
+		glMatrixMode(GL_PROJECTION);
+		glGetFloatv(GL_PROJECTION_MATRIX, projection);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
+
+	if (!gHUD.m_pFogSettings.affectsky || !gHUD.m_pFogSettings.active)
+	{
+		glDisable(GL_BLEND);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
+
+		SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_OFF, ENVSTATE_OFF, ENVSTATE_OFF);
+
+		Vector m_vPoints[8];
+		m_vPoints[0] = m_vRenderOrigin + Vector(0, -10, 0) - Vector(10, 0, 0) + Vector(0, 0, -10);
+		m_vPoints[1] = m_vRenderOrigin + Vector(0, -10, 0) + Vector(10, 0, 0) + Vector(0, 0, -10);
+		m_vPoints[2] = m_vRenderOrigin - Vector(0, -10, 0) + Vector(10, 0, 0) + Vector(0, 0, -10);
+		m_vPoints[3] = m_vRenderOrigin - Vector(0, -10, 0) - Vector(10, 0, 0) + Vector(0, 0, -10);
+		m_vPoints[4] = m_vRenderOrigin + Vector(0, -10, 0) - Vector(10, 0, 0) - Vector(0, 0, -10);
+		m_vPoints[5] = m_vRenderOrigin + Vector(0, -10, 0) + Vector(10, 0, 0) - Vector(0, 0, -10);
+		m_vPoints[6] = m_vRenderOrigin - Vector(0, -10, 0) + Vector(10, 0, 0) - Vector(0, 0, -10);
+		m_vPoints[7] = m_vRenderOrigin - Vector(0, -10, 0) - Vector(10, 0, 0) - Vector(0, 0, -10);
+
+		int m_iIDs[6][4] = {
+			{1, 2, 6, 5},{2, 3, 7, 6},{3, 0, 4, 7},
+			{0, 1, 5, 4},{2, 1, 0, 3},{7, 4, 5, 6} };
+
+		glDepthMask(GL_FALSE);
+		for (int i = 0; i < 6; i++)
+		{
+			Bind2DTexture(GL_TEXTURE0_ARB, m_iSkyTextures[i]);
+			glBegin(GL_POLYGON);
+			glTexCoord2i(0, 1);
+			glVertex3fv(m_vPoints[m_iIDs[i][0]]);
+			glTexCoord2i(1, 1);
+			glVertex3fv(m_vPoints[m_iIDs[i][1]]);
+			glTexCoord2i(1, 0);
+			glVertex3fv(m_vPoints[m_iIDs[i][2]]);
+			glTexCoord2i(0, 0);
+			glVertex3fv(m_vPoints[m_iIDs[i][3]]);
+			glEnd();
+		}
+		glDepthMask(GL_TRUE);
+	}
+
+	if (gHUD.m_pFogSettings.active)
+		glEnable(GL_FOG);
+
+	//Render all skybox solid ents
+	EnableVertexArray();
+	for (int i = 0; i < m_iNumRenderEntities; i++)
+	{
+		if (m_pRenderEntities[i]->curstate.renderfx == 70)
+			DrawBrushModel(m_pRenderEntities[i], false);
+	}
+
+	ResetRenderer();
+	DisableVertexArray();
+
+	//Render all skybox prop entities
+	gPropManager.RenderSkyProps();
+
+	//Clear depth buffer for the final time
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	if (gHUD.m_pSkyFogSettings.active)
+	{
+		memcpy(&gHUD.m_pFogSettings, &pSaved, sizeof(fog_settings_t));
+		RenderFog();
+	}
+
+	if (m_bMirroring)
+	{
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadMatrixf(projection);
+
+		glMatrixMode(GL_MODELVIEW);
+	}
 
 };
 

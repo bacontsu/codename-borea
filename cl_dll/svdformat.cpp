@@ -451,10 +451,16 @@ void SVD_CheckInit( void )
 		if(pmodel->type != mod_studio)
 			continue;
 
+		
 		if(!SVD_LoadSVDForModel(pmodel))
-			gEngfuncs.Con_DPrintf("Failed to set SVD data for %s\n", pmodel->name);
+		{
+			//gEngfuncs.Con_DPrintf("Failed to set SVD data for %s\n", pmodel->name);
+		}
 		else
-			gEngfuncs.Con_DPrintf("Success to set SVD data for %s\n", pmodel->name);
+		{
+			//gEngfuncs.Con_DPrintf("Success to set SVD data for %s\n", pmodel->name);
+		}
+			
 	}
 
 	g_bNeedLoadSVD = false;

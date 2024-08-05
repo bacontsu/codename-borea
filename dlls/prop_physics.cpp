@@ -49,7 +49,7 @@ void CPropPhysics::Spawn()
 		break;
 
 	default:
-		UTIL_SetSize(pev, Vector(-26, 0, -26), Vector(26, 26, 26));
+		UTIL_SetSize(pev, Vector(-15, -15, 0), Vector(15, 15, 26));
 		break;
 	}
 
@@ -121,7 +121,7 @@ void CPropPhysics::PropThink()
 
 	// HACKHACK - On ground isn't always set, so look for ground underneath
 	TraceResult tr;
-	UTIL_TraceLine(pev->origin, pev->origin + Vector(0, 0, pev->mins.z - 10), ignore_monsters, edict(), &tr);
+	UTIL_TraceLine(pev->origin, pev->origin + Vector(0, 0, pev->mins.z - (m_iPropType == 1 ? 10 : 50)), ignore_monsters, edict(), &tr);
 
 	if (tr.flFraction < 1.0)
 	{
@@ -173,7 +173,7 @@ void CPropPhysics::PropThink()
 	}
 	else
 	{
-		float divider = m_iPropType == 1 ? 2.0f : 5.0f;
+		float divider = m_iPropType == 1 ? 2.0f : 1.0f;
 
 		if (usedTime < gpGlobals->time)
 			pev->avelocity = pev->velocity / divider; // divide by 2 when I finished the physics formula

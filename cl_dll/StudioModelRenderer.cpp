@@ -57,6 +57,14 @@ engine_studio_api_t IEngineStudio;
 
 cvar_t* te_render_distance = NULL;
 
+struct cl_stored_light
+{
+	int index = 0;
+	Vector color = 0;
+};
+
+std::vector<cl_stored_light>StoredLightBuffer;
+
 //===========================================
 //	ARB SHADER
 //===========================================
@@ -1862,6 +1870,8 @@ VidInit
 */
 void CStudioModelRenderer::VidInit()
 {
+	StoredLightBuffer.clear();
+
 	int iCurrentBinding;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &iCurrentBinding);
 
@@ -4035,7 +4045,7 @@ StudioSetupLighting
 
 ====================
 */
-void CStudioModelRenderer::StudioSetupLighting ()
+void CStudioModelRenderer::StudioSetupLighting (bool bStatic)
 {
 	int iret = 0;
 	Vector color;
@@ -4071,9 +4081,10 @@ void CStudioModelRenderer::StudioSetupLighting ()
 				break;
 		}
 
-		if(pInfo->prevpos == eorigin && i == MAXLIGHTMAPS)
+		if(pInfo->prevpos == eorigin && i == MAXLIGHTMAPS && pInfo->run_count >= 2)
 		{
 			memcpy(&m_pLighting, &pInfo->pLighting, sizeof(lighting_ext));
+			pInfo->run_count++;
 			return;
 		}
 	}
@@ -4096,7 +4107,7 @@ void CStudioModelRenderer::StudioSetupLighting ()
 	else end.z = point.z - 8136;
 
 	if(gBSPRenderer.m_pWorld->lightdata)
-		iret = StudioRecursiveLightPoint(pInfo, gBSPRenderer.m_pWorld->nodes, point, end, color);
+		iret = StudioRecursiveLightPoint(pInfo, gBSPRenderer.m_pWorld->nodes, point, end, color, bStatic);
 
 	if(!iret)
 	{
@@ -4113,6 +4124,7 @@ void CStudioModelRenderer::StudioSetupLighting ()
 		m_pLighting.lightdir.z = m_pCvarSkyVecZ->value;
 		return;
 	}
+
 	
 	m_pLighting.diffuselight.x = color.x*0.55;
 	m_pLighting.diffuselight.y = color.y*0.55;
@@ -4140,7 +4152,7 @@ StudioRecursiveLightPoint
 
 ====================
 */
-int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_t *node, const Vector &start, const Vector &end, Vector &color )
+int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_t *node, const Vector &start, const Vector &end, Vector &color , bool bStatic)
 {
 	float		front, back, frac;
 	int			side;
@@ -4161,7 +4173,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 	side = front < 0;
 	
 	if ( (back < 0) == side )
-		return StudioRecursiveLightPoint (ext, node->children[side], start, end, color);
+		return StudioRecursiveLightPoint (ext, node->children[side], start, end, color, bStatic);
 	
 	frac = front / (front-back);
 	mid[0] = start[0] + (end[0] - start[0])*frac;
@@ -4169,7 +4181,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 	mid[2] = start[2] + (end[2] - start[2])*frac;
 	
 // go down front side	
-	int r = StudioRecursiveLightPoint (ext, node->children[side], start, mid, color);
+	int r = StudioRecursiveLightPoint (ext, node->children[side], start, mid, color, bStatic);
 
 	if (r) 
 		return TRUE;
@@ -4217,25 +4229,60 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 
 			if(flScale > 1.0) flScale = 1.0;
 
-			color[0] = (float)(lightmap->r * flScale)/255;
-			color[1] = (float)(lightmap->g * flScale)/255;
-			color[2] = (float)(lightmap->b * flScale)/255;
+			// bacontsu - smoothed lightmap while moving
+			// scan for existing index
+			bool bFoundStoredLight = false;
+			int iFoundIndex = 0;
+			for (int jaja = 0; jaja < StoredLightBuffer.size(); jaja++)
+			{
+				if (StoredLightBuffer[jaja].index == m_pCurrentEntity->index)
+				{
+					bFoundStoredLight = true;
+					iFoundIndex = jaja;
+				}
+			}
+
+			// not found? add!
+			if (!bFoundStoredLight)
+			{
+				cl_stored_light local;
+				local.index = m_pCurrentEntity->index;
+				local.color = Vector((float)(lightmap->r * flScale) / 255, (float)(lightmap->g * flScale) / 255, (float)(lightmap->b * flScale) / 255);
+				StoredLightBuffer.push_back(local);
+			}
+
+
+			if (bFoundStoredLight)
+			{
+				//gEngfuncs.Con_Printf("FOUND BALLS\n"); // im at the edge of insanity
+
+				
+				StoredLightBuffer[iFoundIndex].color.x = lerp(StoredLightBuffer[iFoundIndex].color.x, (float)(lightmap->r * flScale) / 255, gHUD.m_flTimeDelta * 2.0f);
+				StoredLightBuffer[iFoundIndex].color.y = lerp(StoredLightBuffer[iFoundIndex].color.y, (float)(lightmap->g * flScale) / 255, gHUD.m_flTimeDelta * 2.0f);
+				StoredLightBuffer[iFoundIndex].color.z = lerp(StoredLightBuffer[iFoundIndex].color.z, (float)(lightmap->b * flScale) / 255, gHUD.m_flTimeDelta * 2.0f);
+
+				color.x = StoredLightBuffer[iFoundIndex].color.x;
+				color.y = StoredLightBuffer[iFoundIndex].color.y;
+				color.z = StoredLightBuffer[iFoundIndex].color.z;
+				
+			}
+			else
+			{
+				//gEngfuncs.Con_Printf("NO FOUND BALLS\n");
+
+				
+				color[0] = (float)(lightmap->r * flScale) / 255;
+				color[1] = (float)(lightmap->g * flScale) / 255;
+				color[2] = (float)(lightmap->b * flScale) / 255;
+				
+			}
+			
+
+			//if(bStatic)
+			//gEngfuncs.Con_DPrintf("rgb val: %f %f %f\n", (float)(int)lightmap->r, (float)(int)lightmap->g, (float)(int)lightmap->b);
 
 			if(ext)
 				ext->lightstyles[0] = gBSPRenderer.m_iLightStyleValue[surf->styles[0]];
-
-			for (int style = 1; style < MAXLIGHTMAPS && surf->styles[style] != 255; style++)
-			{
-				lightmap += size;// skip to next lightmap
-				float scale = (float)gBSPRenderer.m_iLightStyleValue[surf->styles[style]]/255;
-
-				color.x += ((float)lightmap->r/255)*scale;
-				color.y += ((float)lightmap->g/255)*scale;
-				color.z += ((float)lightmap->b/255)*scale;
-
-				if(ext)
-					ext->lightstyles[style] = gBSPRenderer.m_iLightStyleValue[surf->styles[style]];
-			}
 
 			if(ext)
 				ext->surfindex = node->firstsurface + i;
@@ -4248,7 +4295,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 	}
 
 // go down back side
-	return StudioRecursiveLightPoint (ext, node->children[!side], mid, end, color);
+	return StudioRecursiveLightPoint (ext, node->children[!side], mid, end, color, bStatic);
 }
 
 /*
@@ -5023,8 +5070,7 @@ void CStudioModelRenderer::StudioDrawExternalEntity( cl_entity_t *pEntity )
 	m_pCurrentEntity->angles[PITCH] = -m_pCurrentEntity->angles[PITCH];
 	AngleMatrix(m_pCurrentEntity->angles, (*m_protationmatrix));
 	m_pCurrentEntity->angles[PITCH] = -m_pCurrentEntity->angles[PITCH];
-
-	StudioSetupLighting();
+	StudioSetupLighting(true);
 	StudioEntityLight();
 	StudioRenderModelEXT();
 

@@ -854,6 +854,7 @@ void CPropManager::RenderProps( bool isWater )
 			FoliageCount++;
 		}
 
+
 		g_StudioRenderer.StudioDrawExternalEntity( &m_pEntities[i] );
 	}
 
