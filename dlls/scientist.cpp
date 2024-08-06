@@ -108,7 +108,7 @@ public:
 
 	CUSTOM_SCHEDULES;
 
-private:	
+//private:	
 	float m_painTime;
 	float m_healTime;
 	float m_fearTime;
@@ -1460,4 +1460,712 @@ int CSittingScientist :: FIdleSpeak ()
 	// never spoke
 	CTalkMonster::g_talkWaitTime = 0;
 	return FALSE;
+}
+
+
+
+
+
+
+
+
+//=================================================================================
+// Aynekko: monster_worker & monster_tramp (they are supposed to be the same)
+//=================================================================================
+class CWorker : public CScientist
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+
+	// Override these to set behavior
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	Schedule_t *GetSchedule() override;
+	MONSTERSTATE GetIdealState() override;
+
+	// custom traceattack to get the hitgroup for correct pain sound
+	void TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType ) override;
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType ) override;
+	// empty, so it won't be triggered - we will use TakeDamage and put pain sounds there
+	void PainSound() override;
+	void DeathSound() override;
+	void OnCatchFire() override;
+
+	void RunTask( Task_t *pTask ) override;
+	void StartTask( Task_t *pTask ) override;
+
+	bool HideIfLowHealth; // not saved
+};
+
+LINK_ENTITY_TO_CLASS( monster_worker, CWorker );
+LINK_ENTITY_TO_CLASS( monster_tramp, CWorker );
+
+void CWorker::PainSound( void )
+{
+	// not used
+}
+
+void CWorker::OnCatchFire( void )
+{
+	if( FClassnameIs( pev, "monster_worker" ) )
+		PlaySentence( "WORK_BURN", 3, VOL_NORM, ATTN_NORM );
+	else // monster_tramp
+		PlaySentence( "TRA_BURN", 3, VOL_NORM, ATTN_NORM );
+}
+
+void CWorker::DeathSound( void )
+{
+	char sentence_name[64];
+	sentence_name[0] = '\0';
+	
+	// figure out the hitgroup and use appropriate sounds
+	if( FClassnameIs( pev, "monster_worker" ) )
+	{
+		switch( m_LastHitGroup )
+		{
+		case HITGROUP_HEAD:
+			sprintf_s( sentence_name, "WORK_NDEAD" );
+			break;
+		case HITGROUP_CHEST:
+			sprintf_s( sentence_name, "WORK_CDEAD" );
+			break;
+		case HITGROUP_STOMACH:
+			sprintf_s( sentence_name, "WORK_GDEAD" );
+			break;
+		default:
+		case HITGROUP_GENERIC:
+			sprintf_s( sentence_name, "WORK_DEAD" );
+			break;
+		}
+	}
+	else // monster_tramp
+	{
+		switch( m_LastHitGroup )
+		{
+		case HITGROUP_HEAD:
+			sprintf_s( sentence_name, "TRA_NDEAD" );
+			break;
+		case HITGROUP_CHEST:
+			sprintf_s( sentence_name, "TRA_CDEAD" );
+			break;
+		case HITGROUP_STOMACH:
+			sprintf_s( sentence_name, "TRA_GDEAD" );
+			break;
+		default:
+		case HITGROUP_GENERIC:
+			sprintf_s( sentence_name, "TRA_DEAD" );
+			break;
+		}
+	}
+
+	if( sentence_name[0] != '\0' )
+		PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+}
+
+void CWorker::Precache( void )
+{
+	if( pev->model )
+		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_worker" ) )
+			PRECACHE_MODEL( "models/worker.mdl" );
+		else
+			PRECACHE_MODEL( "models/tramp01a.mdl" );
+	}
+
+	// every new scientist must call this, otherwise
+	// when a level is loaded, nobody will talk (time is reset to 0)
+	TalkInit();
+
+	// override for worker
+	if( !m_iszSpeakAs )
+	{
+		m_szGrp[TLK_ANSWER] = nullptr;
+		m_szGrp[TLK_QUESTION] = nullptr;
+
+		// idle
+		if( FClassnameIs( pev, "monster_worker" ) )
+			m_szGrp[TLK_IDLE] = "WORK_IDLE";
+		else
+			m_szGrp[TLK_IDLE] = "TRA_IDLE";
+
+		m_szGrp[TLK_STARE] = nullptr;
+
+		// reaction to +use
+		if( pev->spawnflags & SF_MONSTER_PREDISASTER )
+		{
+			if( FClassnameIs( pev, "monster_worker" ) )
+				m_szGrp[TLK_USE] = "WORK_BOTH";
+			else
+				m_szGrp[TLK_USE] = "TRA_BOTH";
+		}
+		else
+		{
+			if( FClassnameIs( pev, "monster_worker" ) )
+				m_szGrp[TLK_USE] = "WORK_FOL";
+			else
+				m_szGrp[TLK_USE] = "TRA_FOL";
+		}
+
+		// reaction to +use
+		if( pev->spawnflags & SF_MONSTER_PREDISASTER )
+		{
+			if( FClassnameIs( pev, "monster_worker" ) )
+				m_szGrp[TLK_UNUSE] = "WORK_BOTH";
+			else
+				m_szGrp[TLK_UNUSE] = "TRA_BOTH";
+		}
+		else
+		{
+			if( FClassnameIs( pev, "monster_worker" ) )
+				m_szGrp[TLK_UNUSE] = "WORK_UFOL";
+			else
+				m_szGrp[TLK_UNUSE] = "TRA_UFOL";
+		}
+
+		if( FClassnameIs( pev, "monster_worker" ) )
+			m_szGrp[TLK_DECLINE] = "WORK_BOTH";
+		else
+			m_szGrp[TLK_DECLINE] = "TRA_BOTH";
+
+		// can't follow anymore
+		if( FClassnameIs( pev, "monster_worker" ) )
+			m_szGrp[TLK_STOP] = "WORK_HALT";
+		else
+			m_szGrp[TLK_STOP] = "TRA_HALT";
+
+		// don't shoot!
+		if( FClassnameIs( pev, "monster_worker" ) )
+			m_szGrp[TLK_NOSHOOT] = "WORK_WIT";
+		else
+			m_szGrp[TLK_NOSHOOT] = "TRA_WIT";
+
+		m_szGrp[TLK_HELLO] = nullptr;
+
+		m_szGrp[TLK_PLHURT1] = "!SC_CUREA";
+		m_szGrp[TLK_PLHURT2] = "!SC_CUREB";
+		m_szGrp[TLK_PLHURT3] = "!SC_CUREC";
+
+		m_szGrp[TLK_PHELLO] = "SC_PHELLO";
+		m_szGrp[TLK_PIDLE] = "SC_PIDLE";
+		m_szGrp[TLK_PQUESTION] = "SC_PQUEST";
+		m_szGrp[TLK_SMELL] = "SC_SMELL";
+
+		m_szGrp[TLK_WOUND] = "SC_WOUND";
+		m_szGrp[TLK_MORTAL] = "SC_MORTAL";
+	}
+
+	CTalkMonster::Precache();
+}
+
+void CWorker::Spawn( void )
+{
+	Precache();
+
+	if( pev->model )
+		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_worker" ) )
+			SET_MODEL( ENT( pev ), "models/worker.mdl" );
+		else
+			SET_MODEL( ENT( pev ), "models/tramp01a.mdl" );
+	}
+	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+
+	pev->solid = SOLID_SLIDEBOX;
+	pev->movetype = MOVETYPE_STEP;
+
+	m_bloodColor = BLOOD_COLOR_RED;
+
+	if( !pev->health )
+		pev->health = gSkillData.scientistHealth;
+	pev->max_health = pev->health;
+	pev->view_ofs = Vector( 0, 0, 50 );// position of the eyes relative to monster's origin.
+	m_flFieldOfView = VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so scientists will notice player and say hello
+	m_MonsterState = MONSTERSTATE_NONE;
+
+	//	m_flDistTooFar		= 256.0;
+
+	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE;
+
+	// White hands
+	pev->skin = 0;
+
+	if( pev->body == -1 )
+	{// -1 chooses a random head
+		pev->body = RANDOM_LONG( 0, NUM_SCIENTIST_HEADS - 1 );// pick a head, any head
+	}
+
+	// Luther is black, make his hands black
+	if( pev->body == HEAD_LUTHER )
+		pev->skin = 1;
+
+	MonsterInit();
+	SetUse( &CTalkMonster::FollowerUse );
+
+	// get voice for head
+	if( !m_voicePitch )
+	{
+		switch( pev->body % 3 )
+		{
+		default:
+		case HEAD_GLASSES:	m_voicePitch = 105; break;	//glasses
+		case HEAD_EINSTEIN: m_voicePitch = 100; break;	//einstein
+		case HEAD_LUTHER:	m_voicePitch = 95;  break;	//luther
+		case HEAD_SLICK:	m_voicePitch = 100; break;	//slick
+		}
+	}
+
+	//	ALERT(at_aiconsole, "PITCH: %3d body: %3d name: %s\n", m_voicePitch, pev->body, GetTargetname());
+}
+
+Schedule_t *CWorker::GetScheduleOfType( int Type )
+{
+	Schedule_t *psched;
+
+	switch( Type )
+	{
+		// Hook these to make a looping schedule
+	case SCHED_TARGET_FACE:
+		// call base class default so that scientist will talk
+		// when 'used' 
+		psched = CTalkMonster::GetScheduleOfType( Type );
+
+		if( psched == slIdleStand )
+			return slFaceTarget;	// override this for different target face behavior
+		else
+			return psched;
+
+	case SCHED_TARGET_CHASE:
+		return slFollow;
+
+	case SCHED_CANT_FOLLOW:
+		return slStopFollowing;
+
+	case SCHED_PANIC:
+		return slSciPanic;
+
+	case SCHED_TARGET_CHASE_SCARED:
+		return slFollowScared;
+
+	case SCHED_TARGET_FACE_SCARED:
+		return slFaceTargetScared;
+
+	case SCHED_IDLE_STAND:
+		// call base class default so that scientist will talk
+		// when standing during idle
+		psched = CTalkMonster::GetScheduleOfType( Type );
+
+		if( psched == slIdleStand )
+			return slIdleSciStand;
+		else
+			return psched;
+
+	case SCHED_HIDE:
+		return slScientistHide;
+
+	case SCHED_STARTLE:
+		return slScientistStartle;
+
+	case SCHED_FEAR:
+		return slFear;
+	}
+
+	return CTalkMonster::GetScheduleOfType( Type );
+}
+
+Schedule_t *CWorker::GetSchedule()
+{
+	// so we don't keep calling through the EHANDLE stuff
+	CBaseEntity *pEnemy = m_hEnemy;
+
+	if( HasConditions( bits_COND_HEAR_SOUND ) )
+	{
+		CSound *pSound;
+		pSound = PBestSound();
+
+		ASSERT( pSound != nullptr );
+		if( pSound && (pSound->m_iType & bits_SOUND_DANGER) )
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+	}
+
+	if( !HideIfLowHealth && pev->health < pev->max_health * 0.5f )
+	{
+		HideIfLowHealth = true; // don't trigger this condition again (until saverestore happens)
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+	}
+
+	switch( m_MonsterState )
+	{
+	case MONSTERSTATE_ALERT:
+	case MONSTERSTATE_IDLE:
+		if( pEnemy )
+		{
+			if( HasConditions( bits_COND_SEE_ENEMY ) )
+				m_fearTime = gpGlobals->time;
+			else if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
+			{
+				m_hEnemy = nullptr;
+				pEnemy = nullptr;
+			}
+		}
+
+		if( HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
+		{
+			// flinch if hurt
+			return GetScheduleOfType( SCHED_SMALL_FLINCH );
+		}
+
+		// Cower when you hear something scary
+		if( HasConditions( bits_COND_HEAR_SOUND ) )
+		{
+			CSound *pSound;
+			pSound = PBestSound();
+
+			ASSERT( pSound != nullptr );
+			if( pSound )
+			{
+				if( pSound->m_iType & (bits_SOUND_DANGER | bits_SOUND_COMBAT) )
+				{
+					if( gpGlobals->time - m_fearTime > 3 )	// Only cower every 3 seconds or so
+					{
+						m_fearTime = gpGlobals->time;		// Update last fear
+						return GetScheduleOfType( SCHED_STARTLE );	// This will just duck for a second
+					}
+				}
+			}
+		}
+
+		// Behavior for following the player
+		if( IsFollowing() )
+		{
+			if( !m_hTargetEnt->IsAlive() )
+			{
+				// UNDONE: Comment about the recently dead player here?
+				StopFollowing( FALSE );
+				break;
+			}
+
+			int relationship = R_NO;
+
+			// Nothing scary, just me and the player
+			if( pEnemy != nullptr )
+				relationship = IRelationship( pEnemy );
+
+			// UNDONE: Model fear properly, fix R_FR and add multiple levels of fear
+			if( relationship != R_DL && relationship != R_HT )
+			{
+				// If I'm already close enough to my target
+				if( TargetDistance() <= 128 )
+				{
+					if( CanHeal() )	// Heal opportunistically
+						return slHeal;
+					if( HasConditions( bits_COND_CLIENT_PUSH ) )	// Player wants me to move
+						return GetScheduleOfType( SCHED_MOVE_AWAY_FOLLOW );
+				}
+				return GetScheduleOfType( SCHED_TARGET_FACE );	// Just face and follow.
+			}
+			else	// UNDONE: When afraid, scientist won't move out of your way.  Keep This?  If not, write move away scared
+			{
+				if( HasConditions( bits_COND_NEW_ENEMY ) ) // I just saw something new and scary, react
+					return GetScheduleOfType( SCHED_FEAR );					// React to something scary
+				return GetScheduleOfType( SCHED_TARGET_FACE_SCARED );	// face and follow, but I'm scared!
+			}
+		}
+
+		if( HasConditions( bits_COND_CLIENT_PUSH ) )	// Player wants me to move
+			return GetScheduleOfType( SCHED_MOVE_AWAY );
+
+		// try to say something about smells
+		TrySmellTalk();
+		break;
+	case MONSTERSTATE_COMBAT:
+		if( HasConditions( bits_COND_NEW_ENEMY ) )
+			return slFear;					// Point and scream!
+		if( HasConditions( bits_COND_SEE_ENEMY ) )
+			return slScientistCover;		// Take Cover
+
+		if( HasConditions( bits_COND_HEAR_SOUND ) )
+			return slTakeCoverFromBestSound;	// Cower and panic from the scary sound!
+
+		return slScientistCover;			// Run & Cower
+		break;
+	}
+
+	return CTalkMonster::GetSchedule();
+}
+
+MONSTERSTATE CWorker::GetIdealState()
+{
+	switch( m_MonsterState )
+	{
+	case MONSTERSTATE_ALERT:
+	case MONSTERSTATE_IDLE:
+		if( HasConditions( bits_COND_NEW_ENEMY ) )
+		{
+			if( IsFollowing() )
+			{
+				int relationship = IRelationship( m_hEnemy );
+				if( relationship != R_FR || (relationship != R_HT && !HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE )) )
+				{
+					// Don't go to combat if you're following the player
+					m_IdealMonsterState = MONSTERSTATE_ALERT;
+					return m_IdealMonsterState;
+				}
+				StopFollowing( TRUE );
+			}
+		}
+		else if( HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
+		{
+			// Stop following if you take damage
+			if( IsFollowing() )
+				StopFollowing( TRUE );
+		}
+		break;
+
+	case MONSTERSTATE_COMBAT:
+	{
+		CBaseEntity *pEnemy = m_hEnemy;
+		if( pEnemy != nullptr )
+		{
+			if( DisregardEnemy( pEnemy ) )		// After 15 seconds of being hidden, return to alert
+			{
+				// Strip enemy when going to alert
+				m_IdealMonsterState = MONSTERSTATE_ALERT;
+				m_hEnemy = nullptr;
+				return m_IdealMonsterState;
+			}
+			// Follow if only scared a little
+			if( m_hTargetEnt != nullptr )
+			{
+				m_IdealMonsterState = MONSTERSTATE_ALERT;
+				return m_IdealMonsterState;
+			}
+
+			if( HasConditions( bits_COND_SEE_ENEMY ) )
+			{
+				m_fearTime = gpGlobals->time;
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+				return m_IdealMonsterState;
+			}
+
+		}
+	}
+	break;
+	}
+
+	return CTalkMonster::GetIdealState();
+}
+
+void CWorker::TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
+{
+	CTalkMonster::TraceAttack( pevAttacker, flDamage, vecDir, ptr, bitsDamageType );
+}
+
+int CWorker::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	if( pevInflictor && pevInflictor->flags & FL_CLIENT )
+	{
+		Remember( bits_MEMORY_PROVOKED );
+		StopFollowing( TRUE );
+	}
+
+	if( !IsAlive() )
+		goto skip_sounds;
+
+	char sentence_name[64];
+	sentence_name[0] = '\0';
+
+	// damage is NOT higher than the npc can take, so we know for sure it's not death shot (custom sentences are used for that in DeathSound
+	if( flDamage < pev->health && gpGlobals->time > m_painTime ) // it's time for regular pain...
+	{
+		// don't spam the sounds
+		m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5, 0.75 );
+
+		// figure out the hitgroup and use appropriate sounds
+		if( FClassnameIs( pev, "monster_worker" ) )
+		{
+			switch( m_LastHitGroup )
+			{
+			case HITGROUP_HEAD:
+				sprintf_s( sentence_name, "WORK_HPAIN" );
+				break;
+			case HITGROUP_CHEST:
+				sprintf_s( sentence_name, "WORK_CPAIN" );
+				break;
+			case HITGROUP_STOMACH:
+				sprintf_s( sentence_name, "WORK_GPAIN" );
+				break;
+			default:
+			case HITGROUP_GENERIC:
+				sprintf_s( sentence_name, "WORK_PAIN" );
+				break;
+			}
+		}
+		else // monster_tramp
+		{
+			switch( m_LastHitGroup )
+			{
+			case HITGROUP_HEAD:
+				sprintf_s( sentence_name, "TRA_HPAIN" );
+				break;
+			case HITGROUP_CHEST:
+				sprintf_s( sentence_name, "TRA_CPAIN" );
+				break;
+			case HITGROUP_STOMACH:
+				sprintf_s( sentence_name, "TRA_GPAIN" );
+				break;
+			default:
+			case HITGROUP_GENERIC:
+				sprintf_s( sentence_name, "TRA_PAIN" );
+				break;
+			}
+		}
+	}
+
+	// we got something to scream about?
+	if( sentence_name[0] != '\0' )
+		PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+
+	skip_sounds:
+
+	// make sure friends talk about it if player hurts scientist...
+	return CTalkMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+}
+
+void CWorker::StartTask( Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_SAY_HEAL:
+		//		if ( FOkToSpeak() )
+		Talk( 2 );
+		m_hTalkTarget = m_hTargetEnt;
+		PlaySentence( "SC_HEAL", 2, VOL_NORM, ATTN_IDLE );
+
+		TaskComplete();
+		break;
+
+	case TASK_SCREAM:
+		Scream();
+		TaskComplete();
+		break;
+
+	case TASK_RANDOM_SCREAM:
+		if( RANDOM_FLOAT( 0, 1 ) < pTask->flData )
+			Scream();
+		TaskComplete();
+		break;
+
+	case TASK_SAY_FEAR:
+		if( FOkToSpeak() )
+		{
+			Talk( 2 );
+			m_hTalkTarget = m_hEnemy;
+			if( m_hEnemy->IsPlayer() )
+				PlaySentence( "SC_PLFEAR", 5, VOL_NORM, ATTN_NORM );
+			else
+				PlaySentence( "SC_FEAR", 5, VOL_NORM, ATTN_NORM );
+		}
+		TaskComplete();
+		break;
+
+	case TASK_HEAL:
+		m_IdealActivity = ACT_MELEE_ATTACK1;
+		break;
+
+	case TASK_RUN_PATH_SCARED:
+		m_movementActivity = ACT_RUN_SCARED;
+		if( FClassnameIs( pev, "monster_worker" ) )
+			PlaySentence( "WORK_FLEE", 5, VOL_NORM, ATTN_NORM );
+		else // monster_tramp
+			PlaySentence( "TRA_FLEE", 5, VOL_NORM, ATTN_NORM );
+		break;
+
+	case TASK_MOVE_TO_TARGET_RANGE_SCARED:
+	{
+		if( (m_hTargetEnt->pev->origin - pev->origin).Length() < 1 )
+			TaskComplete();
+		else
+		{
+			m_vecMoveGoal = m_hTargetEnt->pev->origin;
+			if( !MoveToTarget( ACT_WALK_SCARED, 0.5 ) )
+				TaskFail();
+		}
+	}
+	break;
+
+	default:
+		CTalkMonster::StartTask( pTask );
+		break;
+	}
+}
+
+void CWorker::RunTask( Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_RUN_PATH_SCARED:
+		if( MovementIsComplete() )
+			TaskComplete();
+	//	if( RANDOM_LONG( 0, 31 ) < 8 )
+	//		Scream();
+		break;
+
+	case TASK_MOVE_TO_TARGET_RANGE_SCARED:
+	{
+		if( RANDOM_LONG( 0, 63 ) < 8 )
+			Scream();
+
+		if( m_hEnemy == nullptr )
+		{
+			TaskFail();
+		}
+		else
+		{
+			float distance;
+
+			distance = (m_vecMoveGoal - pev->origin).Length2D();
+			// Re-evaluate when you think your finished, or the target has moved too far
+			if( (distance < pTask->flData) || (m_vecMoveGoal - m_hTargetEnt->pev->origin).Length() > pTask->flData * 0.5 )
+			{
+				m_vecMoveGoal = m_hTargetEnt->pev->origin;
+				distance = (m_vecMoveGoal - pev->origin).Length2D();
+				FRefreshRoute();
+			}
+
+			// Set the appropriate activity based on an overlapping range
+			// overlap the range to prevent oscillation
+			if( distance < pTask->flData )
+			{
+				TaskComplete();
+				RouteClear();		// Stop moving
+			}
+			else if( distance < 190 && m_movementActivity != ACT_WALK_SCARED )
+				m_movementActivity = ACT_WALK_SCARED;
+			else if( distance >= 270 && m_movementActivity != ACT_RUN_SCARED )
+				m_movementActivity = ACT_RUN_SCARED;
+		}
+	}
+	break;
+
+	case TASK_HEAL:
+		if( m_fSequenceFinished )
+		{
+			TaskComplete();
+		}
+		else
+		{
+			if( TargetDistance() > 90 )
+				TaskComplete();
+			pev->ideal_yaw = UTIL_VecToYaw( m_hTargetEnt->pev->origin - pev->origin );
+			ChangeYaw( pev->yaw_speed );
+		}
+		break;
+	default:
+		CTalkMonster::RunTask( pTask );
+		break;
+	}
 }

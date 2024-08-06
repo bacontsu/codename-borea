@@ -31,7 +31,8 @@
 #include "func_break.h"
 #include "studio.h"
 #include <FranUtils.hpp>
-#include "player.h";
+#include "player.h"
+#include "movewith.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
@@ -722,6 +723,62 @@ void CBaseMonster::CallGibMonster()
 		UTIL_Remove(this);
 }
 
+void CBaseMonster::CheckFire( void )
+{
+	if( m_iLFlags & LF_BURNING_IMMUNE )
+	{
+		// we are immune. so if we get the flag, get rid of it, just in case
+		if( m_iLFlags & LF_BURNING )
+			m_iLFlags &= ~LF_BURNING;
+
+		return;
+	}
+
+	// monster got the flag, set him on fire
+	if( ( m_iLFlags & LF_BURNING ) && !IsOnFire )
+	{
+		m_flCaughtFireTime = gpGlobals->time;
+		IsOnFire = true;
+		pev->effects |= EF_DIMLIGHT;
+		pev->iuser3 = 666; // we need to distinguish this light on client
+		OnCatchFire();
+	}
+
+	// do stuff while burning, disable when the time runs out
+	if( IsOnFire )
+	{
+		if( (gpGlobals->time > m_flCaughtFireTime + 7) || (pev->waterlevel > 0) )
+		{
+			pev->effects &= ~EF_DIMLIGHT;
+			IsOnFire = false;
+			m_iLFlags &= ~LF_BURNING;
+			pev->iuser3 = 0;
+		}
+		else
+		{
+			Vector vecOrg = pev->origin;
+			vecOrg.z += RANDOM_LONG( 35, 50 ); // randomize fire position on the body
+
+			// monster thinks every 0.1 seconds. so this message will be sent out accordingly every 0.1 second while monster burns
+			// put particle spawn here or whatever! this is a leftover code from Diffusion.
+			/*
+			MESSAGE_BEGIN( MSG_PVS, gmsgTempEnt, vecOrg );
+			WRITE_BYTE( TE_FIRE );
+			WRITE_COORD( vecOrg.x + RANDOM_LONG( -10, 10 ) );
+			WRITE_COORD( vecOrg.y + RANDOM_LONG( -10, 10 ) );
+			WRITE_COORD( vecOrg.z );
+			WRITE_SHORT( g_sModelIndexFire );
+			WRITE_BYTE( RANDOM_LONG( 2, 7 ) ); // scale x1.0
+			WRITE_BYTE( RANDOM_LONG( 10, 20 ) ); // framerate
+			MESSAGE_END();
+			*/
+
+			// every 0.1 second monster takes 0.5 hp damage from fire
+			TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), 0.5, DMG_BURN );
+		}
+	}
+}
+
 
 /*
 ============
@@ -732,6 +789,20 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 {
 	unsigned int	cCount = 0;
 	BOOL			fDone = FALSE;
+
+	// Aynekko: clear fire
+	if( IsOnFire )
+	{
+		pev->effects &= ~EF_DIMLIGHT;
+		IsOnFire = false;
+		pev->iuser3 = 0;
+		// probably died because of fire. make him black
+#if 0 // enable this if you like
+		pev->rendermode = kRenderTransColor;
+		pev->rendercolor = Vector( 20, 20, 20 );
+		pev->renderamt = 255;
+#endif
+	}
 
 	if ( HasMemory( bits_MEMORY_KILLED ) )
 	{

@@ -25,6 +25,7 @@
 #include "nodes.h"
 #include "defaultai.h"
 #include "soundent.h"
+#include "movewith.h"
 
 extern CGraph WorldGraph;
 
@@ -1522,7 +1523,12 @@ Schedule_t *CBaseMonster :: GetSchedule ()
 		}
 	case MONSTERSTATE_IDLE:
 		{
-			if ( HasConditions ( bits_COND_HEAR_SOUND ) )
+			// Aynekko: run away when burning
+			if( m_iLFlags & LF_BURNING )
+			{
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+			}
+			else if ( HasConditions ( bits_COND_HEAR_SOUND ) )
 			{
 				return GetScheduleOfType( SCHED_ALERT_FACE );
 			}
@@ -1540,6 +1546,12 @@ Schedule_t *CBaseMonster :: GetSchedule ()
 		}
 	case MONSTERSTATE_ALERT:
 		{
+			// Aynekko: run away when burning
+			if( m_iLFlags & LF_BURNING )
+			{
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+			}	
+
 			if ( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 			{
 				return GetScheduleOfType ( SCHED_VICTORY_DANCE );

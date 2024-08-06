@@ -387,6 +387,10 @@ public:
 
 		return true;
 	}
+
+	// Aynekko:
+	void CheckFire( void );
+	virtual void OnCatchFire() {}
 };
 
 

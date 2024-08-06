@@ -17,6 +17,10 @@
 
 #define LF_ALIASLIST			(1<<12)
 
+// Aynekko: fire stuff
+#define LF_BURNING_IMMUNE (1<<13) // this entity can't catch fire
+#define LF_BURNING (1<<14) // aaaaAAAAaaagh!!!
+
 // an entity must have one of these flags set in order to be in the AssistList
 #define LF_ASSISTLIST  (LF_DOASSIST|LF_DODESIRED)
 

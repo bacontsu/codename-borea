@@ -528,6 +528,10 @@ public:
 	int m_fInAttack;
 
 	int m_fireState;
+
+	// Aynekko - "npc catching fire" stuff
+	bool IsOnFire;
+	float m_flCaughtFireTime;
 };
 
 //LRC- moved here from player.cpp. I'd put it in util.h with its friends, but it needs CBaseEntity to be declared.
