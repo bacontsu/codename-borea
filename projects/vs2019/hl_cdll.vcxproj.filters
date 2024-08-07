@@ -105,7 +105,7 @@
     <ClCompile Include="..\..\dlls\gauss.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\handgrenade.cpp">
+    <ClCompile Include="..\..\dlls\dynamite.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cl_dll\hl\hl_weapons.cpp">
@@ -120,19 +120,13 @@
     <ClCompile Include="..\..\cl_dll\hl\hl_objects.cpp">
       <Filter>Source Files\_hl\cl_dll\hl</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp">
-      <Filter>Source Files\_hl\dlls\wpn_shared</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\squeakgrenade.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\hornetgun.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\mp5.cpp">
-      <Filter>Source Files\_hl\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\python.cpp">
+    <ClCompile Include="..\..\dlls\rifle.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\rpg.cpp">
@@ -363,9 +357,6 @@
     <ClCompile Include="..\..\dlls\weapons\CSniperRifle.cpp">
       <Filter>Source Files\_hl\dlls\weapons</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\weapons\CPipewrench.cpp">
-      <Filter>Source Files\_hl\dlls\weapons</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\weapons\CKnife.cpp">
       <Filter>Source Files\_hl\dlls\weapons</Filter>
     </ClCompile>
@@ -506,6 +497,18 @@
     </ClCompile>
     <ClCompile Include="..\..\common\gl\glew.c">
       <Filter>Source Files\glew</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\revolver.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\wpn_shared\pistol.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\weapons\fists.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\molotov.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

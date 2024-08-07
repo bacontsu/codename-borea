@@ -4205,39 +4205,49 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		gEvilImpulse101 = TRUE;
 		GiveNamedItem( "item_suit" );
 		GiveNamedItem( "item_battery" );
-		GiveNamedItem( "weapon_crowbar" );
+
+		// Aynekko: The Last Goodbye weapons
+		GiveNamedItem( "weapon_fists" );
 		GiveNamedItem( "weapon_9mmhandgun" );
 		GiveNamedItem( "ammo_9mmclip" );
-		GiveNamedItem( "weapon_shotgun" );
-		GiveNamedItem( "ammo_buckshot" );
-		GiveNamedItem( "weapon_9mmAR" );
-		GiveNamedItem( "ammo_9mmAR" );
-		GiveNamedItem( "ammo_ARgrenades" );
-		GiveNamedItem( "weapon_handgrenade" );
-		GiveNamedItem( "weapon_tripmine" );
-#ifndef OEM_BUILD
 		GiveNamedItem( "weapon_357" );
 		GiveNamedItem( "ammo_357" );
-		GiveNamedItem( "weapon_crossbow" );
-		GiveNamedItem( "ammo_crossbow" );
-		GiveNamedItem( "weapon_egon" );
-		GiveNamedItem( "weapon_gauss" );
-		GiveNamedItem( "ammo_gaussclip" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "ammo_rpgclip" );
-		GiveNamedItem( "weapon_satchel" );
-		GiveNamedItem( "weapon_snark" );
-		GiveNamedItem( "weapon_hornetgun" );
-		GiveNamedItem( "weapon_eagle" );
-		GiveNamedItem( "weapon_sporelauncher" );
-		GiveNamedItem( "weapon_shockrifle" );
-		GiveNamedItem( "weapon_knife" );
-		GiveNamedItem( "weapon_m249" );
-		GiveNamedItem( "weapon_pipewrench" );
-		GiveNamedItem( "weapon_grapple" );
-		GiveNamedItem( "weapon_sniperrifle" );
-		GiveNamedItem( "weapon_displacer" );
-		GiveNamedItem( "item_longjump" );
+
+		GiveNamedItem( "weapon_shotgun" );
+		GiveNamedItem( "ammo_buckshot" );
+
+		GiveNamedItem( "weapon_9mmAR" );
+		GiveNamedItem( "ammo_9mmAR" );
+
+		GiveNamedItem( "weapon_handgrenade" );
+		GiveNamedItem( "weapon_molotov" );
+
+	//	GiveNamedItem( "weapon_crowbar" );
+		
+	//	GiveNamedItem( "ammo_ARgrenades" );
+		
+	//	GiveNamedItem( "weapon_tripmine" );
+#ifndef OEM_BUILD
+		
+	//	GiveNamedItem( "weapon_crossbow" );
+	//	GiveNamedItem( "ammo_crossbow" );
+	//	GiveNamedItem( "weapon_egon" );
+	//	GiveNamedItem( "weapon_gauss" );
+	//	GiveNamedItem( "ammo_gaussclip" );
+	//	GiveNamedItem( "weapon_rpg" );
+	//	GiveNamedItem( "ammo_rpgclip" );
+	//	GiveNamedItem( "weapon_satchel" );
+	//	GiveNamedItem( "weapon_snark" );
+	//	GiveNamedItem( "weapon_hornetgun" );
+	//	GiveNamedItem( "weapon_eagle" );
+	//	GiveNamedItem( "weapon_sporelauncher" );
+	//	GiveNamedItem( "weapon_shockrifle" );
+	//	GiveNamedItem( "weapon_knife" );
+	//	GiveNamedItem( "weapon_m249" );
+	//	GiveNamedItem( "weapon_grapple" );
+	//	GiveNamedItem( "weapon_sniperrifle" );
+	//	GiveNamedItem( "weapon_displacer" );
+	//	GiveNamedItem( "item_longjump" );
 		//TODO: not given
 		//GiveNamedItem( "ammo_762" );
 #endif

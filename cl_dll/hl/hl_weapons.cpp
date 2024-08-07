@@ -594,7 +594,7 @@ CBasePlayerWeapon* GetLocalWeapon( int id )
 	case WEAPON_SNARK: return &g_Snark;
 	case WEAPON_GRAPPLE: return &g_Grapple;
 	case WEAPON_EAGLE: return &g_Eagle;
-	case WEAPON_PIPEWRENCH: return &g_Pipewrench;
+	case WEAPON_FISTS: return &g_Pipewrench;
 	case WEAPON_M249: return &g_M249;
 	case WEAPON_DISPLACER: return &g_Displacer;
 	case WEAPON_SHOCKRIFLE: return &g_ShockRifle;

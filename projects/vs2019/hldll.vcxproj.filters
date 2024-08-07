@@ -16,9 +16,6 @@
     <Filter Include="Source Files\dlls">
       <UniqueIdentifier>{a59f65b1-455f-459d-bc2a-75775255cd5c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\dlls\wpn_shared">
-      <UniqueIdentifier>{000b311c-d555-467e-b6cb-5e669fb8c45e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\pm_shared">
       <UniqueIdentifier>{7f184267-1d16-4bbc-9212-a804fcd04e6a}</UniqueIdentifier>
     </Filter>
@@ -57,6 +54,9 @@
     </Filter>
     <Filter Include="Source Files\common">
       <UniqueIdentifier>{42fd860c-8851-42ea-81e1-ffda08a6174d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\dlls\TLG_weapons">
+      <UniqueIdentifier>{2a3afbfe-af87-426f-bab1-64385032a23f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -180,9 +180,6 @@
     <ClCompile Include="..\..\dlls\h_export.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\handgrenade.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\hassassin.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -194,9 +191,6 @@
     </ClCompile>
     <ClCompile Include="..\..\dlls\hgrunt.cpp">
       <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp">
-      <Filter>Source Files\dlls\wpn_shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\monstermaker.cpp">
       <Filter>Source Files\dlls</Filter>
@@ -240,9 +234,6 @@
     <ClCompile Include="..\..\dlls\mortar.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\mp5.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\multiplay_gamerules.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -267,9 +258,6 @@
     <ClCompile Include="..\..\dlls\plats.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\python.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\rat.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -289,9 +277,6 @@
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\scripted.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\shotgun.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\singleplay_gamerules.cpp">
@@ -413,9 +398,6 @@
     </ClCompile>
     <ClCompile Include="..\..\dlls\otis.cpp">
       <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\weapons\CPipewrench.cpp">
-      <Filter>Source Files\dlls\weapons</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\weapons\CKnife.cpp">
       <Filter>Source Files\dlls\weapons</Filter>
@@ -593,6 +575,27 @@
     </ClCompile>
     <ClCompile Include="..\..\dlls\prop_physics.cpp">
       <Filter>Source Files\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\weapons\fists.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\revolver.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\wpn_shared\pistol.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\shotgun.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\rifle.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\dynamite.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\molotov.cpp">
+      <Filter>Source Files\dlls\TLG_weapons</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

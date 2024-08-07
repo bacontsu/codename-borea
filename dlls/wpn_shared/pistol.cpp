@@ -31,7 +31,7 @@ void CGlock::Spawn( )
 	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
 	Precache( );
 	m_iId = WEAPON_GLOCK;
-	SET_MODEL(ENT(pev), "models/w_9mmhandgun.mdl");
+	SET_MODEL(ENT(pev), "models/w_pistol.mdl");
 
 	m_iDefaultAmmo = GLOCK_DEFAULT_GIVE;
 
@@ -64,9 +64,9 @@ void CGlock::Holster( int skiplocal )
 
 void CGlock::Precache()
 {
-	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/w_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/v_pistol.mdl");
+	PRECACHE_MODEL("models/w_pistol.mdl");
+	PRECACHE_MODEL("models/p_pistol.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/shell.mdl");// brass shell
 
@@ -109,7 +109,7 @@ void CGlock::IncrementAmmo(CBasePlayer* pPlayer)
 BOOL CGlock::Deploy( )
 {
 	// pev->body = 1;
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
+	return DefaultDeploy( "models/v_pistol.mdl", "models/p_pistol.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
 }
 
 void CGlock::SecondaryAttack()

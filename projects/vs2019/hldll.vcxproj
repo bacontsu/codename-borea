@@ -177,7 +177,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\globals.cpp" />
     <ClCompile Include="..\..\dlls\gman.cpp" />
     <ClCompile Include="..\..\dlls\gonome.cpp" />
-    <ClCompile Include="..\..\dlls\handgrenade.cpp" />
+    <ClCompile Include="..\..\dlls\dynamite.cpp" />
     <ClCompile Include="..\..\dlls\hassassin.cpp" />
     <ClCompile Include="..\..\dlls\headcrab.cpp" />
     <ClCompile Include="..\..\dlls\healthkit.cpp" />
@@ -204,12 +204,13 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\loader.cpp" />
     <ClCompile Include="..\..\dlls\male_assassin.cpp" />
     <ClCompile Include="..\..\dlls\maprules.cpp" />
+    <ClCompile Include="..\..\dlls\molotov.cpp" />
     <ClCompile Include="..\..\dlls\monstermaker.cpp" />
     <ClCompile Include="..\..\dlls\monsters.cpp" />
     <ClCompile Include="..\..\dlls\monsterstate.cpp" />
     <ClCompile Include="..\..\dlls\mortar.cpp" />
     <ClCompile Include="..\..\dlls\movewith.cpp" />
-    <ClCompile Include="..\..\dlls\mp5.cpp" />
+    <ClCompile Include="..\..\dlls\rifle.cpp" />
     <ClCompile Include="..\..\dlls\multiplay_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\nihilanth.cpp" />
     <ClCompile Include="..\..\dlls\nodes.cpp" />
@@ -226,7 +227,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\plats.cpp" />
     <ClCompile Include="..\..\dlls\player.cpp" />
     <ClCompile Include="..\..\dlls\prop_physics.cpp" />
-    <ClCompile Include="..\..\dlls\python.cpp" />
+    <ClCompile Include="..\..\dlls\revolver.cpp" />
     <ClCompile Include="..\..\dlls\rat.cpp" />
     <ClCompile Include="..\..\dlls\roach.cpp" />
     <ClCompile Include="..\..\dlls\rope\CElectrifiedWire.cpp" />
@@ -270,7 +271,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\weapons\CKnife.cpp" />
     <ClCompile Include="..\..\dlls\weapons\CM249.cpp" />
     <ClCompile Include="..\..\dlls\weapons\CPenguin.cpp" />
-    <ClCompile Include="..\..\dlls\weapons\CPipewrench.cpp" />
+    <ClCompile Include="..\..\dlls\weapons\fists.cpp" />
     <ClCompile Include="..\..\dlls\weapons\CShockBeam.cpp" />
     <ClCompile Include="..\..\dlls\weapons\CShockRifle.cpp" />
     <ClCompile Include="..\..\dlls\weapons\CSniperRifle.cpp" />
@@ -278,7 +279,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\weapons\CSporeLauncher.cpp" />
     <ClCompile Include="..\..\dlls\weapons_shared.cpp" />
     <ClCompile Include="..\..\dlls\world.cpp" />
-    <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp" />
+    <ClCompile Include="..\..\dlls\wpn_shared\pistol.cpp" />
     <ClCompile Include="..\..\dlls\xen.cpp" />
     <ClCompile Include="..\..\dlls\zombie.cpp" />
     <ClCompile Include="..\..\dlls\zombie_barney.cpp" />

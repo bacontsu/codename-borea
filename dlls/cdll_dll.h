@@ -60,7 +60,7 @@ const int SV_MAX_PLAYERS = 32;
 #define	WEAPON_SNARK			15
 #define WEAPON_GRAPPLE			16
 #define WEAPON_EAGLE			17
-#define WEAPON_PIPEWRENCH		18
+#define WEAPON_FISTS			18
 #define WEAPON_M249				19
 #define WEAPON_DISPLACER		20
 #define WEAPON_SHOCKRIFLE		22

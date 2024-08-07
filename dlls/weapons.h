@@ -129,7 +129,7 @@ public:
 #define	WEAPON_SNARK			15
 #define WEAPON_GRAPPLE			16
 #define WEAPON_EAGLE			17
-#define WEAPON_PIPEWRENCH		18
+#define WEAPON_FISTS			18
 #define WEAPON_M249				19
 #define WEAPON_DISPLACER		20
 #define WEAPON_SHOCKRIFLE		22
@@ -1217,6 +1217,31 @@ public:
 
     BOOL UseDecrement() override
     { 
+#if defined( CLIENT_WEAPONS )
+		return UTIL_DefaultUseDecrement();
+#else
+		return FALSE;
+#endif
+	}
+};
+
+// Aynekko: grenade shameless copypaste
+class CMolotov : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int GetItemInfo( ItemInfo *p ) override;
+	void IncrementAmmo( CBasePlayer *pPlayer ) override;
+
+	void PrimaryAttack() override;
+	BOOL Deploy() override;
+	BOOL CanHolster() override;
+	void Holster( int skiplocal = 0 ) override;
+	void WeaponIdle() override;
+
+	BOOL UseDecrement() override
+	{
 #if defined( CLIENT_WEAPONS )
 		return UTIL_DefaultUseDecrement();
 #else

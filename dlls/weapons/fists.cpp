@@ -13,6 +13,8 @@
 *
 ****/
 
+// Aynekko: this is weapon_fists
+
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -38,13 +40,14 @@ IMPLEMENT_SAVERESTORE( CPipewrench, CPipewrench::BaseClass );
 #endif
 
 LINK_ENTITY_TO_CLASS( weapon_pipewrench, CPipewrench );
+LINK_ENTITY_TO_CLASS( weapon_fists, CPipewrench );
 
 void CPipewrench::Spawn()
 {
-	pev->classname = MAKE_STRING( "weapon_pipewrench" );
+	pev->classname = MAKE_STRING( "weapon_fists" );
 	Precache();
-	m_iId = WEAPON_PIPEWRENCH;
-	SET_MODEL( edict(), "models/w_pipe_wrench.mdl");
+	m_iId = WEAPON_FISTS;
+	SET_MODEL( edict(), "models/w_fists.mdl");
 	m_iClip = WEAPON_NOCLIP;
 	m_iSwingMode = SWING_NONE;
 
@@ -53,9 +56,9 @@ void CPipewrench::Spawn()
 
 void CPipewrench::Precache()
 {
-	PRECACHE_MODEL("models/v_pipe_wrench.mdl");
-	PRECACHE_MODEL("models/w_pipe_wrench.mdl");
-	PRECACHE_MODEL("models/p_pipe_wrench.mdl");
+	PRECACHE_MODEL("models/v_fists.mdl");
+	PRECACHE_MODEL("models/w_fists.mdl");
+	PRECACHE_MODEL("models/p_fists.mdl");
 	// Shepard - The commented sounds below are unused
 	// in Opposing Force, if you wish to use them,
 	// uncomment all the appropriate lines.
@@ -77,7 +80,7 @@ void CPipewrench::Precache()
 
 BOOL CPipewrench::Deploy()
 {
-	return DefaultDeploy( "models/v_pipe_wrench.mdl", "models/p_pipe_wrench.mdl", PIPEWRENCH_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_fists.mdl", "models/p_fists.mdl", PIPEWRENCH_DRAW, "crowbar" );
 }
 
 void CPipewrench::Holster( int skiplocal )
@@ -523,7 +526,7 @@ int CPipewrench::GetItemInfo( ItemInfo* p )
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
 	p->iPosition = 1;
-	p->iId = m_iId = WEAPON_PIPEWRENCH;
+	p->iId = m_iId = WEAPON_FISTS;
 	p->iWeight = PIPEWRENCH_WEIGHT;
 
 	return true;

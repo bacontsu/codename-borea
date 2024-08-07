@@ -69,7 +69,7 @@ void CPython::Spawn( )
 	pev->classname = MAKE_STRING("weapon_357"); // hack to allow for old names
 	Precache( );
 	m_iId = WEAPON_PYTHON;
-	SET_MODEL(ENT(pev), "models/w_357.mdl");
+	SET_MODEL(ENT(pev), "models/w_revolver.mdl");
 
 	m_iDefaultAmmo = PYTHON_DEFAULT_GIVE;
 
@@ -79,9 +79,9 @@ void CPython::Spawn( )
 
 void CPython::Precache()
 {
-	PRECACHE_MODEL("models/v_357.mdl");
-	PRECACHE_MODEL("models/w_357.mdl");
-	PRECACHE_MODEL("models/p_357.mdl");
+	PRECACHE_MODEL("models/v_revolver.mdl");
+	PRECACHE_MODEL("models/w_revolver.mdl");
+	PRECACHE_MODEL("models/p_revolver.mdl");
 
 	PRECACHE_MODEL("models/w_357ammobox.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");              
@@ -110,7 +110,7 @@ BOOL CPython::Deploy( )
 		pev->body = 0;
 	}
 
-	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_revolver.mdl", "models/p_revolver.mdl", PYTHON_DRAW, "python", UseDecrement(), pev->body );
 }
 
 
