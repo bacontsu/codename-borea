@@ -28,6 +28,7 @@
 #define bits_SOUND_MEAT		( 1 << 4 )// gib or pork chop
 #define bits_SOUND_DANGER	( 1 << 5 )// pending danger. Grenade that is about to explode, explosive barrel that is damaged, falling crate
 #define bits_SOUND_GARBAGE	( 1 << 6 )// trash cans, banana peels, old fast food bags.
+#define bits_SOUND_FIRE		( 1 << 7 )// Aynekko: for the env_fire thing
 
 #define bits_ALL_SOUNDS 0xFFFFFFFF
 

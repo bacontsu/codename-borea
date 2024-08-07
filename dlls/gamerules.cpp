@@ -311,6 +311,16 @@ void CGameRules::RefreshSkillData ()
 	// Sentry Turret
 	gSkillData.sentryHealth = GetSkillCvar( "sk_sentry_health");
 
+	// Aynekko: The Last Goodbye stuff
+	gSkillData.thugHealth = GetSkillCvar( "sk_thug_health" );
+	gSkillData.thugDmg = GetSkillCvar( "sk_thug_dmg" );
+	gSkillData.gangHealth = GetSkillCvar( "sk_gang_health" );
+	gSkillData.gangDmgSmg = GetSkillCvar( "sk_gang_dmg_smg" );
+	gSkillData.gangDmgShotgun = GetSkillCvar( "sk_gang_dmg_shotgun" );
+	gSkillData.gangDmgPistol = GetSkillCvar( "sk_gang_dmg_pistol" );
+	gSkillData.trampHealth = GetSkillCvar( "sk_tramp_health" );
+	gSkillData.workerHealth = GetSkillCvar( "sk_worker_health" );
+
 // PLAYER WEAPONS
 
 	// Crowbar whack

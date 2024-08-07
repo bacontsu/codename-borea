@@ -55,6 +55,7 @@
 #define SF_MONSTER_NO_WPN_DROP			1024 //LRC- never drop your weapon (player can't pick it up.)
 //LRC - this clashes with 'not in deathmatch'. Replaced with m_iPlayerReact.
 //#define SF_MONSTER_INVERT_PLAYERREACT	2048 //LRC- if this monster would usually attack the player, don't attack unless provoked. If you would usually NOT attack the player, attack him.
+#define SF_MONSTER_DONT_USE_DYNAMITE 4096 // gangsta shit
 #define SF_MONSTER_FALL_TO_GROUND		0x80000000
 
 // specialty spawnflags

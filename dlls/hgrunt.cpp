@@ -64,6 +64,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define HGRUNT_HANDGRENADE			( 1 << 1)
 #define HGRUNT_GRENADELAUNCHER		( 1 << 2)
 #define HGRUNT_SHOTGUN				( 1 << 3)
+#define HGRUNT_PISTOL				( 1 << 4) // Aynekko: for gangster only
 
 #define HEAD_GROUP					1
 #define HEAD_GRUNT					0
@@ -804,8 +805,13 @@ void CHGrunt :: Shoot ()
 		UTIL_MakeVectors ( pev->angles );
 
 		Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40,90) + gpGlobals->v_up * RANDOM_FLOAT(75,200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
-		EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL); 
-		FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5 ); // shoot +-5 degrees
+		EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
+
+		// Aynekko: add custom gang stuff right here...less functions
+		if( FClassnameIs(pev, "monster_gangster_smg") )
+			FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5, 3, gSkillData.gangDmgSmg ); // shoot +-5 degrees
+		else
+			FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5 ); // shoot +-5 degrees
 
 		pev->effects |= EF_MUZZLEFLASH;
 	
@@ -838,7 +844,12 @@ void CHGrunt :: Shotgun ()
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40,90) + gpGlobals->v_up * RANDOM_FLOAT(75,200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL); 
-	FireBullets(gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0 ); // shoot +-7.5 degrees
+
+	// Aynekko: add custom gang stuff right here...less functions
+	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+		FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, gSkillData.gangDmgShotgun ); // shoot +-7.5 degrees
+	else
+		FireBullets(gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0 ); // shoot +-7.5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 	
@@ -2045,7 +2056,6 @@ void CHGrunt :: SetActivity ( Activity NewActivity )
 //=========================================================
 Schedule_t *CHGrunt :: GetSchedule()
 {
-
 	// clear old sentence
 	m_iSentence = HGRUNT_SENT_NONE;
 
@@ -2600,4 +2610,1803 @@ void CDeadHGrunt :: Spawn()
 	}
 
 	MonsterInitDead();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//====================================================================================
+// Aynekko: monster_thug_pipe
+//====================================================================================
+
+class CMonsterThugPipe : public CHGrunt
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	void SpeakSentence();
+	BOOL CheckRangeAttack1( float flDot, float flDist ) override; // thugs don't have ranged attack
+	void CheckAmmo() override; // thugs don't use ammo
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void Killed( entvars_t *pevAttacker, int iGib ) override;
+	void DeathSound() override;
+	void PainSound() override;
+	void IdleSound() override;
+	void OnCatchFire() override;
+
+	static const char *pThugSentences[];
+};
+
+LINK_ENTITY_TO_CLASS( monster_thug_pipe, CMonsterThugPipe );
+LINK_ENTITY_TO_CLASS( monster_thug_wrench, CMonsterThugPipe );
+LINK_ENTITY_TO_CLASS( monster_thug_crowbar, CMonsterThugPipe );
+
+const char *CMonsterThugPipe::pThugSentences[] =
+{
+	"THU_FLEE", // grenade scared grunt
+	"THU_ALERT", // sees player
+	"THU_ALERT", // sees monster
+	"THU_FLEE", // running to cover
+	"HG_THROW", // about to throw grenade
+	"HG_CHARGE",  // running out to get the enemy
+	"THU_TAUNT", // say rude things
+};
+
+void CMonsterThugPipe::Precache()
+{
+	if( pev->model )
+		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_thug_pipe") )
+			PRECACHE_MODEL( "models/thug01a.mdl" );
+		else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+			PRECACHE_MODEL( "models/thug02a.mdl" );
+		else if( FClassnameIs( pev, "monster_thug_wrench" ) )
+			PRECACHE_MODEL( "models/thug03a.mdl" );
+
+	}
+
+	PRECACHE_SOUND( "weapons/dryfire1.wav" ); //LRC
+
+	PRECACHE_SOUND( "hgrunt/gr_mgun1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_mgun2.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_die1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_die2.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_die3.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_pain1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain2.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain3.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain4.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain5.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_reload1.wav" );
+
+	PRECACHE_SOUND( "weapons/glauncher.wav" );
+
+	PRECACHE_SOUND( "weapons/sbarrel1.wav" );
+
+	PRECACHE_SOUND( "zombie/claw_miss2.wav" );// because we use the basemonster SWIPE animation event
+
+	// get voice pitch
+	if( RANDOM_LONG( 0, 1 ) )
+		m_voicePitch = 109 + RANDOM_LONG( 0, 7 );
+	else
+		m_voicePitch = 100;
+
+	m_iBrassShell = PRECACHE_MODEL( "models/shell.mdl" );// brass shell
+	m_iShotgunShell = PRECACHE_MODEL( "models/shotgunshell.mdl" );
+
+	AllyDied = false;
+}
+
+void CMonsterThugPipe::Spawn()
+{
+	Precache();
+
+	if( pev->model )
+		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_thug_pipe" ) )
+			SET_MODEL( ENT( pev ), "models/thug01a.mdl" );
+		else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+			SET_MODEL( ENT( pev ), "models/thug02a.mdl" );
+		else if( FClassnameIs( pev, "monster_thug_wrench" ) )
+			SET_MODEL( ENT( pev ), "models/thug03a.mdl" );
+	}
+
+	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+
+	pev->solid = SOLID_SLIDEBOX;
+	pev->movetype = MOVETYPE_STEP;
+	m_bloodColor = BLOOD_COLOR_RED;
+	pev->effects = 0;
+	if( !pev->health )
+		pev->health = gSkillData.thugHealth;
+	ALERT( at_console, "thug %f\n", pev->health );
+
+	if( FClassnameIs( pev, "monster_thug_wrench" ) )
+		pev->health += pev->health * 0.5f; // 50% increase for wrench dude
+	else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+		pev->health -= pev->health * 0.25f; // 25% decrease for crowbar dude
+
+	pev->max_health = pev->health;
+	m_flFieldOfView = 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
+	m_MonsterState = MONSTERSTATE_NONE;
+	m_flNextGrenadeCheck = gpGlobals->time + 1;
+	m_flNextPainTime = gpGlobals->time;
+	m_iSentence = HGRUNT_SENT_NONE;
+
+	m_afCapability = bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+
+	m_fEnemyEluded = FALSE;
+	m_fFirstEncounter = TRUE;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
+
+	m_HackedGunPos = Vector( 0, 0, 55 );
+
+	m_cAmmoLoaded = m_cClipSize;
+
+	CTalkMonster::g_talkWaitTime = 0;
+
+	MonsterInit();
+
+	pev->spawnflags |= SF_MONSTER_NO_WPN_DROP; // don't drop any guns
+}
+
+void CMonsterThugPipe::SpeakSentence()
+{
+	// custom sentences for the thug
+	if( m_iSentence == HGRUNT_SENT_NONE )
+	{
+		// no sentence cued up.
+		return;
+	}
+
+	if( FOkToSpeak() )
+	{
+		SENTENCEG_PlayRndSz( ENT( pev ), pThugSentences[m_iSentence], HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+		JustSpoke();
+	}
+}
+
+void CMonsterThugPipe::OnCatchFire( void )
+{
+	PlaySentence( "THU_BURN", 3, VOL_NORM, ATTN_NORM );
+}
+
+BOOL CMonsterThugPipe::CheckRangeAttack1( float flDot, float flDist )
+{
+	return FALSE;
+}
+
+void CMonsterThugPipe::CheckAmmo()
+{
+	// do nothing - not using ammo
+}
+
+void CMonsterThugPipe::StartTask( Task_t *pTask )
+{
+	m_iTaskStatus = TASKSTATUS_RUNNING;
+
+	switch( pTask->iTask )
+	{
+	case TASK_GRUNT_CHECK_FIRE:
+		if( !NoFriendlyFire() )
+		{
+			SetConditions( bits_COND_GRUNT_NOFIRE );
+		}
+		TaskComplete();
+		break;
+
+	case TASK_GRUNT_SPEAK_SENTENCE:
+		SpeakSentence();
+		TaskComplete();
+		break;
+
+	case TASK_WALK_PATH:
+	case TASK_RUN_PATH:
+		// grunt no longer assumes he is covered if he moves
+		Forget( bits_MEMORY_INCOVER );
+		CSquadMonster::StartTask( pTask );
+		break;
+
+	case TASK_RELOAD:
+		m_IdealActivity = ACT_RELOAD;
+		break;
+
+	case TASK_GRUNT_FACE_TOSS_DIR:
+		break;
+
+	case TASK_FACE_IDEAL:
+	case TASK_FACE_ENEMY:
+		CSquadMonster::StartTask( pTask );
+		if( pev->movetype == MOVETYPE_FLY )
+		{
+			m_IdealActivity = ACT_GLIDE;
+		}
+		break;
+
+	// Aynekko: this task happens when the thug starts to go back after investigating noise - play specified sentence
+	// but make sure we are in the correct schedule!
+	case TASK_GET_PATH_TO_LASTPOSITION:
+		if( m_pSchedule && FStrEq( m_pSchedule->pName, "InvestigateSound" ) )
+			PlaySentence( "THU_LOST", 3, VOL_NORM, ATTN_NORM );
+		CSquadMonster::StartTask( pTask );
+		break;
+
+	default:
+		CSquadMonster::StartTask( pTask );
+		break;
+	}
+}
+
+//=========================================================
+// RunTask
+//=========================================================
+void CMonsterThugPipe::RunTask( Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_GRUNT_FACE_TOSS_DIR:
+	{
+		// project a point along the toss vector and turn to face that point.
+		MakeIdealYaw( pev->origin + m_vecTossVelocity * 64 );
+		ChangeYaw( pev->yaw_speed );
+
+		if( FacingIdeal() )
+		{
+			m_iTaskStatus = TASKSTATUS_COMPLETE;
+		}
+		break;
+	}
+	default:
+	{
+		CSquadMonster::RunTask( pTask );
+		break;
+	}
+	}
+}
+
+//=========================================================
+// PainSound
+//=========================================================
+void CMonsterThugPipe::PainSound()
+{
+	if( gpGlobals->time > m_flNextPainTime )
+	{
+		char sentence_name[16];
+		sentence_name[0] = '\0';
+
+		// figure out the hitgroup and use appropriate sounds
+		switch( m_LastHitGroup )
+		{
+		case HITGROUP_HEAD:
+			sprintf_s( sentence_name, "THU_HPAIN" );
+			break;
+		case HITGROUP_CHEST:
+			sprintf_s( sentence_name, "THU_CPAIN" );
+			break;
+		case HITGROUP_STOMACH:
+			sprintf_s( sentence_name, "THU_GPAIN" );
+			break;
+		default:
+		case HITGROUP_GENERIC:
+			sprintf_s( sentence_name, "THU_PAIN" );
+			break;
+		}
+
+		if( sentence_name[0] != '\0' )
+			PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+
+		m_flNextPainTime = gpGlobals->time + 2;
+	}
+}
+
+void CMonsterThugPipe::Killed( entvars_t *pevAttacker, int iGib )
+{
+	// notify my squad about my death
+	if( InSquad() )
+	{
+		CSquadMonster *pSquadLeader = MySquadLeader();
+
+		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+		{
+			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+			if( pMember != nullptr && pMember != this )
+			{
+				pMember->AllyDied = true;
+			}
+		}
+	}
+
+	CSquadMonster::Killed( pevAttacker, iGib );
+}
+
+//=========================================================
+// DeathSound 
+//=========================================================
+void CMonsterThugPipe::DeathSound()
+{
+	char sentence_name[16];
+	sentence_name[0] = '\0';
+
+	// figure out the hitgroup and use appropriate sounds
+	switch( m_LastHitGroup )
+	{
+	case HITGROUP_HEAD:
+		sprintf_s( sentence_name, "THU_NDEAD" );
+		break;
+	case HITGROUP_CHEST:
+		sprintf_s( sentence_name, "THU_CDEAD" );
+		break;
+	case HITGROUP_STOMACH:
+		sprintf_s( sentence_name, "THU_GDEAD" );
+		break;
+	default:
+	case HITGROUP_GENERIC:
+		sprintf_s( sentence_name, "THU_DEAD" );
+		break;
+	}
+
+	if( sentence_name[0] != '\0' )
+		PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+}
+
+void CMonsterThugPipe::IdleSound()
+{
+//	if( FOkToSpeak() )
+//	{
+//		PlaySentence( "THU_LOST", 3, VOL_NORM, ATTN_NORM );
+//		JustSpoke();
+//	}
+}
+
+Schedule_t *CMonsterThugPipe::GetSchedule()
+{
+	// clear old sentence
+	m_iSentence = HGRUNT_SENT_NONE;
+
+	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling. 
+	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
+	{
+		if( pev->flags & FL_ONGROUND )
+		{
+			// just landed
+			pev->movetype = MOVETYPE_STEP;
+			return GetScheduleOfType( SCHED_GRUNT_REPEL_LAND );
+		}
+		else
+		{
+			// repel down a rope, 
+			if( m_MonsterState == MONSTERSTATE_COMBAT )
+				return GetScheduleOfType( SCHED_GRUNT_REPEL_ATTACK );
+			else
+				return GetScheduleOfType( SCHED_GRUNT_REPEL );
+		}
+	}
+
+	if( AllyDied )
+	{
+		// whoever gets first to this part of code, speaks about ally's death
+		if( FOkToSpeak() )
+		{
+			// I'm expressing my emotions regarding my squad member's demise.
+			// notify others in the squad to NOT do that, so we don't have spamming sounds from everyone
+			if( InSquad() )
+			{
+				CSquadMonster *pSquadLeader = MySquadLeader();
+				for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+				{
+					CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+					if( pMember != nullptr ) // including us
+						pMember->AllyDied = false;
+				}
+			}
+			else
+				AllyDied = false;
+
+			PlaySentence( "THU_ADIE", 3, VOL_NORM, ATTN_NORM );
+			JustSpoke();
+		}
+	}
+
+	// check bravery
+	int m_iBravery = 2;
+	CBaseEntity *pEntity = nullptr;
+	while( (pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, 1500 )) != nullptr )
+	{
+		if( !FClassnameIs( pEntity->pev, STRING(pev->classname)) )
+			continue;
+
+		if( pEntity == this )
+			continue;
+		
+		TraceResult tr;
+
+		UTIL_TraceLine( EyePosition(), pEntity->EyePosition(), ignore_monsters, ENT( pev ), &tr );
+		if( tr.flFraction == 1.0 || tr.pHit == pEntity->edict() )
+		{
+			if( pEntity->pev->deadflag == DEAD_DEAD )
+			{
+				// I see dead people...
+				m_iBravery--;
+			}
+			else
+			{
+				m_iBravery++;
+			}
+		}
+	}
+
+	// grunts place HIGH priority on running away from danger sounds.
+	if( HasConditions( bits_COND_HEAR_SOUND ) )
+	{
+		CSound *pSound;
+		pSound = PBestSound();
+
+		ASSERT( pSound != nullptr );
+		if( pSound )
+		{
+			// Aynekko: react to the fire with a sentence and run away
+			if( pSound->m_iType & bits_SOUND_FIRE )
+			{
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "THU_FIRE", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+			}
+			else if( pSound->m_iType & bits_SOUND_DANGER )
+			{
+				// dangerous sound nearby!
+
+				//!!!KELLY - currently, this is the grunt's signal that a grenade has landed nearby,
+				// and the grunt should find cover from the blast
+				// good place for "SHIT!" or some other colorful verbal indicator of dismay.
+				// It's not safe to play a verbal order here "Scatter", etc cause 
+				// this may only affect a single individual in a squad. 
+
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "THU_CVER", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+			}
+			/*
+			if (!HasConditions( bits_COND_SEE_ENEMY ) && ( pSound->m_iType & (bits_SOUND_PLAYER | bits_SOUND_COMBAT) ))
+			{
+				MakeIdealYaw( pSound->m_vecOrigin );
+			}
+			*/
+
+			// Aynekko: investigate sound behaviour (just like hassassin)
+			// 40% chance of doing it
+			if( RANDOM_LONG(0,100) > 60 && !HasConditions( bits_COND_SEE_ENEMY ) && (pSound->m_iType & bits_SOUND_COMBAT) && (pev->health > pev->max_health * 0.75f) )
+			{
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "THU_HUNT", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_INVESTIGATE_SOUND );
+			}
+		}
+	}
+
+	// I saw at least two of my dead comrades. Run for your life!
+	if( m_iBravery <= 0 )
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+	
+	switch( m_MonsterState )
+	{
+	case MONSTERSTATE_ALERT:
+	{
+		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
+		{
+			if( FOkToSpeak() )
+			{
+				SENTENCEG_PlayRndSz( ENT( pev ), "THU_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+				JustSpoke();
+			}
+			return GetScheduleOfType( SCHED_VICTORY_DANCE );
+		}
+		break;
+	}
+	case MONSTERSTATE_COMBAT:
+	{
+		// dead enemy
+		if( HasConditions( bits_COND_ENEMY_DEAD ) )
+		{
+			// call base class, all code to handle dead enemies is centralized there.
+			return CBaseMonster::GetSchedule();
+		}
+
+		// low hp, 75% chance of running away
+		if( pev->health < pev->max_health * 0.25f && RANDOM_LONG( 0, 100 ) > 25 )
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+
+		// Aynekko: make taunt sounds during combat (20% chance)
+		if( RANDOM_LONG( 0, 100 ) < 20 && FOkToSpeak() )
+		{
+			SENTENCEG_PlayRndSz( ENT( pev ), "THU_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+			JustSpoke();
+		}
+
+		// new enemy
+		if( HasConditions( bits_COND_NEW_ENEMY ) )
+		{
+			if( InSquad() )
+			{
+				MySquadLeader()->m_fEnemyEluded = FALSE;
+
+				if( !IsLeader() )
+				{
+					return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+				}
+				else
+				{
+					ALERT( at_aiconsole, "leader spotted player!\n" );
+					//!!!KELLY - the leader of a squad of grunts has just seen the player or a 
+					// monster and has made it the squad's enemy. You
+					// can check pev->flags for FL_CLIENT to determine whether this is the player
+					// or a monster. He's going to immediately start
+					// firing, though. If you'd like, we can make an alternate "first sight" 
+					// schedule where the leader plays a handsign anim
+					// that gives us enough time to hear a short sentence or spoken command
+					// before he starts pluggin away.
+					if( FOkToSpeak() )// && RANDOM_LONG(0,1))
+					{
+						if( (m_hEnemy != nullptr) )
+							SENTENCEG_PlayRndSz( ENT( pev ), "THU_ALERT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+
+						JustSpoke();
+					}
+
+					if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+					{
+						return GetScheduleOfType( SCHED_GRUNT_SUPPRESS );
+					}
+					else
+					{
+						return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+					}
+				}
+			}
+		}
+
+		// damaged just a little
+		else if( HasConditions( bits_COND_LIGHT_DAMAGE ) )
+		{
+			// if hurt:
+			// 90% chance of taking cover
+			// 10% chance of flinch.
+			int iPercent = RANDOM_LONG( 0, 99 );
+
+			if( iPercent <= 90 && m_hEnemy != nullptr )
+			{
+				// only try to take cover if we actually have an enemy!
+
+				//!!!KELLY - this grunt was hit and is going to run to cover.
+				if( FOkToSpeak() ) // && RANDOM_LONG(0,1))
+				{
+					//SENTENCEG_PlayRndSz( ENT(pev), "HG_COVER", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
+					m_iSentence = HGRUNT_SENT_COVER;
+					//JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+			}
+			else
+			{
+				return GetScheduleOfType( SCHED_SMALL_FLINCH );
+			}
+		}
+		// can kick
+		else if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+		{
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+		}
+		// can't see enemy
+		else if( HasConditions( bits_COND_ENEMY_OCCLUDED ) )
+		{
+			if( OccupySlot( bits_SLOTS_HGRUNT_ENGAGE ) )
+			{
+				//!!!KELLY - grunt cannot see the enemy and has just decided to 
+				// charge the enemy's position. 
+				if( FOkToSpeak() )// && RANDOM_LONG(0,1))
+				{
+					//SENTENCEG_PlayRndSz( ENT(pev), "HG_CHARGE", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
+					m_iSentence = HGRUNT_SENT_CHARGE;
+					//JustSpoke();
+				}
+
+				return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+			}
+			else
+			{
+				//!!!KELLY - grunt is going to stay put for a couple seconds to see if
+				// the enemy wanders back out into the open, or approaches the
+				// grunt's covered position. Good place for a taunt, I guess?
+				if( FOkToSpeak() && RANDOM_LONG( 0, 1 ) )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "THU_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_STANDOFF );
+			}
+		}
+
+		if( HasConditions( bits_COND_SEE_ENEMY ) && !HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+		{
+			return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+		}
+	}
+	}
+
+	// no special cases here, call the base class
+	return CSquadMonster::GetSchedule();
+}
+
+//=========================================================
+//=========================================================
+Schedule_t *CMonsterThugPipe::GetScheduleOfType( int Type )
+{
+	switch( Type )
+	{
+	case SCHED_TAKE_COVER_FROM_ENEMY:
+	{
+		return &slGruntTakeCover[0];
+	}
+	case SCHED_TAKE_COVER_FROM_BEST_SOUND:
+	{
+		return &slGruntTakeCoverFromBestSound[0];
+	}
+	case SCHED_GRUNT_TAKECOVER_FAILED:
+	{
+		return GetScheduleOfType( SCHED_FAIL );
+	}
+	break;
+	case SCHED_GRUNT_ELOF_FAIL:
+	{
+		// human grunt is unable to move to a position that allows him to attack the enemy.
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+	}
+	break;
+	case SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE:
+	{
+		return &slGruntEstablishLineOfFire[0];
+	}
+	break;
+	case SCHED_RANGE_ATTACK1:
+	{
+		// randomly stand or crouch
+		if( RANDOM_LONG( 0, 9 ) == 0 )
+			m_fStanding = RANDOM_LONG( 0, 1 );
+
+		if( m_fStanding )
+			return &slGruntRangeAttack1B[0];
+		else
+			return &slGruntRangeAttack1A[0];
+	}
+	case SCHED_RANGE_ATTACK2:
+	{
+		return &slGruntRangeAttack2[0];
+	}
+	case SCHED_COMBAT_FACE:
+	{
+		return &slGruntCombatFace[0];
+	}
+	case SCHED_GRUNT_WAIT_FACE_ENEMY:
+	{
+		return &slGruntWaitInCover[0];
+	}
+	case SCHED_GRUNT_SWEEP:
+	{
+		return &slGruntSweep[0];
+	}
+	case SCHED_GRUNT_COVER_AND_RELOAD:
+	{
+		return &slGruntHideReload[0];
+	}
+	case SCHED_GRUNT_FOUND_ENEMY:
+	{
+		return &slGruntFoundEnemy[0];
+	}
+	case SCHED_VICTORY_DANCE:
+	{
+		if( InSquad() )
+		{
+			if( !IsLeader() )
+			{
+				return &slGruntFail[0];
+			}
+		}
+
+		return &slGruntVictoryDance[0];
+	}
+	case SCHED_GRUNT_SUPPRESS:
+	{
+		if( m_hEnemy->IsPlayer() && m_fFirstEncounter )
+		{
+			m_fFirstEncounter = FALSE;// after first encounter, leader won't issue handsigns anymore when he has a new enemy
+			return &slGruntSignalSuppress[0];
+		}
+		else
+		{
+			return &slGruntSuppress[0];
+		}
+	}
+	case SCHED_FAIL:
+	{
+		if( m_hEnemy != nullptr )
+		{
+			// grunt has an enemy, so pick a different default fail schedule most likely to help recover.
+			return &slGruntCombatFail[0];
+		}
+
+		return &slGruntFail[0];
+	}
+	case SCHED_GRUNT_REPEL:
+	{
+		if( pev->velocity.z > -128 )
+			pev->velocity.z -= 32;
+		return &slGruntRepel[0];
+	}
+	case SCHED_GRUNT_REPEL_ATTACK:
+	{
+		if( pev->velocity.z > -128 )
+			pev->velocity.z -= 32;
+		return &slGruntRepelAttack[0];
+	}
+	case SCHED_GRUNT_REPEL_LAND:
+	{
+		return &slGruntRepelLand[0];
+	}
+	default:
+	{
+		return CSquadMonster::GetScheduleOfType( Type );
+	}
+	}
+}
+
+
+
+
+//====================================================================================
+// Aynekko: monster_gangster and its variations
+//====================================================================================
+
+class CMonsterGangster : public CHGrunt
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	void SpeakSentence();
+	Schedule_t *GetSchedule() override;
+	Schedule_t *GetScheduleOfType( int Type ) override;
+	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+
+	void StartTask( Task_t *pTask ) override;
+	void RunTask( Task_t *pTask ) override;
+	void Killed( entvars_t *pevAttacker, int iGib ) override;
+	void DeathSound() override;
+	void PainSound() override;
+	void IdleSound() override;
+	void OnCatchFire() override;
+
+	void Pistol( void );
+
+	static const char *pGangsterSentences[];
+};
+
+LINK_ENTITY_TO_CLASS( monster_gangster_shotgun, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_gangster_smg, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_gangster_pistol, CMonsterGangster );
+
+const char *CMonsterGangster::pGangsterSentences[] =
+{
+	"GANG_FLEE", // grenade scared grunt
+	"GANG_ALERT", // sees player
+	"GANG_ALERT", // sees monster
+	"GANG_FLEE", // running to cover
+	"GANG_DYN", // about to throw grenade
+	"HG_CHARGE",  // running out to get the enemy
+	"GANG_TAUNT", // say rude things
+};
+
+void CMonsterGangster::Precache()
+{
+	if( pev->model )
+		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+			PRECACHE_MODEL( "models/gangster01a.mdl" );
+		else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+			PRECACHE_MODEL( "models/gangster02a.mdl" );
+		else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+			PRECACHE_MODEL( "models/gangster03a.mdl" );
+
+	}
+
+	PRECACHE_SOUND( "weapons/dryfire1.wav" ); //LRC
+
+	PRECACHE_SOUND( "hgrunt/gr_mgun1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_mgun2.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_die1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_die2.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_die3.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_pain1.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain2.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain3.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain4.wav" );
+	PRECACHE_SOUND( "hgrunt/gr_pain5.wav" );
+
+	PRECACHE_SOUND( "hgrunt/gr_reload1.wav" );
+
+	PRECACHE_SOUND( "weapons/glauncher.wav" );
+
+	PRECACHE_SOUND( "weapons/sbarrel1.wav" );
+
+	PRECACHE_SOUND( "zombie/claw_miss2.wav" );// because we use the basemonster SWIPE animation event
+
+	// get voice pitch
+	if( RANDOM_LONG( 0, 1 ) )
+		m_voicePitch = 109 + RANDOM_LONG( 0, 7 );
+	else
+		m_voicePitch = 100;
+
+	m_iBrassShell = PRECACHE_MODEL( "models/shell.mdl" );// brass shell
+	m_iShotgunShell = PRECACHE_MODEL( "models/shotgunshell.mdl" );
+
+	AllyDied = false;
+}
+
+void CMonsterGangster::Spawn()
+{
+	Precache();
+
+	if( pev->model )
+		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
+	else
+	{
+		if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+			SET_MODEL( ENT( pev ), "models/gangster01a.mdl" );
+		else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+			SET_MODEL( ENT( pev ), "models/gangster02a.mdl" );
+		else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+			SET_MODEL( ENT( pev ), "models/gangster03a.mdl" );
+	}
+
+	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+
+	pev->solid = SOLID_SLIDEBOX;
+	pev->movetype = MOVETYPE_STEP;
+	m_bloodColor = BLOOD_COLOR_RED;
+	pev->effects = 0;
+	if( !pev->health )
+		pev->health = gSkillData.gangHealth;
+	ALERT( at_console, "gang %f\n", pev->health );
+
+	pev->max_health = pev->health;
+	m_flFieldOfView = 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
+	m_MonsterState = MONSTERSTATE_NONE;
+	m_flNextGrenadeCheck = gpGlobals->time + 1;
+	m_flNextPainTime = gpGlobals->time;
+	m_iSentence = HGRUNT_SENT_NONE;
+
+	m_afCapability = bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+
+	m_fEnemyEluded = FALSE;
+	m_fFirstEncounter = TRUE;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
+
+	m_HackedGunPos = Vector( 0, 0, 55 );
+
+	pev->weapons = 0;
+
+	// initialize weapons per class
+	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+	{
+		pev->weapons |= HGRUNT_SHOTGUN;
+		m_cClipSize = 8;
+	}
+	else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+	{
+		pev->weapons |= HGRUNT_9MMAR;
+		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+			pev->weapons |= HGRUNT_HANDGRENADE;
+		m_cClipSize = GRUNT_CLIP_SIZE;
+	}
+	else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+	{
+		pev->weapons |= HGRUNT_PISTOL;
+		m_cClipSize = 12;
+	}
+
+	m_cAmmoLoaded = m_cClipSize;
+
+	CTalkMonster::g_talkWaitTime = 0;
+
+	MonsterInit();
+}
+
+void CMonsterGangster::SpeakSentence()
+{
+	// custom sentences for the thug
+	if( m_iSentence == HGRUNT_SENT_NONE )
+	{
+		// no sentence cued up.
+		return;
+	}
+
+	if( FOkToSpeak() )
+	{
+		SENTENCEG_PlayRndSz( ENT( pev ), pGangsterSentences[m_iSentence], HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+		JustSpoke();
+	}
+}
+
+void CMonsterGangster::OnCatchFire( void )
+{
+	PlaySentence( "GANG_BURN", 3, VOL_NORM, ATTN_NORM );
+}
+
+void CMonsterGangster::StartTask( Task_t *pTask )
+{
+	m_iTaskStatus = TASKSTATUS_RUNNING;
+
+	switch( pTask->iTask )
+	{
+	case TASK_GRUNT_CHECK_FIRE:
+		if( !NoFriendlyFire() )
+		{
+			SetConditions( bits_COND_GRUNT_NOFIRE );
+		}
+		TaskComplete();
+		break;
+
+	case TASK_GRUNT_SPEAK_SENTENCE:
+		SpeakSentence();
+		TaskComplete();
+		break;
+
+	case TASK_WALK_PATH:
+	case TASK_RUN_PATH:
+		// grunt no longer assumes he is covered if he moves
+		Forget( bits_MEMORY_INCOVER );
+		CSquadMonster::StartTask( pTask );
+		break;
+
+	case TASK_RELOAD:
+		m_IdealActivity = ACT_RELOAD;
+		break;
+
+	case TASK_GRUNT_FACE_TOSS_DIR:
+		break;
+
+	case TASK_FACE_IDEAL:
+	case TASK_FACE_ENEMY:
+		CSquadMonster::StartTask( pTask );
+		if( pev->movetype == MOVETYPE_FLY )
+		{
+			m_IdealActivity = ACT_GLIDE;
+		}
+		break;
+
+		// Aynekko: this task happens when the thug starts to go back after investigating noise - play specified sentence
+		// but make sure we are in the correct schedule!
+	case TASK_GET_PATH_TO_LASTPOSITION:
+		if( m_pSchedule && FStrEq( m_pSchedule->pName, "InvestigateSound" ) )
+			PlaySentence( "GANG_LOST", 3, VOL_NORM, ATTN_NORM );
+		CSquadMonster::StartTask( pTask );
+		break;
+
+	default:
+		CSquadMonster::StartTask( pTask );
+		break;
+	}
+}
+
+//=========================================================
+// RunTask
+//=========================================================
+void CMonsterGangster::RunTask( Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_GRUNT_FACE_TOSS_DIR:
+	{
+		// project a point along the toss vector and turn to face that point.
+		MakeIdealYaw( pev->origin + m_vecTossVelocity * 64 );
+		ChangeYaw( pev->yaw_speed );
+
+		if( FacingIdeal() )
+		{
+			m_iTaskStatus = TASKSTATUS_COMPLETE;
+		}
+		break;
+	}
+	default:
+	{
+		CSquadMonster::RunTask( pTask );
+		break;
+	}
+	}
+}
+
+//=========================================================
+// PainSound
+//=========================================================
+void CMonsterGangster::PainSound()
+{
+	if( gpGlobals->time > m_flNextPainTime )
+	{
+		char sentence_name[16];
+		sentence_name[0] = '\0';
+
+		// figure out the hitgroup and use appropriate sounds
+		switch( m_LastHitGroup )
+		{
+		case HITGROUP_HEAD:
+			sprintf_s( sentence_name, "GANG_HPAIN" );
+			break;
+		case HITGROUP_CHEST:
+			sprintf_s( sentence_name, "GANG_CPAIN" );
+			break;
+		case HITGROUP_STOMACH:
+			sprintf_s( sentence_name, "GANG_GPAIN" );
+			break;
+		default:
+		case HITGROUP_GENERIC:
+			sprintf_s( sentence_name, "GANG_PAIN" );
+			break;
+		}
+
+		if( sentence_name[0] != '\0' )
+			PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+
+		m_flNextPainTime = gpGlobals->time + 2;
+	}
+}
+
+void CMonsterGangster::Killed( entvars_t *pevAttacker, int iGib )
+{
+	// notify my squad about my death
+	if( InSquad() )
+	{
+		CSquadMonster *pSquadLeader = MySquadLeader();
+
+		for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+		{
+			CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+			if( pMember != nullptr && pMember != this )
+			{
+				pMember->AllyDied = true;
+			}
+		}
+	}
+
+	CSquadMonster::Killed( pevAttacker, iGib );
+}
+
+//=========================================================
+// DeathSound 
+//=========================================================
+void CMonsterGangster::DeathSound()
+{
+	char sentence_name[16];
+	sentence_name[0] = '\0';
+
+	// figure out the hitgroup and use appropriate sounds
+	switch( m_LastHitGroup )
+	{
+	case HITGROUP_HEAD:
+		sprintf_s( sentence_name, "GANG_NDEAD" );
+		break;
+	case HITGROUP_CHEST:
+		sprintf_s( sentence_name, "GANG_CDEAD" );
+		break;
+	case HITGROUP_STOMACH:
+		sprintf_s( sentence_name, "GANG_GDEAD" );
+		break;
+	default:
+	case HITGROUP_GENERIC:
+		sprintf_s( sentence_name, "GANG_DEAD" );
+		break;
+	}
+
+	if( sentence_name[0] != '\0' )
+		PlaySentence( sentence_name, 2, VOL_NORM, ATTN_NORM );
+}
+
+void CMonsterGangster::IdleSound()
+{
+
+}
+
+Schedule_t *CMonsterGangster::GetSchedule()
+{
+	// clear old sentence
+	m_iSentence = HGRUNT_SENT_NONE;
+
+	// flying? If PRONE, barnacle has me. IF not, it's assumed I am rapelling. 
+	if( pev->movetype == MOVETYPE_FLY && m_MonsterState != MONSTERSTATE_PRONE )
+	{
+		if( pev->flags & FL_ONGROUND )
+		{
+			// just landed
+			pev->movetype = MOVETYPE_STEP;
+			return GetScheduleOfType( SCHED_GRUNT_REPEL_LAND );
+		}
+		else
+		{
+			// repel down a rope, 
+			if( m_MonsterState == MONSTERSTATE_COMBAT )
+				return GetScheduleOfType( SCHED_GRUNT_REPEL_ATTACK );
+			else
+				return GetScheduleOfType( SCHED_GRUNT_REPEL );
+		}
+	}
+
+	if( AllyDied )
+	{
+		// whoever gets first to this part of code, speaks about ally's death
+		if( FOkToSpeak() )
+		{
+			// I'm expressing my emotions regarding my squad member's demise.
+			// notify others in the squad to NOT do that, so we don't have spamming sounds from everyone
+			if( InSquad() )
+			{
+				CSquadMonster *pSquadLeader = MySquadLeader();
+				for( int i = 0; i < MAX_SQUAD_MEMBERS; i++ )
+				{
+					CSquadMonster *pMember = pSquadLeader->MySquadMember( i );
+					if( pMember != nullptr ) // including us
+						pMember->AllyDied = false;
+				}
+			}
+			else
+				AllyDied = false;
+
+			PlaySentence( "GANG_ADIE", 3, VOL_NORM, ATTN_NORM );
+			JustSpoke();
+		}
+	}
+
+	// check bravery
+	int m_iBravery = 2;
+	CBaseEntity *pEntity = nullptr;
+	while( (pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, 1500 )) != nullptr )
+	{
+		if( !FClassnameIs( pEntity->pev, STRING( pev->classname ) ) )
+			continue;
+
+		if( pEntity == this )
+			continue;
+
+		TraceResult tr;
+
+		UTIL_TraceLine( EyePosition(), pEntity->EyePosition(), ignore_monsters, ENT( pev ), &tr );
+		if( tr.flFraction == 1.0 || tr.pHit == pEntity->edict() )
+		{
+			if( pEntity->pev->deadflag == DEAD_DEAD )
+			{
+				// I see dead people...
+				m_iBravery--;
+			}
+			else
+			{
+				m_iBravery++;
+			}
+		}
+	}
+
+	// grunts place HIGH priority on running away from danger sounds.
+	if( HasConditions( bits_COND_HEAR_SOUND ) )
+	{
+		CSound *pSound;
+		pSound = PBestSound();
+
+		ASSERT( pSound != nullptr );
+		if( pSound )
+		{
+			// Aynekko: react to the fire with a sentence and run away
+			if( pSound->m_iType & bits_SOUND_FIRE )
+			{
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_FIRE", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+			}
+			else if( pSound->m_iType & bits_SOUND_DANGER )
+			{
+				// dangerous sound nearby!
+
+				//!!!KELLY - currently, this is the grunt's signal that a grenade has landed nearby,
+				// and the grunt should find cover from the blast
+				// good place for "SHIT!" or some other colorful verbal indicator of dismay.
+				// It's not safe to play a verbal order here "Scatter", etc cause 
+				// this may only affect a single individual in a squad. 
+
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_CVER", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+			}
+			/*
+			if (!HasConditions( bits_COND_SEE_ENEMY ) && ( pSound->m_iType & (bits_SOUND_PLAYER | bits_SOUND_COMBAT) ))
+			{
+				MakeIdealYaw( pSound->m_vecOrigin );
+			}
+			*/
+
+			// Aynekko: investigate sound behaviour (just like hassassin)
+			// 40% chance of doing it
+			if( RANDOM_LONG( 0, 100 ) > 60 && !HasConditions( bits_COND_SEE_ENEMY ) && (pSound->m_iType & bits_SOUND_COMBAT) && (pev->health > pev->max_health * 0.75f) )
+			{
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_HUNT", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_INVESTIGATE_SOUND );
+			}
+		}
+	}
+
+	// I saw at least two of my dead comrades. Run for your life!
+	if( m_iBravery <= 0 )
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+
+	switch( m_MonsterState )
+	{
+	case MONSTERSTATE_ALERT:
+	{
+		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
+		{
+			if( FOkToSpeak() )
+			{
+				SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+				JustSpoke();
+			}
+			return GetScheduleOfType( SCHED_VICTORY_DANCE );
+		}
+		break;
+	}
+	case MONSTERSTATE_COMBAT:
+	{
+		// dead enemy
+		if( HasConditions( bits_COND_ENEMY_DEAD ) )
+		{
+			// call base class, all code to handle dead enemies is centralized there.
+			return CBaseMonster::GetSchedule();
+		}
+
+		// low hp, 75% chance of running away
+		if( pev->health < pev->max_health * 0.25f && RANDOM_LONG( 0, 100 ) > 25 )
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+
+		// Aynekko: make taunt sounds during combat (20% chance)
+		if( RANDOM_LONG( 0, 100 ) < 20 && FOkToSpeak() )
+		{
+			SENTENCEG_PlayRndSz( ENT( pev ), "GANG_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+			JustSpoke();
+		}
+
+		// new enemy
+		if( HasConditions( bits_COND_NEW_ENEMY ) )
+		{
+			if( InSquad() )
+			{
+				MySquadLeader()->m_fEnemyEluded = FALSE;
+
+				if( !IsLeader() )
+				{
+					return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+				}
+				else
+				{
+					ALERT( at_aiconsole, "leader spotted player!\n" );
+					//!!!KELLY - the leader of a squad of grunts has just seen the player or a 
+					// monster and has made it the squad's enemy. You
+					// can check pev->flags for FL_CLIENT to determine whether this is the player
+					// or a monster. He's going to immediately start
+					// firing, though. If you'd like, we can make an alternate "first sight" 
+					// schedule where the leader plays a handsign anim
+					// that gives us enough time to hear a short sentence or spoken command
+					// before he starts pluggin away.
+					if( FOkToSpeak() )// && RANDOM_LONG(0,1))
+					{
+						if( (m_hEnemy != nullptr) )
+							SENTENCEG_PlayRndSz( ENT( pev ), "GANG_ALERT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+
+						JustSpoke();
+					}
+
+					if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+					{
+						return GetScheduleOfType( SCHED_GRUNT_SUPPRESS );
+					}
+					else
+					{
+						return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+					}
+				}
+			}
+		}
+		// no ammo
+		else if( HasConditions( bits_COND_NO_AMMO_LOADED ) )
+		{
+			//!!!KELLY - this individual just realized he's out of bullet ammo. 
+			// He's going to try to find cover to run to and reload, but rarely, if 
+			// none is available, he'll drop and reload in the open here. 
+			return GetScheduleOfType( SCHED_GRUNT_COVER_AND_RELOAD );
+		}
+
+		// damaged just a little
+		else if( HasConditions( bits_COND_LIGHT_DAMAGE ) )
+		{
+			// if hurt:
+			// 90% chance of taking cover
+			// 10% chance of flinch.
+			int iPercent = RANDOM_LONG( 0, 99 );
+
+			if( iPercent <= 90 && m_hEnemy != nullptr )
+			{
+				// only try to take cover if we actually have an enemy!
+
+				//!!!KELLY - this grunt was hit and is going to run to cover.
+				if( FOkToSpeak() ) // && RANDOM_LONG(0,1))
+				{
+					//SENTENCEG_PlayRndSz( ENT(pev), "HG_COVER", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
+					m_iSentence = HGRUNT_SENT_COVER;
+					//JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+			}
+			else
+			{
+				return GetScheduleOfType( SCHED_SMALL_FLINCH );
+			}
+		}
+		// can kick
+		else if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+		{
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+		}
+		// can shoot
+		else if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+		{
+			if( InSquad() )
+			{
+				// if the enemy has eluded the squad and a squad member has just located the enemy
+				// and the enemy does not see the squad member, issue a call to the squad to waste a 
+				// little time and give the player a chance to turn.
+				if( MySquadLeader()->m_fEnemyEluded && !HasConditions( bits_COND_ENEMY_FACING_ME ) )
+				{
+					MySquadLeader()->m_fEnemyEluded = FALSE;
+					return GetScheduleOfType( SCHED_GRUNT_FOUND_ENEMY );
+				}
+			}
+
+			if( OccupySlot( bits_SLOTS_HGRUNT_ENGAGE ) )
+			{
+				// try to take an available ENGAGE slot
+				return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
+			}
+			else if( HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) && OccupySlot( bits_SLOTS_HGRUNT_GRENADE ) )
+			{
+				// throw a grenade if can and no engage slots are available
+				return GetScheduleOfType( SCHED_RANGE_ATTACK2 );
+			}
+			else
+			{
+				// hide!
+				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+			}
+		}
+		// can't see enemy
+		else if( HasConditions( bits_COND_ENEMY_OCCLUDED ) )
+		{
+			if( HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) && OccupySlot( bits_SLOTS_HGRUNT_GRENADE ) )
+			{
+				//!!!KELLY - this grunt is about to throw or fire a grenade at the player. Great place for "fire in the hole"  "frag out" etc
+				if( FOkToSpeak() )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_DYN", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_RANGE_ATTACK2 );
+			}
+			else if( OccupySlot( bits_SLOTS_HGRUNT_ENGAGE ) )
+			{
+				//!!!KELLY - grunt cannot see the enemy and has just decided to 
+				// charge the enemy's position. 
+				if( FOkToSpeak() )// && RANDOM_LONG(0,1))
+				{
+					//SENTENCEG_PlayRndSz( ENT(pev), "HG_CHARGE", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
+					m_iSentence = HGRUNT_SENT_CHARGE;
+					//JustSpoke();
+				}
+
+				return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+			}
+			else
+			{
+				//!!!KELLY - grunt is going to stay put for a couple seconds to see if
+				// the enemy wanders back out into the open, or approaches the
+				// grunt's covered position. Good place for a taunt, I guess?
+				if( FOkToSpeak() && RANDOM_LONG( 0, 1 ) )
+				{
+					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+					JustSpoke();
+				}
+				return GetScheduleOfType( SCHED_STANDOFF );
+			}
+		}
+
+		if( HasConditions( bits_COND_SEE_ENEMY ) && !HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+		{
+			return GetScheduleOfType( SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE );
+		}
+	}
+	}
+
+	// no special cases here, call the base class
+	return CSquadMonster::GetSchedule();
+}
+
+//=========================================================
+//=========================================================
+Schedule_t *CMonsterGangster::GetScheduleOfType( int Type )
+{
+	switch( Type )
+	{
+	case SCHED_TAKE_COVER_FROM_ENEMY:
+	{
+		return &slGruntTakeCover[0];
+	}
+	case SCHED_TAKE_COVER_FROM_BEST_SOUND:
+	{
+		return &slGruntTakeCoverFromBestSound[0];
+	}
+	case SCHED_GRUNT_TAKECOVER_FAILED:
+	{
+		return GetScheduleOfType( SCHED_FAIL );
+	}
+	break;
+	case SCHED_GRUNT_ELOF_FAIL:
+	{
+		// human grunt is unable to move to a position that allows him to attack the enemy.
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
+	}
+	break;
+	case SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE:
+	{
+		return &slGruntEstablishLineOfFire[0];
+	}
+	break;
+	case SCHED_RANGE_ATTACK1:
+	{
+		// randomly stand or crouch
+		if( RANDOM_LONG( 0, 9 ) == 0 )
+			m_fStanding = RANDOM_LONG( 0, 1 );
+
+		if( m_fStanding )
+			return &slGruntRangeAttack1B[0];
+		else
+			return &slGruntRangeAttack1A[0];
+	}
+	case SCHED_RANGE_ATTACK2:
+	{
+		return &slGruntRangeAttack2[0];
+	}
+	case SCHED_COMBAT_FACE:
+	{
+		return &slGruntCombatFace[0];
+	}
+	case SCHED_GRUNT_WAIT_FACE_ENEMY:
+	{
+		return &slGruntWaitInCover[0];
+	}
+	case SCHED_GRUNT_SWEEP:
+	{
+		return &slGruntSweep[0];
+	}
+	case SCHED_GRUNT_COVER_AND_RELOAD:
+	{
+		return &slGruntHideReload[0];
+	}
+	case SCHED_GRUNT_FOUND_ENEMY:
+	{
+		return &slGruntFoundEnemy[0];
+	}
+	case SCHED_VICTORY_DANCE:
+	{
+		if( InSquad() )
+		{
+			if( !IsLeader() )
+			{
+				return &slGruntFail[0];
+			}
+		}
+
+		return &slGruntVictoryDance[0];
+	}
+	case SCHED_GRUNT_SUPPRESS:
+	{
+		if( m_hEnemy->IsPlayer() && m_fFirstEncounter )
+		{
+			m_fFirstEncounter = FALSE;// after first encounter, leader won't issue handsigns anymore when he has a new enemy
+			return &slGruntSignalSuppress[0];
+		}
+		else
+		{
+			return &slGruntSuppress[0];
+		}
+	}
+	case SCHED_FAIL:
+	{
+		if( m_hEnemy != nullptr )
+		{
+			// grunt has an enemy, so pick a different default fail schedule most likely to help recover.
+			return &slGruntCombatFail[0];
+		}
+
+		return &slGruntFail[0];
+	}
+	case SCHED_GRUNT_REPEL:
+	{
+		if( pev->velocity.z > -128 )
+			pev->velocity.z -= 32;
+		return &slGruntRepel[0];
+	}
+	case SCHED_GRUNT_REPEL_ATTACK:
+	{
+		if( pev->velocity.z > -128 )
+			pev->velocity.z -= 32;
+		return &slGruntRepelAttack[0];
+	}
+	case SCHED_GRUNT_REPEL_LAND:
+	{
+		return &slGruntRepelLand[0];
+	}
+	default:
+	{
+		return CSquadMonster::GetScheduleOfType( Type );
+	}
+	}
+}
+
+void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
+{
+	Vector	vecShootDir;
+	Vector	vecShootOrigin;
+
+	switch( pEvent->event )
+	{
+	case HGRUNT_AE_DROP_GUN:
+	{
+		if( pev->spawnflags & SF_MONSTER_NO_WPN_DROP ) break; //LRC
+
+		Vector	vecGunPos;
+		Vector	vecGunAngles;
+
+		GetAttachment( 0, vecGunPos, vecGunAngles );
+
+		// switch to body group with no gun.
+		SetBodygroup( GUN_GROUP, GUN_NONE );
+
+		// now spawn a gun.
+		if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) )
+		{
+			DropItem( "weapon_shotgun", vecGunPos, vecGunAngles );
+		}
+		else
+		{
+			DropItem( "weapon_9mmAR", vecGunPos, vecGunAngles );
+		}
+		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) )
+		{
+			DropItem( "ammo_ARgrenades", BodyTarget( pev->origin ), vecGunAngles );
+		}
+
+	}
+	break;
+
+	case HGRUNT_AE_RELOAD:
+		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "hgrunt/gr_reload1.wav", 1, ATTN_NORM );
+		m_cAmmoLoaded = m_cClipSize;
+		ClearConditions( bits_COND_NO_AMMO_LOADED );
+		break;
+
+	case HGRUNT_AE_GREN_TOSS:
+	{
+		UTIL_MakeVectors( pev->angles );
+		// CGrenade::ShootTimed( pev, pev->origin + gpGlobals->v_forward * 34 + Vector (0, 0, 32), m_vecTossVelocity, 3.5 );
+		//LRC - a bit of a hack. Ideally the grunts would work out in advance whether it's ok to throw.
+		if( m_pCine )
+		{
+			Vector vecToss = g_vecZero;
+			if( m_hTargetEnt != nullptr && m_pCine->PreciseAttack() )
+			{
+				vecToss = VecCheckToss( pev, GetGunPosition(), m_hTargetEnt->pev->origin, 0.5 );
+			}
+			if( vecToss == g_vecZero )
+			{
+				vecToss = (gpGlobals->v_forward * 0.5 + gpGlobals->v_up * 0.5).Normalize() * gSkillData.hgruntGrenadeSpeed;
+			}
+			CGrenade::ShootTimed( pev, GetGunPosition(), vecToss, 3.5 );
+		}
+		else
+			CGrenade::ShootTimed( pev, GetGunPosition(), m_vecTossVelocity, 3.5 );
+
+		m_fThrowGrenade = FALSE;
+		m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+		// !!!LATER - when in a group, only try to throw grenade if ordered.
+	}
+	break;
+
+	case HGRUNT_AE_GREN_LAUNCH:
+	{
+		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/glauncher.wav", 0.8, ATTN_NORM );
+		//LRC: firing due to a script?
+		if( m_pCine )
+		{
+			Vector vecToss;
+			if( m_hTargetEnt != nullptr && m_pCine->PreciseAttack() )
+				vecToss = VecCheckThrow( pev, GetGunPosition(), m_hTargetEnt->pev->origin, gSkillData.hgruntGrenadeSpeed, 0.5 );
+			else
+			{
+				// just shoot diagonally up+forwards
+				UTIL_MakeVectors( pev->angles );
+				vecToss = (gpGlobals->v_forward * 0.5 + gpGlobals->v_up * 0.5).Normalize() * gSkillData.hgruntGrenadeSpeed;
+			}
+			CGrenade::ShootContact( pev, GetGunPosition(), vecToss );
+		}
+		else
+			CGrenade::ShootContact( pev, GetGunPosition(), m_vecTossVelocity );
+		m_fThrowGrenade = FALSE;
+		if( g_iSkillLevel == SKILL_HARD )
+			m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2, 5 );// wait a random amount of time before shooting again
+		else
+			m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+	}
+	break;
+
+	case HGRUNT_AE_GREN_DROP:
+	{
+		UTIL_MakeVectors( pev->angles );
+		CGrenade::ShootTimed( pev, pev->origin + gpGlobals->v_forward * 17 - gpGlobals->v_right * 27 + gpGlobals->v_up * 6, g_vecZero, 3 );
+	}
+	break;
+
+	case HGRUNT_AE_BURST1:
+	{
+		if( FBitSet( pev->weapons, HGRUNT_9MMAR ) )
+		{
+			// the first round of the three round burst plays the sound and puts a sound in the world sound list.
+			if( m_cAmmoLoaded > 0 )
+			{
+				if( RANDOM_LONG( 0, 1 ) )
+				{
+					EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "hgrunt/gr_mgun1.wav", 1, ATTN_NORM );
+				}
+				else
+				{
+					EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "hgrunt/gr_mgun2.wav", 1, ATTN_NORM );
+				}
+			}
+			else
+			{
+				EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/dryfire1.wav", 1, ATTN_NORM );
+			}
+
+			Shoot();
+		}
+		else if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) )
+		{
+			Shotgun();
+			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/sbarrel1.wav", 1, ATTN_NORM );
+		}
+		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) ) // pistol
+		{
+			Pistol();
+		}
+
+		CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );
+	}
+	break;
+
+	case HGRUNT_AE_BURST2:
+	case HGRUNT_AE_BURST3:
+		Shoot();
+		break;
+
+	case HGRUNT_AE_KICK:
+	{
+		CBaseEntity *pHurt = Kick();
+
+		if( pHurt )
+		{
+			// SOUND HERE!
+			UTIL_MakeVectors( pev->angles );
+			pHurt->pev->punchangle.x = 15;
+			pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
+			pHurt->TakeDamage( pev, pev, gSkillData.hgruntDmgKick, DMG_CLUB );
+		}
+	}
+	break;
+
+	case HGRUNT_AE_CAUGHT_ENEMY:
+	{
+		if( FOkToSpeak() )
+		{
+			SENTENCEG_PlayRndSz( ENT( pev ), "GANG_ALERT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+			JustSpoke();
+		}
+
+	}
+
+	default:
+		CSquadMonster::HandleAnimEvent( pEvent );
+		break;
+	}
+}
+
+void CMonsterGangster::Pistol( void )
+{
+	if( m_hEnemy == nullptr && m_pCine == nullptr ) //LRC - scripts may fire when you have no enemy
+	{
+		return;
+	}
+
+	Vector vecShootOrigin = GetGunPosition();
+	Vector vecShootDir = ShootAtEnemy( vecShootOrigin );
+
+	if( m_cAmmoLoaded > 0 )
+	{
+		UTIL_MakeVectors( pev->angles );
+
+		Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT( 40, 90 ) + gpGlobals->v_up * RANDOM_FLOAT( 75, 200 ) + gpGlobals->v_forward * RANDOM_FLOAT( -40, 40 );
+		EjectBrass( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL );
+		FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5, 1, gSkillData.gangDmgPistol ); // shoot +-5 degrees
+
+		pev->effects |= EF_MUZZLEFLASH;
+
+		m_cAmmoLoaded--;// take away a bullet!
+	}
+
+	Vector angDir = UTIL_VecToAngles( vecShootDir );
+	SetBlending( 0, angDir.x );
+
+	// Teh_Freak: World Lighting!
+	FranUtils::EmitDlight( pev->origin, 16, { 255, 255, 160 }, 0.05f, 0 );
+	// Teh_Freak: World Lighting!
 }

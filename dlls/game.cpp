@@ -619,6 +619,32 @@ cvar_t dmjumpsound = {"sv_dmjumpsound", "1", FCVAR_SERVER};
 
 // END Opposing Force variables
 
+// Aynekko: The Last Goodbye
+cvar_t	sk_thug_health1 = { "sk_thug_health1","80" };
+cvar_t	sk_thug_health2 = { "sk_thug_health2","80" };
+cvar_t	sk_thug_health3 = { "sk_thug_health3","80" };
+cvar_t	sk_thug_dmg1 = { "sk_thug_dmg1","10" };
+cvar_t	sk_thug_dmg2 = { "sk_thug_dmg2","10" };
+cvar_t	sk_thug_dmg3 = { "sk_thug_dmg3","10" };
+cvar_t	sk_gang_health1 = { "sk_gang_health1","100" };
+cvar_t	sk_gang_health2 = { "sk_gang_health2","100" };
+cvar_t	sk_gang_health3 = { "sk_gang_health3","100" };
+cvar_t	sk_gang_dmg_smg1 = { "sk_gang_dmg_smg1","2" };
+cvar_t	sk_gang_dmg_smg2 = { "sk_gang_dmg_smg2","2" };
+cvar_t	sk_gang_dmg_smg3 = { "sk_gang_dmg_smg3","2" };
+cvar_t	sk_gang_dmg_shotgun1 = { "sk_gang_dmg_shotgun1","2" };
+cvar_t	sk_gang_dmg_shotgun2 = { "sk_gang_dmg_shotgun2","2" };
+cvar_t	sk_gang_dmg_shotgun3 = { "sk_gang_dmg_shotgun3","2" };
+cvar_t	sk_gang_dmg_pistol1 = { "sk_gang_dmg_pistol1","3" };
+cvar_t	sk_gang_dmg_pistol2 = { "sk_gang_dmg_pistol2","3" };
+cvar_t	sk_gang_dmg_pistol3 = { "sk_gang_dmg_pistol3","3" };
+cvar_t	sk_tramp_health1 = { "sk_tramp_health1","50" };
+cvar_t	sk_tramp_health2 = { "sk_tramp_health2","50" };
+cvar_t	sk_tramp_health3 = { "sk_tramp_health3","50" };
+cvar_t	sk_worker_health1 = { "sk_worker_health1","50" };
+cvar_t	sk_worker_health2 = { "sk_worker_health2","50" };
+cvar_t	sk_worker_health3 = { "sk_worker_health3","50" };
+
 // Register your console variables here
 // This gets called one time when the game is initialied
 void GameDLLInit()
@@ -1226,6 +1252,32 @@ void GameDLLInit()
 	CVAR_REGISTER(&dmjumpsound);
 
 	// END REGISTER CVARS FOR OPPOSING FORCE
+
+	// Aynekko: The Last Goodbye
+	CVAR_REGISTER( &sk_thug_health1 );
+	CVAR_REGISTER( &sk_thug_health2);
+	CVAR_REGISTER( &sk_thug_health3 );
+	CVAR_REGISTER( &sk_thug_dmg1 );
+	CVAR_REGISTER( &sk_thug_dmg2 );
+	CVAR_REGISTER( &sk_thug_dmg3 );
+	CVAR_REGISTER( &sk_gang_health1 );
+	CVAR_REGISTER( &sk_gang_health2 );
+	CVAR_REGISTER( &sk_gang_health3 );
+	CVAR_REGISTER( &sk_gang_dmg_smg1 );
+	CVAR_REGISTER( &sk_gang_dmg_smg2 );
+	CVAR_REGISTER( &sk_gang_dmg_smg3 );
+	CVAR_REGISTER( &sk_gang_dmg_shotgun1 );
+	CVAR_REGISTER( &sk_gang_dmg_shotgun2 );
+	CVAR_REGISTER( &sk_gang_dmg_shotgun3 );
+	CVAR_REGISTER( &sk_gang_dmg_pistol1 );
+	CVAR_REGISTER( &sk_gang_dmg_pistol2 );
+	CVAR_REGISTER( &sk_gang_dmg_pistol3 );
+	CVAR_REGISTER( &sk_tramp_health1 );
+	CVAR_REGISTER( &sk_tramp_health2 );
+	CVAR_REGISTER( &sk_tramp_health3 );
+	CVAR_REGISTER( &sk_worker_health1 );
+	CVAR_REGISTER( &sk_worker_health2 );
+	CVAR_REGISTER( &sk_worker_health3 );
 
 	SERVER_COMMAND( "exec skill.cfg\n" );
 	SERVER_COMMAND( "exec skillopfor.cfg\n" );

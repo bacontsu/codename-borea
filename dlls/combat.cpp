@@ -737,7 +737,6 @@ void CBaseMonster::CheckFire( void )
 	// monster got the flag, set him on fire
 	if( ( m_iLFlags & LF_BURNING ) && !IsOnFire )
 	{
-		m_flCaughtFireTime = gpGlobals->time;
 		IsOnFire = true;
 		pev->effects |= EF_DIMLIGHT;
 		pev->iuser3 = 666; // we need to distinguish this light on client
@@ -747,7 +746,8 @@ void CBaseMonster::CheckFire( void )
 	// do stuff while burning, disable when the time runs out
 	if( IsOnFire )
 	{
-		if( (gpGlobals->time > m_flCaughtFireTime + 7) || (pev->waterlevel > 0) )
+		// npc burns until death except when in water ( Diffusion mechanic ;) )
+		if( pev->waterlevel > 0 )
 		{
 			pev->effects &= ~EF_DIMLIGHT;
 			IsOnFire = false;
@@ -796,8 +796,7 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 		pev->effects &= ~EF_DIMLIGHT;
 		IsOnFire = false;
 		pev->iuser3 = 0;
-		// probably died because of fire. make him black
-#if 0 // enable this if you like
+#if 1 // crispy critter
 		pev->rendermode = kRenderTransColor;
 		pev->rendercolor = Vector( 20, 20, 20 );
 		pev->renderamt = 255;

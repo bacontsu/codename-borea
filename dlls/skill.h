@@ -152,6 +152,16 @@ struct skilldata_t
 	float miniturretHealth;
 	float sentryHealth;
 
+	// Aynekko: The Last Goodbye stuff
+	float thugHealth;
+	float thugDmg;
+	float gangHealth;
+	float gangDmgSmg;
+	float gangDmgShotgun;
+	float gangDmgPistol;
+	float trampHealth;
+	float workerHealth;
+
 
 // Player Weapons
 	float plrDmgCrowbar;

@@ -119,5 +119,7 @@ public:
 	Schedule_t	*GetScheduleOfType ( int iType ) override;
 
 	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) override;
+
+	bool AllyDied; // Aynekko: squad member died
 };
 

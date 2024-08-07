@@ -1680,7 +1680,12 @@ void CWorker::Spawn( void )
 	m_bloodColor = BLOOD_COLOR_RED;
 
 	if( !pev->health )
-		pev->health = gSkillData.scientistHealth;
+	{
+		if( FClassnameIs( pev, "monster_worker" ) )
+			pev->health = gSkillData.workerHealth;
+		else
+			pev->health = gSkillData.trampHealth;
+	}
 	pev->max_health = pev->health;
 	pev->view_ofs = Vector( 0, 0, 50 );// position of the eyes relative to monster's origin.
 	m_flFieldOfView = VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so scientists will notice player and say hello
@@ -1788,6 +1793,8 @@ Schedule_t *CWorker::GetSchedule()
 
 		ASSERT( pSound != nullptr );
 		if( pSound && (pSound->m_iType & bits_SOUND_DANGER) )
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+		if( pSound && (pSound->m_iType & bits_SOUND_FIRE) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
 	}
 
