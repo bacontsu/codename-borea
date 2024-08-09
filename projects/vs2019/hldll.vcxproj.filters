@@ -58,6 +58,9 @@
     <Filter Include="Source Files\dlls\TLG_weapons">
       <UniqueIdentifier>{2a3afbfe-af87-426f-bab1-64385032a23f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\dlls\TLG_monsters">
+      <UniqueIdentifier>{6f3a5e46-6677-44de-adfb-c27a3bf6f1b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\aflock.cpp">
@@ -91,9 +94,6 @@
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\bmodels.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\bullsquid.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\buttons.cpp">
@@ -189,9 +189,6 @@
     <ClCompile Include="..\..\dlls\healthkit.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\hgrunt.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\monstermaker.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -199,9 +196,6 @@
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\hornetgun.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\houndeye.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\ichthyosaur.cpp">
@@ -271,9 +265,6 @@
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\schedule.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\dlls\scientist.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\dlls\scripted.cpp">
@@ -438,9 +429,6 @@
     <ClCompile Include="..\..\dlls\gonome.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\dlls\pitdrone.cpp">
-      <Filter>Source Files\dlls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\dlls\male_assassin.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -596,6 +584,21 @@
     </ClCompile>
     <ClCompile Include="..\..\dlls\molotov.cpp">
       <Filter>Source Files\dlls\TLG_weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\thug_gangster.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\dog.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\giant_rat.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\worker_tramp.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\spider.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

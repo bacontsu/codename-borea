@@ -644,6 +644,25 @@ cvar_t	sk_tramp_health3 = { "sk_tramp_health3","50" };
 cvar_t	sk_worker_health1 = { "sk_worker_health1","50" };
 cvar_t	sk_worker_health2 = { "sk_worker_health2","50" };
 cvar_t	sk_worker_health3 = { "sk_worker_health3","50" };
+cvar_t	sk_dog_health1 = { "sk_dog_health1","30" };
+cvar_t	sk_dog_health2 = { "sk_dog_health2","30" };
+cvar_t	sk_dog_health3 = { "sk_dog_health3","30" };
+cvar_t	sk_dog_dmg1 = { "sk_dog_dmg1","10" };
+cvar_t	sk_dog_dmg2 = { "sk_dog_dmg2","10" };
+cvar_t	sk_dog_dmg3 = { "sk_dog_dmg3","10" };
+cvar_t	sk_rat_health1 = { "sk_rat_health1","20" };
+cvar_t	sk_rat_health2 = { "sk_rat_health2","20" };
+cvar_t	sk_rat_health3 = { "sk_rat_health3","20" };
+cvar_t	sk_rat_dmg1 = { "sk_rat_dmg1","10" };
+cvar_t	sk_rat_dmg2 = { "sk_rat_dmg2","10" };
+cvar_t	sk_rat_dmg3 = { "sk_rat_dmg3","10" };
+cvar_t	sk_spider_health1 = { "sk_spider_health1","100" };
+cvar_t	sk_spider_health2 = { "sk_spider_health2","100" };
+cvar_t	sk_spider_health3 = { "sk_spider_health3","100" };
+cvar_t	sk_spider_dmg1 = { "sk_spider_dmg1","5" };
+cvar_t	sk_spider_dmg2 = { "sk_spider_dmg2","5" };
+cvar_t	sk_spider_dmg3 = { "sk_spider_dmg3","5" };
+cvar_t	sk_fire_dmg_per_second = { "sk_fire_dmg_per_second","15" };
 
 // Register your console variables here
 // This gets called one time when the game is initialied
@@ -1278,6 +1297,25 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_worker_health1 );
 	CVAR_REGISTER( &sk_worker_health2 );
 	CVAR_REGISTER( &sk_worker_health3 );
+	CVAR_REGISTER( &sk_dog_health3 );
+	CVAR_REGISTER( &sk_dog_health3 );
+	CVAR_REGISTER( &sk_dog_health3 );
+	CVAR_REGISTER( &sk_dog_dmg1 );
+	CVAR_REGISTER( &sk_dog_dmg2 );
+	CVAR_REGISTER( &sk_dog_dmg3 );
+	CVAR_REGISTER( &sk_rat_health1 );
+	CVAR_REGISTER( &sk_rat_health2 );
+	CVAR_REGISTER( &sk_rat_health3 );
+	CVAR_REGISTER( &sk_rat_dmg1 );
+	CVAR_REGISTER( &sk_rat_dmg2 );
+	CVAR_REGISTER( &sk_rat_dmg3 );
+	CVAR_REGISTER( &sk_spider_health1 );
+	CVAR_REGISTER( &sk_spider_health2 );
+	CVAR_REGISTER( &sk_spider_health3 );
+	CVAR_REGISTER( &sk_spider_dmg1 );
+	CVAR_REGISTER( &sk_spider_dmg2 );
+	CVAR_REGISTER( &sk_spider_dmg3 );
+	CVAR_REGISTER( &sk_fire_dmg_per_second );
 
 	SERVER_COMMAND( "exec skill.cfg\n" );
 	SERVER_COMMAND( "exec skillopfor.cfg\n" );

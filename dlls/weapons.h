@@ -78,6 +78,12 @@ public:
 	void EXPORT DetonateUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void EXPORT TumbleThink();
 
+	// Aynekko
+	static CGrenade *ShootMolotov( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
+	void EXPORT MolotovThink();
+	void EXPORT MolotovExplode();
+	void EXPORT MolotovTouch( CBaseEntity *pOther );
+
 	virtual void BounceSound();
     int	BloodColor() override { return DONT_BLEED; }
     void Killed( entvars_t *pevAttacker, int iGib ) override;
@@ -196,7 +202,7 @@ public:
 #define WEAPON_NOCLIP			-1
 
 //#define CROWBAR_MAX_CLIP		WEAPON_NOCLIP
-#define GLOCK_MAX_CLIP			17
+#define GLOCK_MAX_CLIP			12
 #define PYTHON_MAX_CLIP			6
 #define MP5_MAX_CLIP			50
 #define MP5_DEFAULT_AMMO		25
@@ -218,7 +224,7 @@ public:
 #define PENGUIN_MAX_CLIP		3
 
 // the default amount of ammo that comes with each gun when it spawns
-#define GLOCK_DEFAULT_GIVE			17
+#define GLOCK_DEFAULT_GIVE			24
 #define PYTHON_DEFAULT_GIVE			6
 #define DEAGLE_DEFAULT_GIVE			7
 #define MP5_DEFAULT_GIVE			50 //Full magazine for Op4
@@ -229,7 +235,7 @@ public:
 #define RPG_DEFAULT_GIVE			1
 #define GAUSS_DEFAULT_GIVE			20
 #define EGON_DEFAULT_GIVE			20
-#define HANDGRENADE_DEFAULT_GIVE	5
+#define HANDGRENADE_DEFAULT_GIVE	1
 #define SATCHEL_DEFAULT_GIVE		1
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
@@ -623,7 +629,8 @@ enum glock_e
 	GLOCK_RELOAD_NOT_EMPTY,
 	GLOCK_DRAW,
 	GLOCK_HOLSTER,
-	GLOCK_ADD_SILENCER
+	GLOCK_ADD_SILENCER,
+	GLOCK_REMOVE_SILENCER
 };
 
 class CGlock : public CBasePlayerWeapon
@@ -787,6 +794,11 @@ private:
 	float m_flNextGrenadeLoad;
 	unsigned short m_usMP5;
 	unsigned short m_usMP52;
+
+	// Aynekko: burst fire stuff
+	int m_iRifleShotsFired;
+	float m_flRifleShoot;
+	void RifleFireBullet( void );
 };
 
 enum crossbow_e
@@ -1210,10 +1222,13 @@ public:
 	void IncrementAmmo(CBasePlayer* pPlayer) override;
 
 	void PrimaryAttack() override;
+	void SecondaryAttack() override;
 	BOOL Deploy() override;
 	BOOL CanHolster() override;
 	void Holster( int skiplocal = 0 ) override;
 	void WeaponIdle() override;
+
+	bool SecondaryAttackPressed;
 
     BOOL UseDecrement() override
     { 

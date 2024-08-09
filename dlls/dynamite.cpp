@@ -30,7 +30,7 @@ void CHandGrenade::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_HANDGRENADE;
-	SET_MODEL(ENT(pev), "models/w_grenade.mdl");
+	SET_MODEL(ENT(pev), "models/w_dynamite.mdl");
 
 #ifndef CLIENT_DLL
 	pev->dmg = gSkillData.plrDmgHandGrenade;
@@ -44,9 +44,12 @@ void CHandGrenade::Spawn( )
 
 void CHandGrenade::Precache()
 {
-	PRECACHE_MODEL("models/w_grenade.mdl");
-	PRECACHE_MODEL("models/v_grenade.mdl");
-	PRECACHE_MODEL("models/p_grenade.mdl");
+	PRECACHE_MODEL("models/w_dynamite.mdl");
+	PRECACHE_MODEL("models/v_dynamite.mdl");
+	PRECACHE_MODEL("models/p_dynamite.mdl");
+	PRECACHE_SOUND( "weapons/fuse_light.wav" );
+	PRECACHE_SOUND( "weapons/fuse_burn.wav" );
+	PRECACHE_SOUND( "weapons/fuse_throw.wav" );
 }
 
 int CHandGrenade::GetItemInfo(ItemInfo *p)
@@ -85,7 +88,7 @@ void CHandGrenade::IncrementAmmo(CBasePlayer* pPlayer)
 BOOL CHandGrenade::Deploy( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_dynamite.mdl", "models/p_dynamite.mdl", HANDGRENADE_DRAW, "crowbar" );
 }
 
 BOOL CHandGrenade::CanHolster()
@@ -120,6 +123,22 @@ void CHandGrenade::PrimaryAttack()
 		m_flStartThrow = gpGlobals->time;
 		m_flReleaseThrow = 0;
 
+		SecondaryAttackPressed = false;
+
+		SendWeaponAnim( HANDGRENADE_PINPULL );
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+	}
+}
+
+void CHandGrenade::SecondaryAttack()
+{
+	if( !m_flStartThrow && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 )
+	{
+		m_flStartThrow = gpGlobals->time;
+		m_flReleaseThrow = 0;
+
+		SecondaryAttackPressed = true;
+
 		SendWeaponAnim( HANDGRENADE_PINPULL );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
@@ -146,6 +165,11 @@ void CHandGrenade::WeaponIdle()
 		float flVel = ( 90 - angThrow.x ) * 4;
 		if ( flVel > 500 )
 			flVel = 500;
+		if( SecondaryAttackPressed )
+		{
+			if( flVel > 150 )
+				flVel = 150;
+		}
 
 		UTIL_MakeVectors( angThrow );
 

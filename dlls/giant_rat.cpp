@@ -204,6 +204,9 @@ void CPitdroneSpike::StartTrail()
 //=========================================================
 #define		PITDRONE_AE_SPIT		( 1 )
 #define		PITDRONE_AE_BITE		( 2 )
+
+#define PITDRONE_AE_JUMP_RAT 3
+
 #define		PITDRONE_AE_TAILWHIP	( 4 )
 #define		PITDRONE_AE_HOP		( 5 )
 #define		PITDRONE_AE_THROW		( 6 )
@@ -239,6 +242,7 @@ public:
 	void IdleSound() override;
 	void PainSound() override;
 	void AlertSound () override;
+	void DeathSound() override;
 	void StartTask ( Task_t *pTask ) override;
 	void RunTask ( Task_t *pTask ) override;
 	BOOL CheckMeleeAttack1 ( float flDot, float flDist ) override;
@@ -258,6 +262,8 @@ public:
 	int	Save( CSave &save ) override;
 	int Restore( CRestore &restore ) override;
 
+	void EXPORT LeapTouch( CBaseEntity *pOther );
+
 	CUSTOM_SCHEDULES;
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -265,8 +271,11 @@ public:
 	float m_flNextSpikeTime;// last time the pit drone used the spike attack.
 	int m_iInitialAmmo;
 	float m_flNextEatTime;
+
+	float m_flNextPainTime;
 };
 LINK_ENTITY_TO_CLASS( monster_pitdrone, CPitdrone );
+LINK_ENTITY_TO_CLASS( monster_giantrat, CPitdrone ); // Aynekko: I'll edit pitdrone so just put a different name
 
 TYPEDESCRIPTION	CPitdrone::m_SaveData[] = 
 {
@@ -276,6 +285,30 @@ TYPEDESCRIPTION	CPitdrone::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CPitdrone, CBaseMonster );
+
+void CPitdrone::LeapTouch( CBaseEntity *pOther )
+{
+	if( !pOther->pev->takedamage )
+	{
+		return;
+	}
+
+	if( pOther->Classify() == Classify() )
+	{
+		return;
+	}
+
+	// Don't hit if back on ground
+	if( !FBitSet( pev->flags, FL_ONGROUND ) )
+	{
+		EMIT_SOUND_DYN( edict(), CHAN_WEAPON, "rat/rat_bite.wav", 1.0, ATTN_IDLE, 0, 100 );
+
+		pOther->TakeDamage( pev, pev, gSkillData.ratDmg, DMG_SLASH );
+		UTIL_ScreenShake( pOther->pev->origin, 15.0, 1.5, 0.7, 2 );
+	}
+
+	SetTouch( nullptr );
+}
 
 //=========================================================
 // IgnoreConditions 
@@ -296,7 +329,7 @@ int CPitdrone::IgnoreConditions ()
 int CPitdrone::IRelationship ( CBaseEntity *pTarget )
 {
 	//Always mark pit drones as allies
-	if ( FClassnameIs ( pTarget->pev, "monster_pitdrone" ) )
+	if ( FClassnameIs ( pTarget->pev, "monster_giantrat" ) )
 	{
 		return R_AL;
 	}
@@ -309,6 +342,9 @@ int CPitdrone::IRelationship ( CBaseEntity *pTarget )
 //=========================================================
 BOOL CPitdrone :: CheckRangeAttack1 ( float flDot, float flDist )
 {
+	// Aynekko: no range attack for giant rat
+	return FALSE;
+	/*
 	if ( m_iInitialAmmo == -1
 		|| GetBodygroup( PitdroneBodygroup::Weapons ) == PitdroneWeapon::Empty
 		|| ( IsMoving() && flDist >= 512 ) )
@@ -342,21 +378,25 @@ BOOL CPitdrone :: CheckRangeAttack1 ( float flDot, float flDist )
 		return TRUE;
 	}
 
-	return FALSE;
+	return FALSE;*/
 }
 
 BOOL CPitdrone :: CheckMeleeAttack1 ( float flDot, float flDist )
 {
 	if ( flDist <= 64 && flDot >= 0.7 )
 	{
-		return RANDOM_LONG( 0, 3 ) == 0;
+		return TRUE;
+	//	return RANDOM_LONG( 0, 3 ) == 0;
 	}
 	return FALSE;
 }
 
 BOOL CPitdrone :: CheckMeleeAttack2 ( float flDot, float flDist )
 {
-	if ( flDist <= 64 && flDot >= 0.7 && !HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+	if( gpGlobals->time < m_flNextAttack )
+		return FALSE;
+	
+	if( FBitSet( pev->flags, FL_ONGROUND ) && flDist <= 256 && flDot >= 0.65 )
 	{
 		return TRUE;
 	}
@@ -408,7 +448,7 @@ int CPitdrone :: ISoundMask ()
 //=========================================================
 int	CPitdrone :: Classify ()
 {
-	return	CLASS_ALIEN_PREDATOR;
+	return	m_iClass ? m_iClass : CLASS_ALIEN_MILITARY;
 }
 
 //=========================================================
@@ -423,23 +463,22 @@ void CPitdrone :: IdleSound ()
 //=========================================================
 void CPitdrone :: PainSound ()
 {
+	if( gpGlobals->time < m_flNextPainTime )
+		return;
+	
 	int iPitch = RANDOM_LONG( 85, 120 );
 
-	switch ( RANDOM_LONG(0,3) )
+	switch ( RANDOM_LONG(0,1) )
 	{
 	case 0:	
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_pain1.wav", 1, ATTN_NORM, 0, iPitch );	
+		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "rat/rat_pain1.wav", 1, ATTN_NORM, 0, iPitch );	
 		break;
 	case 1:	
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_pain2.wav", 1, ATTN_NORM, 0, iPitch );	
-		break;
-	case 2:	
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_pain3.wav", 1, ATTN_NORM, 0, iPitch );	
-		break;
-	case 3:	
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_pain4.wav", 1, ATTN_NORM, 0, iPitch );	
+		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "rat/rat_pain2.wav", 1, ATTN_NORM, 0, iPitch );	
 		break;
 	}
+
+	m_flNextPainTime = gpGlobals->time + 1;
 }
 
 //=========================================================
@@ -447,18 +486,30 @@ void CPitdrone :: PainSound ()
 //=========================================================
 void CPitdrone :: AlertSound ()
 {
-	int iPitch = RANDOM_LONG( 140, 160 );
+	int iPitch = RANDOM_LONG( 95, 105 );
 
-	switch ( RANDOM_LONG ( 0, 2  ) )
+	switch ( RANDOM_LONG ( 0, 1  ) )
 	{
 	case 0:
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_alert1.wav", 1, ATTN_NORM, 0, iPitch );	
+		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "rat/rat_alert1.wav", 1, ATTN_NORM, 0, iPitch );	
 		break;
 	case 1:
-		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "pitdrone/pit_drone_alert2.wav", 1, ATTN_NORM, 0, iPitch );	
+		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "rat/rat_alert2.wav", 1, ATTN_NORM, 0, iPitch );	
 		break;
-	case 2:
-		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "pitdrone/pit_drone_alert3.wav", 1, ATTN_NORM, 0, iPitch );
+	}
+}
+
+void CPitdrone::DeathSound()
+{
+	int iPitch = RANDOM_LONG( 95, 105 );
+
+	switch( RANDOM_LONG( 0, 1 ) )
+	{
+	case 0:
+		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "rat/rat_die1.wav", 1, ATTN_NORM, 0, iPitch );
+		break;
+	case 1:
+		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, "rat/rat_die2.wav", 1, ATTN_NORM, 0, iPitch );
 		break;
 	}
 }
@@ -495,6 +546,54 @@ void CPitdrone :: HandleAnimEvent( MonsterEvent_t *pEvent )
 {
 	switch( pEvent->event )
 	{
+	case PITDRONE_AE_JUMP_RAT:
+	{
+		ClearBits( pev->flags, FL_ONGROUND );
+
+		UTIL_SetOrigin( this, pev->origin + Vector( 0, 0, 1 ) );// take him off ground so engine doesn't instantly reset onground 
+		UTIL_MakeVectors( pev->angles );
+
+		Vector vecJumpDir;
+		if( m_hEnemy != nullptr )
+		{
+			float gravity = g_psv_gravity->value;
+			if( gravity <= 1 )
+				gravity = 1;
+
+			// How fast does the headcrab need to travel to reach that height given gravity?
+			float height = (m_hEnemy->pev->origin.z + m_hEnemy->pev->view_ofs.z - pev->origin.z);
+			if( height < 16 )
+				height = 16;
+			float speed = sqrt( 2 * gravity * height );
+			float time = speed / gravity;
+
+			// Scale the sideways velocity to get there at the right time
+			vecJumpDir = (m_hEnemy->pev->origin + m_hEnemy->pev->view_ofs - pev->origin);
+			vecJumpDir = vecJumpDir * (1.0 / time);
+
+			// Speed to offset gravity at the desired height
+			vecJumpDir.z = speed;
+
+			// Don't jump too far/fast
+			float distance = vecJumpDir.Length();
+
+			if( distance > 650 )
+			{
+				vecJumpDir = vecJumpDir * (650.0 / distance);
+			}
+		}
+		else
+		{
+			// jump hop, don't care where
+			vecJumpDir = Vector( gpGlobals->v_forward.x, gpGlobals->v_forward.y, gpGlobals->v_up.z ) * 350;
+		}
+
+		EMIT_SOUND_DYN( edict(), CHAN_VOICE, "rat/rat_leap.wav", 1.0, ATTN_IDLE, 0, RANDOM_LONG(95,105) );
+
+		pev->velocity = vecJumpDir;
+		m_flNextAttack = gpGlobals->time + 6; // Aynekko: don't jump too often
+	}
+	break;
 		case PITDRONE_AE_SPIT:
 		{
 			if( m_iInitialAmmo != -1 && GetBodygroup( PitdroneBodygroup::Weapons ) != PitdroneWeapon::Empty )
@@ -550,8 +649,7 @@ void CPitdrone :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case PITDRONE_AE_BITE:
 		{
-			// SOUND HERE!
-			CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.pitdroneDmgBite, DMG_SLASH );
+			CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.ratDmg, DMG_SLASH );
 			
 			if ( pHurt )
 			{
@@ -559,13 +657,15 @@ void CPitdrone :: HandleAnimEvent( MonsterEvent_t *pEvent )
 				//pHurt->pev->punchangle.x = -45;
 				pHurt->pev->velocity = pHurt->pev->velocity - gpGlobals->v_forward * 100;
 				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_up * 100;
+				EMIT_SOUND_DYN( edict(), CHAN_WEAPON, "rat/rat_bite.wav", 1.0, ATTN_IDLE, 0, 100 );
+				UTIL_ScreenShake( pHurt->pev->origin, 15.0, 1.5, 0.7, 2 );
 			}
 		}
 		break;
 
 		case PITDRONE_AE_TAILWHIP:
 		{
-			CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.pitdroneDmgWhip, DMG_CLUB | DMG_ALWAYSGIB );
+			CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.ratDmg, DMG_CLUB | DMG_ALWAYSGIB );
 			if ( pHurt ) 
 			{
 				pHurt->pev->punchangle.z = -20;
@@ -659,14 +759,15 @@ void CPitdrone :: Spawn()
 {
 	Precache( );
 
-	SET_MODEL(ENT(pev), "models/pit_drone.mdl");
+	SET_MODEL(ENT(pev), "models/giantrat.mdl");
 	UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 48 ) );
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	m_bloodColor		= BLOOD_COLOR_RED;
 	pev->effects		= 0;
-	pev->health			= gSkillData.pitdroneHealth;
+	if( !pev->health ) pev->health	= gSkillData.ratHealth;
+	pev->max_health = pev->health;
 	m_flFieldOfView		= VIEW_FIELD_WIDE;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 
@@ -694,6 +795,11 @@ void CPitdrone :: Spawn()
 
 	m_flNextEatTime = gpGlobals->time;
 
+	if( !pev->skin )
+		pev->skin = RANDOM_LONG( 0, 3 );
+
+	m_flNextPainTime = gpGlobals->time;
+
 	MonsterInit();
 }
 
@@ -702,7 +808,7 @@ void CPitdrone :: Spawn()
 //=========================================================
 void CPitdrone :: Precache()
 {
-	PRECACHE_MODEL("models/pit_drone.mdl");
+	PRECACHE_MODEL("models/giantrat.mdl");
 	PRECACHE_MODEL( "models/pit_drone_gibs.mdl" );
 
 	UTIL_PrecacheOther( "pitdronespike" );
@@ -711,33 +817,16 @@ void CPitdrone :: Precache()
 
 	PRECACHE_SOUND("zombie/claw_miss2.wav");// because we use the basemonster SWIPE animation event
 
-	PRECACHE_SOUND( "pitdrone/pit_drone_alert1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_alert2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_alert3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_attack_spike1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_attack_spike2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_communicate1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_communicate2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_communicate3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_communicate4.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_die1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_die2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_die3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_hunt1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_hunt2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_hunt3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_idle1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_idle2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_idle3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_melee_attack1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_melee_attack2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_pain1.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_pain2.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_pain3.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_pain4.wav" );
-	PRECACHE_SOUND( "pitdrone/pit_drone_run_on_grate.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_bite2.wav" );
-	PRECACHE_SOUND( "bullchicken/bc_bite3.wav" );
+	PRECACHE_SOUND( "rat/rat_alert1.wav" );
+	PRECACHE_SOUND( "rat/rat_alert2.wav" );
+	PRECACHE_SOUND( "rat/rat_die1.wav" );
+	PRECACHE_SOUND( "rat/rat_die2.wav" );
+	PRECACHE_SOUND( "rat/rat_idle1.wav" );
+	PRECACHE_SOUND( "rat/rat_idle2.wav" );
+	PRECACHE_SOUND( "rat/rat_leap.wav" );
+	PRECACHE_SOUND( "rat/rat_bite.wav" );
+	PRECACHE_SOUND( "rat/rat_pain1.wav" );
+	PRECACHE_SOUND( "rat/rat_pain2.wav" );
 
 }
 
@@ -1013,6 +1102,15 @@ IMPLEMENT_CUSTOM_SCHEDULES( CPitdrone, CBaseMonster );
 //=========================================================
 Schedule_t *CPitdrone :: GetSchedule()
 {
+	// Aynekko: run away when burning
+	if( IsOnFire )
+	{
+		if( m_MonsterState == MONSTERSTATE_COMBAT && HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+	}
+	
 	switch	( m_MonsterState )
 	{
 	case MONSTERSTATE_ALERT:
@@ -1074,15 +1172,15 @@ Schedule_t *CPitdrone :: GetSchedule()
 				return GetScheduleOfType ( SCHED_WAKE_ANGRY );
 			}
 
-			if( HasConditions(bits_COND_NO_AMMO_LOADED) && m_iInitialAmmo != -1 )
-			{
-				return GetScheduleOfType( SCHED_PITDRONE_COVER_AND_RELOAD );
-			}
+		//	if( HasConditions(bits_COND_NO_AMMO_LOADED) && m_iInitialAmmo != -1 )
+		//	{
+		//		return GetScheduleOfType( SCHED_PITDRONE_COVER_AND_RELOAD );
+		//	}
 
-			if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
-			{
-				return GetScheduleOfType ( SCHED_RANGE_ATTACK1 );
-			}
+		//	if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+		//	{
+		//		return GetScheduleOfType ( SCHED_RANGE_ATTACK1 );
+		//	}
 
 			if ( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 			{
@@ -1171,6 +1269,12 @@ void CPitdrone :: StartTask ( Task_t *pTask )
 			}
 			break;
 		}
+	case TASK_MELEE_ATTACK2 :
+		{
+			m_IdealActivity = ACT_MELEE_ATTACK2;
+			SetTouch( &CPitdrone::LeapTouch );
+			break;
+		}
 	default:
 		{
 			CBaseMonster :: StartTask ( pTask );
@@ -1186,6 +1290,16 @@ void CPitdrone :: RunTask ( Task_t *pTask )
 {
 	switch ( pTask->iTask )
 	{
+	case TASK_MELEE_ATTACK2:
+	{
+		if( m_fSequenceFinished )
+		{
+			TaskComplete();
+			SetTouch( nullptr );
+			m_IdealActivity = ACT_IDLE;
+		}
+		break;
+	}
 	case TASK_PITDRONE_HOPTURN:
 		{
 			MakeIdealYaw( m_vecEnemyLKP );

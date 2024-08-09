@@ -223,7 +223,7 @@ void CPython::Reload()
 	bUseScope = g_pGameRules->IsMultiplayer();
 #endif
 
-	DefaultReload( 6, PYTHON_RELOAD, 2.0, bUseScope );
+	DefaultReload( 6, PYTHON_RELOAD, 2.5, bUseScope );
 }
 
 

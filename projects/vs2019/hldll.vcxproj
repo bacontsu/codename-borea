@@ -128,7 +128,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\bloodpuddle.cpp" />
     <ClCompile Include="..\..\dlls\bmodels.cpp" />
     <ClCompile Include="..\..\dlls\boneworks.cpp" />
-    <ClCompile Include="..\..\dlls\bullsquid.cpp" />
+    <ClCompile Include="..\..\dlls\spider.cpp" />
     <ClCompile Include="..\..\dlls\buttons.cpp" />
     <ClCompile Include="..\..\dlls\cbase.cpp" />
     <ClCompile Include="..\..\dlls\CDrillSergeant.cpp" />
@@ -182,13 +182,13 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\headcrab.cpp" />
     <ClCompile Include="..\..\dlls\healthkit.cpp" />
     <ClCompile Include="..\..\dlls\hfgrunt.cpp" />
-    <ClCompile Include="..\..\dlls\hgrunt.cpp" />
+    <ClCompile Include="..\..\dlls\thug_gangster.cpp" />
     <ClCompile Include="..\..\dlls\hgrunt_ally.cpp" />
     <ClCompile Include="..\..\dlls\hgrunt_medic.cpp" />
     <ClCompile Include="..\..\dlls\hgrunt_torch.cpp" />
     <ClCompile Include="..\..\dlls\hornet.cpp" />
     <ClCompile Include="..\..\dlls\hornetgun.cpp" />
-    <ClCompile Include="..\..\dlls\houndeye.cpp" />
+    <ClCompile Include="..\..\dlls\dog.cpp" />
     <ClCompile Include="..\..\dlls\h_ai.cpp" />
     <ClCompile Include="..\..\dlls\h_battery.cpp" />
     <ClCompile Include="..\..\dlls\h_cine.cpp" />
@@ -221,7 +221,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\otis.cpp" />
     <ClCompile Include="..\..\dlls\pathcorner.cpp" />
     <ClCompile Include="..\..\dlls\penguin_grenade.cpp" />
-    <ClCompile Include="..\..\dlls\pitdrone.cpp" />
+    <ClCompile Include="..\..\dlls\giant_rat.cpp" />
     <ClCompile Include="..\..\dlls\pitworm_up.cpp" />
     <ClCompile Include="..\..\dlls\plane.cpp" />
     <ClCompile Include="..\..\dlls\plats.cpp" />
@@ -237,7 +237,7 @@ EXIT /B 0</Command>
     <ClCompile Include="..\..\dlls\rpg.cpp" />
     <ClCompile Include="..\..\dlls\satchel.cpp" />
     <ClCompile Include="..\..\dlls\schedule.cpp" />
-    <ClCompile Include="..\..\dlls\scientist.cpp" />
+    <ClCompile Include="..\..\dlls\worker_tramp.cpp" />
     <ClCompile Include="..\..\dlls\scripted.cpp" />
     <ClCompile Include="..\..\dlls\shockroach.cpp" />
     <ClCompile Include="..\..\dlls\shocktrooper.cpp" />

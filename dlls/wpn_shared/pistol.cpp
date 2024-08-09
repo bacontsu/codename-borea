@@ -52,13 +52,8 @@ int CGlock::AddToPlayer( CBasePlayer *pPlayer )//Fix old Half-life bug. G-Cont
 
 void CGlock::Holster( int skiplocal )
 {
-	if (m_pPlayer->targetFov != 0)
-	{
-		SecondaryAttack();
-	}
-
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( GLOCK_HOLSTER );
+	SendWeaponAnim( GLOCK_HOLSTER, 1, pev->body );
 }
 
 
@@ -73,9 +68,13 @@ void CGlock::Precache()
 	PRECACHE_SOUND("items/9mmclip1.wav");
 	PRECACHE_SOUND("items/9mmclip2.wav");
 
-	PRECACHE_SOUND ("weapons/pl_gun1.wav");//silenced handgun
-	PRECACHE_SOUND ("weapons/pl_gun2.wav");//silenced handgun
-	PRECACHE_SOUND ("weapons/pl_gun3.wav");//handgun
+	PRECACHE_SOUND ("weapons/psk_draw.wav");
+	PRECACHE_SOUND( "weapons/psk_fire.wav" );
+	PRECACHE_SOUND( "weapons/psk_magin.wav" );
+	PRECACHE_SOUND( "weapons/psk_magout.wav" );
+	PRECACHE_SOUND( "weapons/psk_silenced.wav" );
+	PRECACHE_SOUND( "weapons/psk_silencer.wav" );
+	PRECACHE_SOUND( "weapons/psk_slidepull.wav" );
 
 	m_usFireGlock1 = PRECACHE_EVENT( 1, "events/glock1.sc" );
 	m_usFireGlock2 = PRECACHE_EVENT( 1, "events/glock2.sc" );
@@ -108,28 +107,25 @@ void CGlock::IncrementAmmo(CBasePlayer* pPlayer)
 
 BOOL CGlock::Deploy( )
 {
-	// pev->body = 1;
-	return DefaultDeploy( "models/v_pistol.mdl", "models/p_pistol.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
+	return DefaultDeploy( "models/v_pistol.mdl", "models/p_pistol.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0, pev->body );
 }
 
 void CGlock::SecondaryAttack()
 {
-	if (m_pPlayer->isRunning) return;
-
-	if (m_pPlayer->targetFov != 0)
+	if( pev->body == 0 )
 	{
-		m_pPlayer->targetFov = 0;  // 0 means reset to default fov
-		m_pPlayer->isScoping = false;
-		m_pPlayer->m_iScopeType = false;
+		pev->body = 1;
+		SendWeaponAnim( GLOCK_ADD_SILENCER, 1, pev->body );
 	}
-	else if (m_pPlayer->targetFov != -30)
+	else
 	{
-		m_pPlayer->targetFov = -30;
-		m_pPlayer->isScoping = true;
-		m_pPlayer->m_iScopeType = WEAPON_GLOCK;
+		SendWeaponAnim( GLOCK_REMOVE_SILENCER, 1, pev->body );
+		pev->iuser1 = 666; // mark to change body in the WeaponIdle
 	}
 
-	m_flNextSecondaryAttack = 0.5;
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 3.0f;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 3.0f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.5f;
 }
 
 void CGlock::PrimaryAttack()
@@ -193,6 +189,9 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
+	// Aynekko: animation and sound done here instead
+	SendWeaponAnim( (m_iClip <= 0) ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 1, pev->body );
+	EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, pev->body == 1 ? "weapons/psk_silenced.wav" : "weapons/psk_fire.wav", 0.5, ATTN_NORM );
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -210,12 +209,15 @@ void CGlock::Reload()
 	if ( m_pPlayer->ammo_9mm <= 0 )
 		 return;
 
+	if( m_iClip == GLOCK_MAX_CLIP )
+		return;
+
 	int iResult;
 
 	if (m_iClip == 0)
-		iResult = DefaultReload( 17, GLOCK_RELOAD, 1.5 );
+		iResult = DefaultReload( 17, GLOCK_RELOAD, 2.5, pev->body );
 	else
-		iResult = DefaultReload( 17, GLOCK_RELOAD_NOT_EMPTY, 1.5 );
+		iResult = DefaultReload( 17, GLOCK_RELOAD_NOT_EMPTY, 2.5, pev->body );
 
 	if (iResult)
 	{
@@ -233,6 +235,13 @@ void CGlock::WeaponIdle()
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
+
+	// need to change body to non-silenced after removing the silencer
+	if( pev->iuser1 == 666 )
+	{
+		pev->body = 0;
+		pev->iuser1 = 0;
+	}
 
 	// only idle if the slid isn't back
 	if (m_iClip != 0)
@@ -255,7 +264,7 @@ void CGlock::WeaponIdle()
 			iAnim = GLOCK_IDLE2;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
 		}
-		SendWeaponAnim( iAnim, 1 );
+		SendWeaponAnim( iAnim, 1, pev->body );
 	}
 }
 

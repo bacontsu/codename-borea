@@ -121,7 +121,7 @@ void CBaseMonster :: ChangeSchedule ( Schedule_t *pNewSchedule )
 // this is very useful code if you can isolate a test case in a level with a single monster. It will notify
 // you of every schedule selection the monster makes.
 #if 0
-	if ( FClassnameIs( pev, "monster_human_grunt" ) )
+	if ( FClassnameIs( pev, "monster_tramp" ) )
 	{
 		Task_t *pTask = GetTask();
 		
@@ -805,7 +805,13 @@ void CBaseMonster :: StartTask ( Task_t *pTask )
 		}
 	case TASK_FIND_COVER_FROM_ORIGIN:
 		{
-			if ( FindCover( pev->origin, pev->view_ofs, 0, CoverRadius() ) )
+			if( FindLateralCover( pev->origin, pev->view_ofs ) )
+			{
+				// try lateral first
+				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+				TaskComplete();
+			}
+			else if ( FindCover( pev->origin, pev->view_ofs, 0, CoverRadius() ) )
 			{
 				// then try for plain ole cover
 				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
@@ -1509,6 +1515,12 @@ Task_t	*CBaseMonster :: GetTask ()
 //=========================================================
 Schedule_t *CBaseMonster :: GetSchedule ()
 {
+	// Aynekko: run away when burning
+	if( m_iLFlags & LF_BURNING )
+	{
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
+	}
+	
 	switch	( m_MonsterState )
 	{
 	case MONSTERSTATE_PRONE:
@@ -1523,12 +1535,7 @@ Schedule_t *CBaseMonster :: GetSchedule ()
 		}
 	case MONSTERSTATE_IDLE:
 		{
-			// Aynekko: run away when burning
-			if( m_iLFlags & LF_BURNING )
-			{
-				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
-			}
-			else if ( HasConditions ( bits_COND_HEAR_SOUND ) )
+			if ( HasConditions ( bits_COND_HEAR_SOUND ) )
 			{
 				return GetScheduleOfType( SCHED_ALERT_FACE );
 			}
@@ -1546,12 +1553,6 @@ Schedule_t *CBaseMonster :: GetSchedule ()
 		}
 	case MONSTERSTATE_ALERT:
 		{
-			// Aynekko: run away when burning
-			if( m_iLFlags & LF_BURNING )
-			{
-				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
-			}	
-
 			if ( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 			{
 				return GetScheduleOfType ( SCHED_VICTORY_DANCE );

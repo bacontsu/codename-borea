@@ -43,6 +43,9 @@ void CMP5::Spawn( )
 	m_flNextGrenadeLoad = gpGlobals->time;
 
 	FallInit();// get ready to fall down.
+
+	m_iRifleShotsFired = 0;
+	m_flRifleShoot = 0;
 }
 
 
@@ -62,7 +65,7 @@ void CMP5::Precache()
 	PRECACHE_SOUND("items/clipinsert1.wav");
 	PRECACHE_SOUND("items/cliprelease1.wav");
 
-	PRECACHE_SOUND ("weapons/hks1.wav");// H to the K
+	PRECACHE_SOUND ("weapons/mp54_fire.wav");// H to the K
 	PRECACHE_SOUND ("weapons/hks2.wav");// H to the K
 	PRECACHE_SOUND ("weapons/hks3.wav");// H to the K
 
@@ -120,6 +123,8 @@ int CMP5::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CMP5::Deploy( )
 {
+	m_iRifleShotsFired = 0;
+	m_flRifleShoot = 0;
 	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5" );
 }
 
@@ -127,10 +132,75 @@ void CMP5::Holster( int skiplocal /* = 0 */)
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim(MP5_HOLSTER);
+
+	if( m_pPlayer->targetFov != 0 )
+	{
+		SecondaryAttack();
+	}
+}
+
+void CMP5::RifleFireBullet( void )
+{
+	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
+
+	m_iClip--;
+
+	if( m_iRifleShotsFired == 0 )
+		EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, "weapons/mp54_fire.wav", 0.5, ATTN_NORM );
+	m_iRifleShotsFired++;
+	m_flRifleShoot = gpGlobals->time + 0.05; // time for the next burst bullet
+
+	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
+	Vector vecDir;
+
+#ifdef CLIENT_DLL
+	if( bIsMultiplayer() )
+#else
+	if( g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		// optimized multiplayer. Widened to make it easier to hit a moving player
+		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	}
+	else
+	{
+		// single player spread
+		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	}
+
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = UTIL_DefaultPlaybackFlags();
+#else
+	flags = 0;
+#endif
+
+	//	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, RANDOM_LONG( MP5_FIRE1, MP5_FIRE3 ), m_iShell, 0, 0 );
+
+	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+		// HEV suit - indicate out of ammo condition
+		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 );
 }
 
 void CMP5::PrimaryAttack()
 {
+	// we are bursting. not allowed
+	if( m_flRifleShoot > 0 )
+	{
+#ifndef CLIENT_DLL // sigh...
+		CLIENT_COMMAND( m_pPlayer->edict(), "-attack\n" );
+#endif
+		return;
+	}
+	
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
@@ -146,112 +216,31 @@ void CMP5::PrimaryAttack()
 		return;
 	}
 
-	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
+	// prepare for burst fire
+	m_iRifleShotsFired = 0;
+	m_flRifleShoot = 0;
 
-	m_iClip--;
-
-
-	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
-	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
-	Vector vecDir;
-
-#ifdef CLIENT_DLL
-	if ( bIsMultiplayer() )
-#else
-	if ( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		// optimized multiplayer. Widened to make it easier to hit a moving player
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
-	else
-	{
-		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
-
-  int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = UTIL_DefaultPlaybackFlags();
-#else
-	flags = 0;
-#endif
-
-//	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, RANDOM_LONG(MP5_FIRE1, MP5_FIRE3), m_iShell, 0, 0 );
-
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
-
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
-
-	if ( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.2;
-
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	RifleFireBullet();
 }
-
 
 
 void CMP5::SecondaryAttack()
 {
-	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
+	if( m_pPlayer->isRunning ) return;
+
+	if( m_pPlayer->targetFov != 0 )
 	{
-		PlayEmptySound( );
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
-		return;
+		m_pPlayer->targetFov = 0; // 0 means reset to default fov
+		m_pPlayer->isScoping = false;
+	}
+	else if( m_pPlayer->targetFov != -70 )
+	{
+		m_pPlayer->targetFov = -70;
+		m_pPlayer->isScoping = true;
 	}
 
-	if (m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] == 0)
-	{
-		PlayEmptySound( );
-		return;
-	}
-
-	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
-
-	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
-	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2;
-			
-	m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType]--;
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-
-	// we don't add in player velocity anymore.
-	CGrenade::ShootContact( m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, 
-							gpGlobals->v_forward * 800 );
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = UTIL_DefaultPlaybackFlags();
-#else
-	flags = 0;
-#endif
-
-	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usMP52 );
-	
-	m_flNextPrimaryAttack = GetNextAttackDelay(1);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;// idle pretty soon after shooting.
-
-	if (!m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType])
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
-
-	m_pPlayer->pev->punchangle.x -= 10;
+	SetNextThink( 0.1 );
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
 }
 
 void CMP5::Reload()
@@ -259,12 +248,46 @@ void CMP5::Reload()
 	if ( m_pPlayer->ammo_9mm <= 0 )
 		return;
 
-	DefaultReload( MP5_MAX_CLIP, MP5_RELOAD, 1.5 );
+	m_iRifleShotsFired = 0;
+	m_flRifleShoot = 0;
+
+	if( m_pPlayer->targetFov != 0 )
+	{
+		SecondaryAttack();
+	}
+
+	DefaultReload( MP5_MAX_CLIP, MP5_RELOAD, 3.5 );
 }
 
 
 void CMP5::WeaponIdle()
 {
+	if( m_flRifleShoot > 0 )
+	{
+		// time to shoot next bullet
+		if( m_flRifleShoot < gpGlobals->time )
+		{
+			if( m_iRifleShotsFired < 3 )
+			{
+				RifleFireBullet();
+			}
+			else // 3 shots fired, stop.
+			{
+				m_flRifleShoot = 0;
+				m_iRifleShotsFired = 0;
+
+				m_flNextPrimaryAttack = GetNextAttackDelay( 0.5 );
+
+				if( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
+					m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
+
+				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+			}
+		}
+
+		return;
+	}
+	
 	ResetEmptySound( );
 
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );

@@ -1996,10 +1996,10 @@ void CHGrunt :: SetActivity ( Activity NewActivity )
 		}
 		break;
 	case ACT_RUN:
-		if ( pev->health <= HGRUNT_LIMP_HEALTH )
+		if ( 0 )// pev->health <= HGRUNT_LIMP_HEALTH )
 		{
 			// limp!
-			iSequence = LookupActivity ( ACT_RUN_HURT );
+		//	iSequence = LookupActivity ( ACT_RUN_HURT );
 		}
 		else
 		{
@@ -2011,6 +2011,8 @@ void CHGrunt :: SetActivity ( Activity NewActivity )
 		{
 			// limp!
 			iSequence = LookupActivity ( ACT_WALK_HURT );
+			if( iSequence == ACTIVITY_NOT_AVAILABLE )
+				iSequence = LookupActivity( ACT_WALK );
 		}
 		else
 		{
@@ -2641,6 +2643,7 @@ public:
 	void CheckAmmo() override; // thugs don't use ammo
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType( int Type ) override;
+	float	CoverRadius() override { return 1500; }
 
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
@@ -2742,7 +2745,6 @@ void CMonsterThugPipe::Spawn()
 	pev->effects = 0;
 	if( !pev->health )
 		pev->health = gSkillData.thugHealth;
-	ALERT( at_console, "thug %f\n", pev->health );
 
 	if( FClassnameIs( pev, "monster_thug_wrench" ) )
 		pev->health += pev->health * 0.5f; // 50% increase for wrench dude
@@ -2790,7 +2792,8 @@ void CMonsterThugPipe::SpeakSentence()
 
 void CMonsterThugPipe::OnCatchFire( void )
 {
-	PlaySentence( "THU_BURN", 3, VOL_NORM, ATTN_NORM );
+	PlaySentence( "THU_BURN", 7, VOL_NORM, ATTN_NORM );
+	m_flNextPainTime = gpGlobals->time + 7; // don't play regular pain sounds
 }
 
 BOOL CMonsterThugPipe::CheckRangeAttack1( float flDot, float flDist )
@@ -3002,6 +3005,15 @@ Schedule_t *CMonsterThugPipe::GetSchedule()
 			else
 				return GetScheduleOfType( SCHED_GRUNT_REPEL );
 		}
+	}
+
+	// Aynekko: run away when burning
+	if( IsOnFire )
+	{
+		if( m_MonsterState == MONSTERSTATE_COMBAT && HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
 	}
 
 	if( AllyDied )
@@ -3405,6 +3417,7 @@ public:
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType( int Type ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
+	float CoverRadius() override { return 1500; }
 
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
@@ -3508,7 +3521,6 @@ void CMonsterGangster::Spawn()
 	pev->effects = 0;
 	if( !pev->health )
 		pev->health = gSkillData.gangHealth;
-	ALERT( at_console, "gang %f\n", pev->health );
 
 	pev->max_health = pev->health;
 	m_flFieldOfView = 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -3571,6 +3583,7 @@ void CMonsterGangster::SpeakSentence()
 void CMonsterGangster::OnCatchFire( void )
 {
 	PlaySentence( "GANG_BURN", 3, VOL_NORM, ATTN_NORM );
+	m_flNextPainTime = gpGlobals->time + 7; // don't play regular pain sounds
 }
 
 void CMonsterGangster::StartTask( Task_t *pTask )
@@ -3768,6 +3781,15 @@ Schedule_t *CMonsterGangster::GetSchedule()
 			else
 				return GetScheduleOfType( SCHED_GRUNT_REPEL );
 		}
+	}
+
+	// Aynekko: run away when burning
+	if( IsOnFire )
+	{
+		if( m_MonsterState == MONSTERSTATE_COMBAT && HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ORIGIN );
 	}
 
 	if( AllyDied )

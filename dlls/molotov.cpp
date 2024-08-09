@@ -19,7 +19,8 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
-
+#include "soundent.h"
+#include "movewith.h"
 
 #define	HANDGRENADE_PRIMARY_VOLUME		450
 
@@ -30,7 +31,7 @@ void CMolotov::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_PENGUIN;
-	SET_MODEL(ENT(pev), "models/w_grenade.mdl");
+	SET_MODEL(ENT(pev), "models/w_molotov.mdl");
 
 #ifndef CLIENT_DLL
 	pev->dmg = gSkillData.plrDmgHandGrenade;
@@ -44,15 +45,19 @@ void CMolotov::Spawn( )
 
 void CMolotov::Precache()
 {
-	PRECACHE_MODEL("models/w_grenade.mdl");
-	PRECACHE_MODEL("models/v_grenade.mdl");
-	PRECACHE_MODEL("models/p_grenade.mdl");
+	PRECACHE_MODEL("models/w_molotov.mdl");
+	PRECACHE_MODEL("models/v_molotov.mdl");
+	PRECACHE_MODEL("models/p_molotov.mdl");
+
+	PRECACHE_SOUND( "weapons/molotov_break.wav" );
+
+	UTIL_PrecacheOther( "fire" );
 }
 
 int CMolotov::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "Hand Grenade";
+	p->pszAmmo1 = "Molotov";
 	p->iMaxAmmo1 = HANDGRENADE_MAX_CARRY;
 	p->pszAmmo2 = nullptr;
 	p->iMaxAmmo2 = -1;
@@ -85,7 +90,7 @@ void CMolotov::IncrementAmmo(CBasePlayer* pPlayer)
 BOOL CMolotov::Deploy( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_molotov.mdl", "models/p_molotov.mdl", HANDGRENADE_DRAW, "crowbar" );
 }
 
 BOOL CMolotov::CanHolster()
@@ -158,7 +163,7 @@ void CMolotov::WeaponIdle()
 		if (time < 0)
 			time = 0;
 
-		CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+		CGrenade::ShootMolotov( m_pPlayer->pev, vecSrc, vecThrow, time );
 
 		if ( flVel < 500 )
 		{
@@ -234,3 +239,104 @@ void CMolotov::WeaponIdle()
 
 
 
+#ifndef  CLIENT_DLL // sigh...
+
+
+// fire entity!!!
+class CFire : public CPointEntity
+{
+public:
+	void	Spawn() override;
+	void	Precache() override;
+	void Think() override;
+
+	float BurnStartTime;
+	float InsertSoundTime;
+
+	int	Save( CSave &save ) override;
+	int	Restore( CRestore &restore ) override;
+	static	TYPEDESCRIPTION m_SaveData[];
+};
+
+const int BurningTime = 10; // tune this if needed - fire burns for 10 seconds then dies
+// also change it in CGrenade::MolotovExplode !!!
+
+LINK_ENTITY_TO_CLASS( fire, CFire );
+
+TYPEDESCRIPTION	CFire::m_SaveData[] =
+{
+	DEFINE_FIELD( CFire, BurnStartTime, FIELD_FLOAT ),
+	DEFINE_FIELD( CFire, InsertSoundTime, FIELD_FLOAT ),
+};
+
+IMPLEMENT_SAVERESTORE( CFire, CPointEntity );
+
+// Landmark class
+void CFire::Spawn()
+{
+	Precache();
+	pev->solid = SOLID_NOT;
+	pev->movetype = MOVETYPE_TOSS;
+	pev->gravity = RANDOM_FLOAT( 1.0, 1.5 );
+//	UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 32 ) );
+
+	BurnStartTime = gpGlobals->time; // start burning
+	InsertSoundTime = gpGlobals->time + RANDOM_FLOAT( 0.0, 0.5 ); // insert sound every 2-3 seconds
+	SetNextThink( RANDOM_FLOAT( 0.08, 0.16 ) );
+
+//	SET_MODEL( ENT( pev ), "sprites/pravafire.spr" );
+//	pev->rendermode = kRenderTransAdd;
+//	pev->rendercolor = Vector( 255, 180, 0 );
+//	pev->renderamt = 255;
+//	pev->iuser1 = (float)MODEL_FRAMES( pev->modelindex ) - 1;
+}
+
+void CFire::Precache()
+{
+//	PRECACHE_MODEL( "sprites/pravafire.spr" );
+}
+
+void CFire::Think( void )
+{
+	// time's up or hit water, extinguish
+	if( pev->waterlevel > 0 || gpGlobals->time > BurnStartTime + BurningTime )
+	{
+		DontThink();
+		UTIL_Remove( this );
+		return;
+	}
+	
+	// send particle here
+	UTIL_Particle("flames_tlg.txt", pev->origin, g_vecZero, 0);
+//	if( pev->frame >= pev->iuser1 )
+//		pev->frame = 0;
+//	pev->frame++;
+
+	// notify the world about fire presence
+	if( gpGlobals->time > InsertSoundTime )
+	{
+		CSoundEnt::InsertSound( bits_SOUND_FIRE | bits_SOUND_DANGER, pev->origin, 128, 1.0 );
+		InsertSoundTime = gpGlobals->time + RANDOM_FLOAT( 1.5, 3.0 );
+	}
+
+	// set monsters on fire
+	CBaseEntity *pOther = nullptr;
+	while( (pOther = UTIL_FindEntityInSphere( pOther, pev->origin, 80 )) != nullptr )
+	{
+		if( pOther->IsPlayer() )
+		{
+			// smash the player with fire damage
+			pOther->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), gSkillData.firepersecDmg * 0.01f, DMG_BURN );
+			continue;
+		}
+		
+		if( !(pOther->pev->flags & FL_MONSTER) || (pOther->pev->deadflag != DEAD_NO) || (pOther->m_iLFlags & LF_BURNING_IMMUNE) )
+			continue;
+		
+		pOther->m_iLFlags |= LF_BURNING;
+	}
+
+	SetNextThink( RANDOM_FLOAT(0.1,0.2) );
+}
+
+#endif // ! CLIENT_DLL

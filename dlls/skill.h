@@ -161,7 +161,13 @@ struct skilldata_t
 	float gangDmgPistol;
 	float trampHealth;
 	float workerHealth;
-
+	float dogDmg;
+	float dogHealth;
+	float ratDmg;
+	float ratHealth;
+	float spiderDmg;
+	float spiderHealth;
+	float firepersecDmg;
 
 // Player Weapons
 	float plrDmgCrowbar;

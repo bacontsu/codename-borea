@@ -61,6 +61,8 @@ void CBaseMonster :: SetState ( MONSTERSTATE State )
 //=========================================================
 void CBaseMonster :: RunAI ()
 {
+	CheckFire();
+	
 	// to test model's eye height
 	//UTIL_ParticleEffect ( pev->origin + pev->view_ofs, g_vecZero, 255, 10 );
 

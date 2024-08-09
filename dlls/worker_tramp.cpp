@@ -1515,6 +1515,7 @@ void CWorker::OnCatchFire( void )
 
 void CWorker::DeathSound( void )
 {
+	ResetSequenceInfo();
 	char sentence_name[64];
 	sentence_name[0] = '\0';
 	
@@ -1792,9 +1793,9 @@ Schedule_t *CWorker::GetSchedule()
 		pSound = PBestSound();
 
 		ASSERT( pSound != nullptr );
-		if( pSound && (pSound->m_iType & bits_SOUND_DANGER) )
-			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
 		if( pSound && (pSound->m_iType & bits_SOUND_FIRE) )
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+		if( pSound && (pSound->m_iType & bits_SOUND_DANGER) )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
 	}
 
@@ -1979,7 +1980,7 @@ int CWorker::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 		StopFollowing( TRUE );
 	}
 
-	if( !IsAlive() )
+	if( pev->deadflag != DEAD_NO || IsOnFire )
 		goto skip_sounds;
 
 	char sentence_name[64];

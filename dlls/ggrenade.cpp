@@ -529,7 +529,7 @@ void CGrenade :: BounceSound()
 	case 2:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/grenade_hit3.wav", 0.25, ATTN_NORM);	break;
 	}
 
-	FranUtils::EmitDlight(Vector(pev->origin.x, pev->origin.y, pev->origin.z + 10.0f), 8, {255, 0, 0}, 2.0f, 100);
+//	FranUtils::EmitDlight(Vector(pev->origin.x, pev->origin.y, pev->origin.z + 10.0f), 8, {255, 0, 0}, 2.0f, 100);
 }
 
 void CGrenade :: TumbleThink()
@@ -543,6 +543,12 @@ void CGrenade :: TumbleThink()
 	StudioFrameAdvance( );
 	SetNextThink( 0.1 );
 
+	int pitch = 130 - ((pev->dmgtime - gpGlobals->time) * 10);
+//	ALERT( at_console, "pitch %i\n", pitch );
+	// Aynekko: PITCH DOESN'T CHANGE!!!!! Fix this somehow
+	EMIT_SOUND_DYN( ENT(pev), CHAN_BODY, "weapons/fuse_burn.wav", 1.0, ATTN_NORM, SND_CHANGE_PITCH | SND_CHANGE_VOL, pitch );
+	UTIL_Sparks( pev->origin );
+
 	if (pev->dmgtime - 1 < gpGlobals->time)
 	{
 		CSoundEnt::InsertSound ( bits_SOUND_DANGER, pev->origin + pev->velocity * (pev->dmgtime - gpGlobals->time), 400, 0.1 );
@@ -551,6 +557,7 @@ void CGrenade :: TumbleThink()
 	if (pev->dmgtime <= gpGlobals->time)
 	{
 		SetThink( &CGrenade::Detonate );
+		STOP_SOUND( edict(), CHAN_BODY, "weapons/fuse_burn.wav" );
 	}
 	if (pev->waterlevel != 0 && pev->watertype > CONTENT_FLYFIELD)
 	{
@@ -635,10 +642,177 @@ CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector v
 	pGrenade->pev->gravity = 0.5;
 	pGrenade->pev->friction = 0.8;
 
-	SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
+	SET_MODEL(ENT(pGrenade->pev), "models/w_dynamite.mdl");
 	pGrenade->pev->dmg = 100;
 
 	return pGrenade;
+}
+
+
+
+
+
+
+
+//======================================================================
+// Aynekko: molotov stuff for The Last Goodbye
+//======================================================================
+
+CGrenade *CGrenade::ShootMolotov( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time )
+{
+	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
+	pGrenade->Spawn();
+	// contact grenades arc lower
+	pGrenade->pev->gravity = 0.5;// lower gravity since grenade is aerodynamic and engine doesn't know it.
+	pGrenade->pev->friction = 0.8;
+	UTIL_SetOrigin( pGrenade, vecStart );
+	pGrenade->pev->velocity = vecVelocity;
+	pGrenade->pev->angles = UTIL_VecToAngles( pGrenade->pev->velocity );
+	if( pevOwner )
+		pGrenade->pev->owner = ENT( pevOwner );
+
+	pGrenade->SetTouch( &CGrenade::MolotovTouch );	// Bounce if touched
+
+	// perform "on ground" checks
+	pGrenade->SetThink( &CGrenade::MolotovThink );
+	pGrenade->SetNextThink( 0 );
+
+	SET_MODEL( pGrenade->edict(), "models/w_molotov.mdl" );
+
+	pGrenade->pev->sequence = RANDOM_LONG( 3, 5 );
+	pGrenade->pev->body = 1;
+
+	return pGrenade;
+}
+
+void CGrenade::MolotovTouch( CBaseEntity *pOther )
+{
+	// don't hit the guy that launched this grenade
+	if( pOther->edict() == pev->owner )
+		return;
+
+	// only do damage if we're moving fairly fast
+	if( m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100 )
+	{
+		entvars_t *pevOwner = VARS( pev->owner );
+		if( pevOwner )
+		{
+			TraceResult tr = UTIL_GetGlobalTrace();
+			ClearMultiDamage();
+			pOther->TraceAttack( pevOwner, 1, gpGlobals->v_forward, &tr, DMG_CLUB );
+			ApplyMultiDamage( pev, pevOwner );
+
+			// explode!!!
+			pev->framerate = 1.0f;
+			SetThink( &CGrenade::MolotovExplode );
+			SetTouch( NULL );
+			SetNextThink( 0 );
+		}
+		m_flNextAttack = gpGlobals->time + 1.0; // debounce
+	}
+
+	Vector vecTestVelocity;
+	// pev->avelocity = Vector (300, 300, 300);
+
+	// this is my heuristic for modulating the grenade velocity because grenades dropped purely vertical
+	// or thrown very far tend to slow down too quickly for me to always catch just by testing velocity. 
+	// trimming the Z velocity a bit seems to help quite a bit.
+	vecTestVelocity = pev->velocity;
+	vecTestVelocity.z *= 0.45;
+
+	if( !m_fRegisteredSound && vecTestVelocity.Length() <= 60 )
+	{
+		//ALERT( at_console, "Grenade Registered!: %f\n", vecTestVelocity.Length() );
+
+		// grenade is moving really slow. It's probably very close to where it will ultimately stop moving. 
+		// go ahead and emit the danger sound.
+
+		// register a radius louder than the explosion, so we make sure everyone gets out of the way
+		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin, pev->dmg / 0.4, 0.3 );
+		m_fRegisteredSound = TRUE;
+	}
+
+	if( pev->flags & FL_ONGROUND )
+	{
+		// add a bit of static friction
+		pev->velocity = pev->velocity * 0.8;
+
+		pev->sequence = RANDOM_LONG( 1, 1 );
+	}
+	else
+	{
+		// play bounce sound
+		BounceSound();
+	}
+	pev->framerate = pev->velocity.Length() / 200.0;
+	if( pev->framerate > 1.0 )
+		pev->framerate = 1;
+	else if( pev->framerate < 0.5 )
+		pev->framerate = 0;
+
+}
+
+void CGrenade::MolotovThink( void )
+{
+	// disable molotov upon contact with water surface
+	if( pev->waterlevel != 0 )
+	{
+		DontThink();
+		SetTouch( NULL );
+		return;
+	}
+	
+	if( pev->flags & FL_ONGROUND )
+	{
+		pev->framerate = 1.0f;
+		SetThink( &CGrenade::MolotovExplode );
+		SetNextThink( 0 );
+		return;
+	}
+
+	pev->framerate = pev->velocity.Length() / 150.0;
+
+	if( pev->framerate > 1.5f )
+		pev->framerate = 1.5f;
+	else if( pev->framerate < 0.75f )
+		pev->framerate = 0.75f;
+
+	SetNextThink( 0 );
+}
+
+void CGrenade::MolotovExplode( void )
+{
+	SetTouch( NULL );
+	DontThink();
+	
+	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/molotov_break.wav", 1.0, ATTN_NORM );
+
+	const int BurningTime = 10; // tune this if needed - fire burns for 10 seconds then dies, so same for the light
+	// also change this value in molotov.cpp if you do so here
+
+	// light the fire!
+	FranUtils::EmitDlight( Vector( pev->origin.x, pev->origin.y, pev->origin.z ), 14, { 255, 180, 0 }, BurningTime, 0 );
+
+	// create 24 fires...
+	TraceResult tr;
+	for( int i = 0; i < 24; i++ )
+	{
+		// trace a point in random direction, with 128 radius
+		const int radius = 128;
+	//	Vector forward = { gpGlobals->v_forward.x, gpGlobals->v_forward.y * m_iLineCountNextRot, gpGlobals->v_forward.z };
+		Vector FireOrigin = pev->origin + Vector( RANDOM_LONG( -radius, radius ), RANDOM_LONG( -radius, radius ), 0 );
+
+		UTIL_TraceLine( pev->origin, FireOrigin, ignore_monsters, ENT( pev ), &tr );
+
+		// don't create fire inside a solid
+		if( tr.fAllSolid || tr.flFraction < 1.0 )
+			continue;
+
+		CBaseEntity::Create( "fire", FireOrigin, pev->angles, edict() );
+	}
+
+	// the bottle magically disappears (breaks)
+	UTIL_Remove( this );
 }
 
 

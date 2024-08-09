@@ -725,6 +725,14 @@ void CBaseMonster::CallGibMonster()
 
 void CBaseMonster::CheckFire( void )
 {
+	if( pev->deadflag != DEAD_NO )
+	{
+		if( m_iLFlags & LF_BURNING )
+			m_iLFlags &= ~LF_BURNING;
+
+		return;
+	}
+	
 	if( m_iLFlags & LF_BURNING_IMMUNE )
 	{
 		// we are immune. so if we get the flag, get rid of it, just in case
@@ -757,24 +765,12 @@ void CBaseMonster::CheckFire( void )
 		else
 		{
 			Vector vecOrg = pev->origin;
-			vecOrg.z += RANDOM_LONG( 35, 50 ); // randomize fire position on the body
+			vecOrg.z += RANDOM_LONG( 36, 69 ); // randomize fire position on the body
 
-			// monster thinks every 0.1 seconds. so this message will be sent out accordingly every 0.1 second while monster burns
-			// put particle spawn here or whatever! this is a leftover code from Diffusion.
-			/*
-			MESSAGE_BEGIN( MSG_PVS, gmsgTempEnt, vecOrg );
-			WRITE_BYTE( TE_FIRE );
-			WRITE_COORD( vecOrg.x + RANDOM_LONG( -10, 10 ) );
-			WRITE_COORD( vecOrg.y + RANDOM_LONG( -10, 10 ) );
-			WRITE_COORD( vecOrg.z );
-			WRITE_SHORT( g_sModelIndexFire );
-			WRITE_BYTE( RANDOM_LONG( 2, 7 ) ); // scale x1.0
-			WRITE_BYTE( RANDOM_LONG( 10, 20 ) ); // framerate
-			MESSAGE_END();
-			*/
+			UTIL_Particle( "flames_tlg.txt", vecOrg, g_vecZero, 0 );
 
-			// every 0.1 second monster takes 0.5 hp damage from fire
-			TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), 0.5, DMG_BURN );
+			// every 0.1 second (monster think interval) monster takes damage from fire
+			TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), gSkillData.firepersecDmg * 0.1f, DMG_BURN );
 		}
 	}
 }
@@ -795,6 +791,7 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 	{
 		pev->effects &= ~EF_DIMLIGHT;
 		IsOnFire = false;
+		m_iLFlags &= ~LF_BURNING;
 		pev->iuser3 = 0;
 #if 1 // crispy critter
 		pev->rendermode = kRenderTransColor;

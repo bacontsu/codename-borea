@@ -26,7 +26,7 @@
 
 // special deathmatch shotgun spreads
 #define VECTOR_CONE_DM_SHOTGUN	Vector( 0.08716, 0.04362, 0.00  )// 10 degrees by 5 degrees
-#define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
+#define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.13362, 0.1 ) // 20 degrees +/-
 
 LINK_ENTITY_TO_CLASS( weapon_shotgun, CShotgun );
 
@@ -53,7 +53,7 @@ void CShotgun::Precache()
 	PRECACHE_SOUND("items/9mmclip1.wav");              
 
 	PRECACHE_SOUND ("weapons/dbarrel1.wav");//shotgun
-	PRECACHE_SOUND ("weapons/sbarrel1.wav");//shotgun
+	PRECACHE_SOUND ("weapons/m67_fire.wav");//shotgun
 
 	PRECACHE_SOUND ("weapons/reload1.wav");	// shotgun reload
 	PRECACHE_SOUND ("weapons/reload3.wav");	// shotgun reload
@@ -62,7 +62,7 @@ void CShotgun::Precache()
 //	PRECACHE_SOUND ("weapons/sshell3.wav");	// shotgun reload - played on client
 	
 	PRECACHE_SOUND ("weapons/357_cock1.wav"); // gun empty sound
-	PRECACHE_SOUND ("weapons/scock1.wav");	// cock gun
+	PRECACHE_SOUND ("weapons/m67_pump.wav");	// cock gun
 
 	m_usSingleFire = PRECACHE_EVENT( 1, "events/shotgun1.sc" );
 	m_usDoubleFire = PRECACHE_EVENT( 1, "events/shotgun2.sc" );
@@ -191,8 +191,6 @@ void CShotgun::PrimaryAttack()
 
 void CShotgun::SecondaryAttack()
 {
-
-	
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
@@ -201,7 +199,7 @@ void CShotgun::SecondaryAttack()
 		return;
 	}
 
-	if (m_iClip <= 1)
+	if (m_iClip <= 0)
 	{
 		Reload( );
 		PlayEmptySound( );
@@ -211,7 +209,7 @@ void CShotgun::SecondaryAttack()
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	m_iClip -= 2;
+	m_iClip--;
 
 
 	int flags;
@@ -244,7 +242,8 @@ void CShotgun::SecondaryAttack()
 	else
 	{
 		// untouched default single player
-		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	//	vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 6, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 		
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usDoubleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
@@ -256,8 +255,8 @@ void CShotgun::SecondaryAttack()
 	//if (m_iClip != 0)
 		m_flPumpTime = gpGlobals->time + 0.95;
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(1.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5;
+	m_flNextPrimaryAttack = GetNextAttackDelay(1.0);
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.3;
 	if (m_iClip != 0)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0;
 	else
@@ -270,7 +269,7 @@ void CShotgun::SecondaryAttack()
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
 	Vector vecInvPushDir = gpGlobals->v_forward * 200.0;
 
-	m_pPlayer->pev->velocity = -gpGlobals->v_forward * 300;
+	m_pPlayer->pev->velocity = -gpGlobals->v_forward * 100;
 	UTIL_ScreenShake(m_pPlayer->pev->origin, 100, 30, 1, 300);
 
 #endif

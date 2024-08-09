@@ -320,6 +320,13 @@ void CGameRules::RefreshSkillData ()
 	gSkillData.gangDmgPistol = GetSkillCvar( "sk_gang_dmg_pistol" );
 	gSkillData.trampHealth = GetSkillCvar( "sk_tramp_health" );
 	gSkillData.workerHealth = GetSkillCvar( "sk_worker_health" );
+	gSkillData.dogHealth = GetSkillCvar( "sk_dog_health" );
+	gSkillData.dogDmg = GetSkillCvar( "sk_dog_dmg" );
+	gSkillData.ratHealth = GetSkillCvar( "sk_rat_health" );
+	gSkillData.ratDmg = GetSkillCvar( "sk_rat_dmg" );
+	gSkillData.spiderHealth = GetSkillCvar( "sk_spider_health" );
+	gSkillData.spiderDmg = GetSkillCvar( "sk_spider_dmg" );
+	gSkillData.firepersecDmg = CVAR_GET_FLOAT( "sk_fire_dmg_per_second" );
 
 // PLAYER WEAPONS
 

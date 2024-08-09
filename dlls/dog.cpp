@@ -94,6 +94,7 @@ public:
 	void SetActivity ( Activity NewActivity ) override;
 	void WriteBeamColor ();
 	BOOL CheckRangeAttack1 ( float flDot, float flDist ) override;
+	BOOL CheckMeleeAttack1( float flDot, float flDist ) override;
 	BOOL FValidateHintType ( short sHint ) override;
 	BOOL FCanActiveIdle () override;
 	Schedule_t *GetScheduleOfType ( int Type ) override;
@@ -109,8 +110,13 @@ public:
 	BOOL m_fAsleep;// some houndeyes sleep in idle mode if this is set, the houndeye is lying down
 	BOOL m_fDontBlink;// don't try to open/close eye if this bit is set!
 	Vector	m_vecPackCenter; // the center of the pack. The leader maintains this by averaging the origins of all pack members.
+
+	CBaseEntity *Kick();
+	float m_flNextPainTime;
+	float	CoverRadius() override { return 1500; }
 };
 LINK_ENTITY_TO_CLASS( monster_houndeye, CHoundeye );
+LINK_ENTITY_TO_CLASS( monster_attackdog, CHoundeye ); // Aynekko: I will just edit the houndeye so it's just a new entity name
 
 TYPEDESCRIPTION	CHoundeye::m_SaveData[] = 
 {
@@ -128,7 +134,27 @@ IMPLEMENT_SAVERESTORE( CHoundeye, CSquadMonster );
 //=========================================================
 int	CHoundeye :: Classify ()
 {
-	return m_iClass?m_iClass:CLASS_ALIEN_MONSTER;
+	return m_iClass?m_iClass: CLASS_HUMAN_MILITARY;
+}
+
+CBaseEntity *CHoundeye::Kick()
+{
+	TraceResult tr;
+
+	UTIL_MakeVectors( pev->angles );
+	Vector vecStart = pev->origin;
+	vecStart.z += pev->size.z * 0.5;
+	Vector vecEnd = vecStart + (gpGlobals->v_forward * 70);
+
+	UTIL_TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
+
+	if( tr.pHit )
+	{
+		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+		return pEntity;
+	}
+
+	return nullptr;
 }
 
 //=========================================================
@@ -193,10 +219,21 @@ BOOL CHoundeye :: FCanActiveIdle ()
 //=========================================================
 BOOL CHoundeye :: CheckRangeAttack1 ( float flDot, float flDist )
 {
+	return FALSE; // Aynekko: no range for the dog
+
 	if ( flDist <= ( HOUNDEYE_MAX_ATTACK_RADIUS * 0.5 ) && flDot >= 0.3 )
 	{
 		return TRUE;
 	}
+	return FALSE;
+}
+
+// Aynekko: bite attack check
+BOOL CHoundeye::CheckMeleeAttack1( float flDot, float flDist )
+{
+	if( flDist <= 64 && flDot >= 0.7 )
+		return TRUE;
+
 	return FALSE;
 }
 
@@ -274,6 +311,7 @@ void CHoundeye :: SetActivity ( Activity NewActivity )
 //=========================================================
 void CHoundeye :: HandleAnimEvent( MonsterEvent_t *pEvent )
 {
+	CBaseEntity *pHurt;
 	switch ( pEvent->event )
 	{
 		case HOUND_AE_WARN:
@@ -282,7 +320,17 @@ void CHoundeye :: HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 
 		case HOUND_AE_STARTATTACK:
-			WarmUpSound();
+		//	WarmUpSound();
+			pHurt = Kick();
+			if( pHurt )
+			{
+				EMIT_SOUND( ENT( pev ), CHAN_VOICE, "dog/dog_bite.wav", 1, ATTN_NORM );
+				UTIL_MakeVectors( pev->angles );
+				pHurt->pev->punchangle.x -= 15;
+				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
+				pHurt->TakeDamage( pev, pev, gSkillData.dogDmg, DMG_CLUB );
+				UTIL_ScreenShake( pHurt->pev->origin, 20.0, 1.5, 0.7, 2 );
+			}
 			break;
 
 		case HOUND_AE_HOPBACK:
@@ -303,17 +351,17 @@ void CHoundeye :: HandleAnimEvent( MonsterEvent_t *pEvent )
 			break;
 
 		case HOUND_AE_ANGERSOUND1:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "houndeye/he_pain3.wav", 1, ATTN_NORM);	
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "dog/dog_pain2.wav", 1, ATTN_NORM);	
 			break;
 
 		case HOUND_AE_ANGERSOUND2:
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "houndeye/he_pain1.wav", 1, ATTN_NORM);	
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "dog/dog_pain1.wav", 1, ATTN_NORM);	
 			break;
 
 		case HOUND_AE_CLOSE_EYE:
 			if ( !m_fDontBlink )
 			{
-				pev->skin = HOUNDEYE_EYE_FRAMES - 1;
+		//		pev->skin = HOUNDEYE_EYE_FRAMES - 1;
 			}
 			break;
 
@@ -333,21 +381,26 @@ void CHoundeye :: Spawn()
 	if (pev->model)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
-		SET_MODEL(ENT(pev), "models/houndeye.mdl");
+		SET_MODEL(ENT(pev), "models/attackdog.mdl");
 	UTIL_SetSize(pev, Vector ( -16, -16, 0 ), Vector ( 16, 16, 36 ) );
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	m_bloodColor		= BLOOD_COLOR_YELLOW;
+	m_bloodColor		= BLOOD_COLOR_RED;
 	pev->effects		= 0;
-	if (pev->health == 0)
-		pev->health			= gSkillData.houndeyeHealth;
+	if( pev->health == 0 )
+		pev->health = gSkillData.dogHealth;
 	pev->yaw_speed		= 5;//!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?
 	m_flFieldOfView		= 0.5;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_fAsleep			= FALSE; // everyone spawns awake
 	m_fDontBlink		= FALSE;
 	m_afCapability		|= bits_CAP_SQUAD;
+
+	m_flNextPainTime = gpGlobals->time;
+
+	if( !pev->skin )
+		pev->skin = RANDOM_LONG( 0, 3 );
 
 	MonsterInit();
 }
@@ -360,35 +413,38 @@ void CHoundeye :: Precache()
 	if (pev->model)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
-		PRECACHE_MODEL("models/houndeye.mdl");
+		PRECACHE_MODEL("models/attackdog.mdl");
 
-	PRECACHE_SOUND("houndeye/he_alert1.wav");
-	PRECACHE_SOUND("houndeye/he_alert2.wav");
-	PRECACHE_SOUND("houndeye/he_alert3.wav");
+	PRECACHE_SOUND("dog/dog_alert1.wav");
+	PRECACHE_SOUND("dog/dog_alert2.wav");
+	PRECACHE_SOUND("dog/dog_alert3.wav");
 
-	PRECACHE_SOUND("houndeye/he_die1.wav");
-	PRECACHE_SOUND("houndeye/he_die2.wav");
-	PRECACHE_SOUND("houndeye/he_die3.wav");
+	PRECACHE_SOUND("dog/dog_die1.wav");
+	PRECACHE_SOUND("dog/dog_die2.wav");
+	PRECACHE_SOUND("dog/dog_die3.wav");
+	PRECACHE_SOUND( "dog/dog_die.wav" );
 
-	PRECACHE_SOUND("houndeye/he_idle1.wav");
-	PRECACHE_SOUND("houndeye/he_idle2.wav");
-	PRECACHE_SOUND("houndeye/he_idle3.wav");
+	PRECACHE_SOUND("dog/dog_idle1.wav");
+	PRECACHE_SOUND("dog/dog_idle2.wav");
+	PRECACHE_SOUND("dog/dog_idle3.wav");
+	PRECACHE_SOUND( "dog/dog_idle4.wav" );
 
-	PRECACHE_SOUND("houndeye/he_hunt1.wav");
-	PRECACHE_SOUND("houndeye/he_hunt2.wav");
-	PRECACHE_SOUND("houndeye/he_hunt3.wav");
+	PRECACHE_SOUND("dog/dog_hunt1.wav");
+	PRECACHE_SOUND("dog/dog_hunt2.wav");
+	PRECACHE_SOUND("dog/dog_hunt3.wav");
 
-	PRECACHE_SOUND("houndeye/he_pain1.wav");
-	PRECACHE_SOUND("houndeye/he_pain3.wav");
-	PRECACHE_SOUND("houndeye/he_pain4.wav");
-	PRECACHE_SOUND("houndeye/he_pain5.wav");
+	PRECACHE_SOUND("dog/dog_pain1.wav");
+	PRECACHE_SOUND("dog/dog_pain2.wav");
+	PRECACHE_SOUND( "dog/dog_bark.wav" );
+	PRECACHE_SOUND( "dog/dog_leap.wav" );
+	PRECACHE_SOUND( "dog/dog_bite.wav" );
 
-	PRECACHE_SOUND("houndeye/he_attack1.wav");
-	PRECACHE_SOUND("houndeye/he_attack3.wav");
+	PRECACHE_SOUND("dog/dog_attack1.wav");
+	PRECACHE_SOUND("dog/dog_attack3.wav");
 
-	PRECACHE_SOUND("houndeye/he_blast1.wav");
-	PRECACHE_SOUND("houndeye/he_blast2.wav");
-	PRECACHE_SOUND("houndeye/he_blast3.wav");
+	PRECACHE_SOUND("dog/dog_blast1.wav");
+	PRECACHE_SOUND("dog/dog_blast2.wav");
+	PRECACHE_SOUND("dog/dog_blast3.wav");
 
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/shockwave.spr" );
 }	
@@ -398,16 +454,19 @@ void CHoundeye :: Precache()
 //=========================================================
 void CHoundeye :: IdleSound ()
 {
-	switch ( RANDOM_LONG(0,2) )
+	switch ( RANDOM_LONG(0,3) )
 	{
 	case 0:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_idle1.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_idle1.wav", 1, ATTN_NORM );	
 		break;
 	case 1:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_idle2.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_idle2.wav", 1, ATTN_NORM );	
 		break;
 	case 2:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_idle3.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_idle3.wav", 1, ATTN_NORM );	
+		break;
+	case 3:
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "dog/dog_idle4.wav", 1, ATTN_NORM );
 		break;
 	}
 }
@@ -433,16 +492,13 @@ void CHoundeye :: WarmUpSound ()
 //=========================================================
 void CHoundeye :: WarnSound ()
 {
-	switch ( RANDOM_LONG(0,2) )
+	switch ( RANDOM_LONG(0,1) )
 	{
 	case 0:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_hunt1.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_leap.wav", 1, ATTN_NORM );	
 		break;
 	case 1:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_hunt2.wav", 1, ATTN_NORM );	
-		break;
-	case 2:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_hunt3.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_bark.wav", 1, ATTN_NORM );	
 		break;
 	}
 }
@@ -458,18 +514,7 @@ void CHoundeye :: AlertSound ()
 		return; // only leader makes ALERT sound.
 	}
 
-	switch ( RANDOM_LONG(0,2) )
-	{
-	case 0:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_alert1.wav", 1, ATTN_NORM );	
-		break;
-	case 1:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_alert2.wav", 1, ATTN_NORM );	
-		break;
-	case 2:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_alert3.wav", 1, ATTN_NORM );	
-		break;
-	}
+	EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_alert1.wav", 1, ATTN_NORM );	
 }
 
 //=========================================================
@@ -477,16 +522,19 @@ void CHoundeye :: AlertSound ()
 //=========================================================
 void CHoundeye :: DeathSound ()
 {
-	switch ( RANDOM_LONG(0,2) )
+	switch ( RANDOM_LONG(0,3) )
 	{
 	case 0:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_die1.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_die1.wav", 1, ATTN_NORM );	
 		break;
 	case 1:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_die2.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_die2.wav", 1, ATTN_NORM );	
 		break;
 	case 2:
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_die3.wav", 1, ATTN_NORM );	
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "dog/dog_die3.wav", 1, ATTN_NORM );	
+		break;
+	case 3:
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "dog/dog_die.wav", 1, ATTN_NORM );
 		break;
 	}
 }
@@ -496,17 +544,18 @@ void CHoundeye :: DeathSound ()
 //=========================================================
 void CHoundeye :: PainSound ()
 {
-	switch ( RANDOM_LONG(0,2) )
+	if( gpGlobals->time > m_flNextPainTime )
 	{
-	case 0:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_pain3.wav", 1, ATTN_NORM );	
-		break;
-	case 1:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_pain4.wav", 1, ATTN_NORM );	
-		break;
-	case 2:	
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_pain5.wav", 1, ATTN_NORM );	
-		break;
+		switch( RANDOM_LONG( 0, 1 ) )
+		{
+		case 0:
+			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "dog/dog_pain1.wav", 1, ATTN_NORM );
+			break;
+		case 1:
+			EMIT_SOUND( ENT( pev ), CHAN_VOICE, "dog/dog_pain2.wav", 1, ATTN_NORM );
+			break;
+		}
+		m_flNextPainTime = gpGlobals->time + 1;
 	}
 }
 
@@ -703,7 +752,7 @@ void CHoundeye :: StartTask ( Task_t *pTask )
 		}
 	case TASK_HOUND_CLOSE_EYE:
 		{
-			pev->skin = 0;
+	//		pev->skin = 0;
 			m_fDontBlink = TRUE; // tell blink code to leave the eye alone.
 			break;
 		}
@@ -797,10 +846,10 @@ void CHoundeye :: RunTask ( Task_t *pTask )
 		}
 	case TASK_HOUND_CLOSE_EYE:
 		{
-			if ( pev->skin < HOUNDEYE_EYE_FRAMES - 1 )
-			{
-				pev->skin++;
-			}
+		//	if ( pev->skin < HOUNDEYE_EYE_FRAMES - 1 )
+		//	{
+		//		pev->skin++;
+		//	}
 			break;
 		}
 	case TASK_HOUND_HOP_BACK:
@@ -813,7 +862,7 @@ void CHoundeye :: RunTask ( Task_t *pTask )
 		}
 	case TASK_SPECIAL_ATTACK1:
 		{
-			pev->skin = RANDOM_LONG(0, HOUNDEYE_EYE_FRAMES - 1);
+		//	pev->skin = RANDOM_LONG(0, HOUNDEYE_EYE_FRAMES - 1);
 
 			MakeIdealYaw ( m_vecEnemyLKP );
 			ChangeYaw ( pev->yaw_speed );
@@ -854,13 +903,13 @@ void CHoundeye :: RunTask ( Task_t *pTask )
 void CHoundeye::PrescheduleThink ()
 {
 	// if the hound is mad and is running, make hunt noises.
-	if ( m_MonsterState == MONSTERSTATE_COMBAT && m_Activity == ACT_RUN && RANDOM_FLOAT( 0, 1 ) < 0.2 )
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && m_Activity == ACT_RUN && RANDOM_FLOAT( 0, 1 ) < 0.1 )
 	{
 		WarnSound();
 	}
 
 	// at random, initiate a blink if not already blinking or sleeping
-	if ( !m_fDontBlink )
+	if ( 0 )//!m_fDontBlink )
 	{
 		if ( ( pev->skin == 0 ) && RANDOM_LONG(0,0x7F) == 0 )
 		{// start blinking!
