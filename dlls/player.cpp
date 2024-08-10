@@ -4656,7 +4656,7 @@ void CBasePlayer::ItemPostFrame()
 	// Aynekko: do kick here (activated by impulse 666)
 	if( DoPlayerKickPunch )
 	{
-		if( gpGlobals->time > KickPunchStartTime + 0.5 && !DoKickDamage )
+		if( gpGlobals->time > KickPunchStartTime + 0.4 && !DoKickDamage )
 		{
 			// do damage
 			DoKickDamage = true;

@@ -1515,7 +1515,6 @@ void CWorker::OnCatchFire( void )
 
 void CWorker::DeathSound( void )
 {
-	ResetSequenceInfo();
 	char sentence_name[64];
 	sentence_name[0] = '\0';
 	

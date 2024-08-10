@@ -528,7 +528,9 @@ CSound* CBaseMonster :: PBestScent ()
 //=========================================================
 void CBaseMonster :: MonsterThink ()
 {
-	SetNextThink( 0.1 );// keep monster thinking.
+	pev->nextthink = gpGlobals->time + 0.1;
+	// Aynekko: this fucking function really messes up the delay here, monster sometimes don't think for a second!
+//	SetNextThink( 0.1 );// keep monster thinking.
 
 	RunAI();
 
