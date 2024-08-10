@@ -754,7 +754,7 @@ void CImguiManager::DrawSpeeds()
 
 	ImGui::Begin("Codename Borea", &is_open, window_flags);
 	ImGui::SetWindowFontScale(1.5f);
-	ImGui::TextColored(ImVec4(0.76f, 0.62f, 0.2f, 1), "Codename Borea");
+	ImGui::TextColored(ImVec4(0.76f, 0.62f, 0.2f, 1), "The Last Goodbye");
 	ImGui::SetWindowFontScale(1.0f);
 	ImGui::Text("Renderer: ReTrinity");
 	std::string version = "OpenGL: " + (std::string)(const char*)glGetString(GL_VERSION);
