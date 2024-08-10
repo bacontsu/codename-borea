@@ -1862,7 +1862,12 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 		if (m_pPlayer)
 		{
 			vecSrc = vecSrc + gpGlobals->v_right * m_pPlayer->leanAngle;
-			UTIL_Particle("smokegun.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5 + gpGlobals->v_right * m_pPlayer->leanAngle, gpGlobals->v_forward * 5, 0);
+
+			// silenced glock only spawns small smoke
+			if(m_pPlayer->m_pActiveItem && m_pPlayer->m_pActiveItem->m_iId == WEAPON_GLOCK && m_pPlayer->m_pActiveItem->pev->body == 1)
+				UTIL_Particle("smokegunsilenced.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5 + gpGlobals->v_right * m_pPlayer->leanAngle, gpGlobals->v_forward * 5, 0);
+			else
+				UTIL_Particle("smokegun.txt", m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 4 - gpGlobals->v_up * 5 + gpGlobals->v_right * m_pPlayer->leanAngle, gpGlobals->v_forward * 5, 0);
 		}
 	}
 
