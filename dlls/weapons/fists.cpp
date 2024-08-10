@@ -66,14 +66,12 @@ void CPipewrench::Precache()
 	PRECACHE_SOUND("weapons/pwrench_big_hit2.wav");*/
 	PRECACHE_SOUND("weapons/pwrench_big_hitbod1.wav");
 	PRECACHE_SOUND("weapons/pwrench_big_hitbod2.wav");
-	PRECACHE_SOUND("weapons/pwrench_big_miss.wav");
 	PRECACHE_SOUND("weapons/pwrench_hit1.wav");
 	PRECACHE_SOUND("weapons/pwrench_hit2.wav");
 	PRECACHE_SOUND("weapons/pwrench_hitbod1.wav");
 	PRECACHE_SOUND("weapons/pwrench_hitbod2.wav");
 	PRECACHE_SOUND("weapons/pwrench_hitbod3.wav");
-	PRECACHE_SOUND("weapons/pwrench_miss1.wav");
-	PRECACHE_SOUND("weapons/pwrench_miss2.wav");
+	PRECACHE_SOUND( "weapons/melee_fist.wav" );
 
 	m_usPipewrench = PRECACHE_EVENT ( 1, "events/pipewrench.sc" );
 }
@@ -333,7 +331,7 @@ void CPipewrench::BigSwing()
 		0.0, g_vecZero, g_vecZero, 0, 0, 0,
 		0.0, 1, tr.flFraction < 1 );
 
-	EMIT_SOUND_DYN(edict(), CHAN_WEAPON, "weapons/pwrench_big_miss.wav", VOL_NORM, ATTN_NORM, 0, 94 + RANDOM_LONG(0, 15));
+	EMIT_SOUND_DYN(edict(), CHAN_WEAPON, "weapons/melee_fist.wav", VOL_NORM, ATTN_NORM, 0, 94 + RANDOM_LONG(0, 15));
 
 	if ( tr.flFraction >= 1.0 )
 	{

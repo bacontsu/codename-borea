@@ -120,12 +120,12 @@ void CGlock::SecondaryAttack()
 	else
 	{
 		SendWeaponAnim( GLOCK_REMOVE_SILENCER, 1, pev->body );
-		pev->iuser1 = 666; // mark to change body in the WeaponIdle
+		pev->iuser1 = 11; // mark to change body in the WeaponIdle
 	}
 
 	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 3.0f;
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 3.0f;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.5f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.8f;
 }
 
 void CGlock::PrimaryAttack()
@@ -235,13 +235,6 @@ void CGlock::WeaponIdle()
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
-
-	// need to change body to non-silenced after removing the silencer
-	if( pev->iuser1 == 666 )
-	{
-		pev->body = 0;
-		pev->iuser1 = 0;
-	}
 
 	// only idle if the slid isn't back
 	if (m_iClip != 0)

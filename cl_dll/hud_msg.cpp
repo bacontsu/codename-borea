@@ -388,6 +388,15 @@ int CHud ::MsgFunc_FreeEnt(const char *pszName, int iSize, void *pbuf)
 	pEntity->efrag = nullptr;
 	return 1;
 }
+
+// Aynekko
+int CHud::MsgFunc_KickPunch( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	gHUD.KickStage = READ_BYTE();
+	return 1;
+}
+
 int CHud::MsgFunc_PPGray(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);

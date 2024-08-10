@@ -99,4 +99,7 @@ extern int gmsgCustomIcon;
 extern int gmsgStamina;
 extern int gmsgChapterName;
 
+// Aynekko
+extern int gmsgKickPunch;
+
 void LinkUserMessages();

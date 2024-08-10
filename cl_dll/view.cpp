@@ -989,6 +989,34 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[PITCH] += lerpedHold;
 	view->angles[YAW] += lerpedHoldYaw;
 
+	// Aynekko: kick punch
+	//---------------------------------------------------------------
+	static float kick_wpn_angle = 0;
+	const int kick_wpn_lower_angle = 30;
+	if( gHUD.KickStage == 3 )
+	{
+		// bring back weapon
+		kick_wpn_angle -= 250 * gHUD.m_flTimeDelta;
+		if( kick_wpn_angle <= 0 )
+			kick_wpn_angle = 0;
+
+		view->angles[PITCH] -= kick_wpn_angle;
+	}
+	else if( gHUD.KickStage == 2 )
+	{
+			
+	}
+	// if not a kick model, lower down the weapon
+	else if( gHUD.KickStage == 1 )
+	{
+		kick_wpn_angle += 320 * gHUD.m_flTimeDelta;
+		if( kick_wpn_angle > kick_wpn_lower_angle )
+			kick_wpn_angle = kick_wpn_lower_angle;
+
+		view->angles[PITCH] -= kick_wpn_angle;
+	}
+	//---------------------------------------------------------------
+
 	// Bacontsu - Leaning
 	static float leanLerp = 0;
 	leanLerp = lerp(leanLerp, gHUD.leanAngle, gHUD.m_flTimeDelta * 7.0f);

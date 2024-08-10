@@ -1947,6 +1947,16 @@ void CHGrunt :: SetActivity ( Activity NewActivity )
 
 	switch ( NewActivity)
 	{
+	case ACT_SIGNAL1:
+	case ACT_SIGNAL2:
+	case ACT_SIGNAL3:
+	{
+		iSequence = LookupActivity( NewActivity );
+		// Aynekko: stub
+		if( iSequence == ACTIVITY_NOT_AVAILABLE )
+			iSequence = LookupActivity( ACT_IDLE );
+		break;
+	}
 	case ACT_RANGE_ATTACK1:
 		// grunt is either shooting standing or shooting crouched
 		if (FBitSet( pev->weapons, HGRUNT_9MMAR))
@@ -1960,6 +1970,19 @@ void CHGrunt :: SetActivity ( Activity NewActivity )
 			{
 				// get crouching shoot
 				iSequence = LookupSequence( "crouching_mp5" );
+			}
+		}
+		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) )
+		{
+			if( m_fStanding )
+			{
+				// get aimable sequence
+				iSequence = LookupSequence( "pistol_standing" );
+			}
+			else
+			{
+				// get crouching shoot
+				iSequence = LookupSequence( "pistol_crouching" );
 			}
 		}
 		else
@@ -3458,7 +3481,10 @@ void CMonsterGangster::Precache()
 		else if( FClassnameIs( pev, "monster_gangster_smg" ) )
 			PRECACHE_MODEL( "models/gangster02a.mdl" );
 		else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+		{
 			PRECACHE_MODEL( "models/gangster03a.mdl" );
+			PRECACHE_SOUND( "weapons/psk_npc.wav" );
+		}
 
 	}
 
@@ -3466,16 +3492,6 @@ void CMonsterGangster::Precache()
 
 	PRECACHE_SOUND( "hgrunt/gr_mgun1.wav" );
 	PRECACHE_SOUND( "hgrunt/gr_mgun2.wav" );
-
-	PRECACHE_SOUND( "hgrunt/gr_die1.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_die2.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_die3.wav" );
-
-	PRECACHE_SOUND( "hgrunt/gr_pain1.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain2.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain3.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain4.wav" );
-	PRECACHE_SOUND( "hgrunt/gr_pain5.wav" );
 
 	PRECACHE_SOUND( "hgrunt/gr_reload1.wav" );
 
@@ -4237,6 +4253,9 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 	{
 		if( pev->spawnflags & SF_MONSTER_NO_WPN_DROP ) break; //LRC
 
+		if( GetBodygroup( GUN_GROUP ) == GUN_NONE )
+			break;
+
 		Vector	vecGunPos;
 		Vector	vecGunAngles;
 
@@ -4249,6 +4268,10 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) )
 		{
 			DropItem( "weapon_shotgun", vecGunPos, vecGunAngles );
+		}
+		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) )
+		{
+			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
 		}
 		else
 		{
@@ -4360,6 +4383,7 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) ) // pistol
 		{
 			Pistol();
+			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/psk_npc.wav", 1, ATTN_NORM );
 		}
 
 		CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, 384, 0.3 );

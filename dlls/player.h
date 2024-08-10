@@ -251,6 +251,11 @@ public:
 	TraceResult m_slidingTr;
 	void SlidingThink();
 
+	bool DoPlayerKickPunch;
+	float KickPunchStartTime;
+	bool DoKickDamage;
+	int KickStage;
+
 	// ads
 	int m_iScopeType;
 

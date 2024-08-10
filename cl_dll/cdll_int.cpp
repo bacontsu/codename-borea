@@ -214,7 +214,9 @@ int DLLEXPORT HUD_VidInit()
 	VGui_Startup();
 
 	SVD_VidInit();
-	
+
+	gHUD.KickStage = 0;
+
 	return 1;
 }
 

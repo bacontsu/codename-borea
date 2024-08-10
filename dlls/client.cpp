@@ -1270,6 +1270,9 @@ void ClientPrecache()
 	PRECACHE_SOUND("player/pl_pain7.wav");
 
 	PRECACHE_MODEL("models/player.mdl");
+	PRECACHE_MODEL( "models/v_kick.mdl" );
+	PRECACHE_SOUND( "weapons/melee_fist.wav" );
+	PRECACHE_SOUND( "weapons/melee_kick.wav" );
 
 	// hud sounds
 

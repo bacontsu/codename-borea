@@ -811,6 +811,9 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 	if(GetClientVoiceMgr()->IsInSquelchMode())
 		cmd->buttons &= ~IN_ATTACK;
 
+	if( gHUD.KickStage > 0 )
+		cmd->buttons &= ~IN_ATTACK;
+
 	// Using joystick?
 	if ( in_joystick->value )
 	{

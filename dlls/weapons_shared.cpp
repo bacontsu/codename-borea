@@ -144,6 +144,16 @@ void CBasePlayerWeapon::ItemPostFrame()
 	}
 #endif
 
+	// need to change body to non-silenced after removing the silencer
+	if( m_flTimeWeaponIdle <= UTIL_WeaponTimeBase() && pev->iuser1 == 11 )
+	{
+		pev->body = 0;
+		pev->iuser1 = 0;
+	}
+
+	if( m_pPlayer->DoPlayerKickPunch )
+		return;
+
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase()))
 	{
 		// complete the reload. 

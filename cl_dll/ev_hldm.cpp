@@ -544,6 +544,9 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 //======================
 void EV_FireGlock1( event_args_t *args )
 {
+	if( gHUD.KickStage > 0 ) // fuck this shit
+		return;
+	
 	int idx;
 	Vector origin;
 	Vector angles;

@@ -101,6 +101,9 @@ int gmsgOldWeapon = 0;
 int gmsgCustomIcon = 0;
 int gmsgStamina = 0;
 
+// Aynekko
+int gmsgKickPunch = 0;
+
 void LinkUserMessages()
 {
 	// Already taken care of?
@@ -193,4 +196,7 @@ void LinkUserMessages()
 	gmsgTeamFull = g_engfuncs.pfnRegUserMsg("TeamFull", 1);
 	gmsgOldWeapon = g_engfuncs.pfnRegUserMsg("OldWeapon", 1);
 	gmsgCustomIcon = g_engfuncs.pfnRegUserMsg("CustomIcon", -1);
+
+	// Aynekko
+	gmsgKickPunch = REG_USER_MSG( "KickPunch", -1 );
 }

@@ -222,6 +222,13 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD(CBasePlayer, m_iSlidingCounter, FIELD_INTEGER),
 	DEFINE_FIELD(CBasePlayer, m_flSlidingCooldown, FIELD_TIME),
 
+	// Aynekko: kick
+	// don't save, just reset...
+//	DEFINE_FIELD( CBasePlayer, DoPlayerKickPunch, FIELD_BOOLEAN ),
+//	DEFINE_FIELD( CBasePlayer, KickPunchStartTime, FIELD_TIME ),
+//	DEFINE_FIELD( CBasePlayer, DoKickDamage, FIELD_BOOLEAN ),
+//	DEFINE_FIELD( CBasePlayer, KickStage, FIELD_INTEGER ),
+
 	//LRC
 	//DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 	//DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -3708,6 +3715,9 @@ int CBasePlayer::Restore( CRestore &restore )
 
 void CBasePlayer::SelectNextItem( int iItem )
 {
+	if( DoPlayerKickPunch )
+		return;
+	
 	CBasePlayerItem *pItem;
 
 	pItem = m_rgpPlayerItems[ iItem ];
@@ -3758,6 +3768,9 @@ void CBasePlayer::SelectNextItem( int iItem )
 void CBasePlayer::SelectItem(const char *pstr)
 {
 	if (!pstr)
+		return;
+
+	if( DoPlayerKickPunch )
 		return;
 
 	CBasePlayerItem *pItem = nullptr;
@@ -4025,6 +4038,8 @@ void CBasePlayer :: ForceClientDllUpdate()
 ImpulseCommands
 ============
 */
+static string_t saved_viewmodel = 0;
+
 void CBasePlayer::ImpulseCommands( )
 {
 	TraceResult	tr;// UNDONE: kill me! This is temporary for PreAlpha CDs
@@ -4103,7 +4118,18 @@ void CBasePlayer::ImpulseCommands( )
 			DropPlayerCTFPowerup( this );
 			break;
 		}
-
+	case 206:
+		{
+			if( !DoPlayerKickPunch )
+			{
+				DoPlayerKickPunch = true;
+				KickPunchStartTime = gpGlobals->time;
+				DoKickDamage = false;
+				KickStage = 0;
+				saved_viewmodel = pev->viewmodel;
+			}
+			break;
+		}
 	default:
 		// check all of the cheat impulse commands now
 		CheatImpulseCommands( iImpulse );
@@ -4627,6 +4653,126 @@ void CBasePlayer::ItemPostFrame()
 	if (!m_pActiveItem)
 		return;
 
+	// Aynekko: do kick here (activated by impulse 666)
+	if( DoPlayerKickPunch )
+	{
+		if( gpGlobals->time > KickPunchStartTime + 0.5 && !DoKickDamage )
+		{
+			// do damage
+			DoKickDamage = true;
+
+			TraceResult tr;
+			UTIL_MakeVectors( pev->v_angle );
+			Vector vecSrc = GetGunPosition();
+			Vector vecEnd = vecSrc + gpGlobals->v_forward * 32;
+			UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
+			if( tr.flFraction >= 1.0 )
+			{
+				UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr );
+				if( tr.flFraction < 1.0 )
+				{
+					// Calculate the point of intersection of the line (or hull) and the object we hit
+					// This is and approximation of the "best" intersection
+					CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+					if( !pHit || pHit->IsBSPModel() )
+						FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, edict() );
+					vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+				}
+			}
+			if( tr.flFraction >= 1.0 )
+			{
+				// miss
+			}
+			else
+			{
+				// hit
+				CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+				bool bHitWorld = true;
+				if( pEntity )
+				{
+					ClearMultiDamage();
+					pEntity->TraceAttack( pev, gSkillData.plrDmgPipewrench, gpGlobals->v_forward, &tr, DMG_CLUB );
+					ApplyMultiDamage( pev, pev );
+					if( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+					{
+						// play thwack or smack sound
+						EMIT_SOUND( edict(), CHAN_ITEM, "weapons/pwrench_hitbod3.wav", 1, ATTN_NORM );
+						bHitWorld = false;
+					}
+					UTIL_ScreenShake( pev->origin, 20.0, 1.5, 0.7, 2 );
+					if( bHitWorld )
+					{
+						EMIT_SOUND_DYN( edict(), CHAN_ITEM, "weapons/pwrench_hitbod3.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG( 0, 3 ) );
+					}
+					m_iWeaponVolume = 128;
+				}
+			}
+		}
+		
+		if( KickStage == 0 )
+		{
+			// lower the weapon quickly
+			KickStage = 1;
+			MESSAGE_BEGIN( MSG_ONE, gmsgKickPunch, nullptr, pev );
+			WRITE_BYTE( KickStage );
+			MESSAGE_END();
+		}
+		else if( KickStage == 1 )
+		{
+			if( gpGlobals->time > KickPunchStartTime + 0.2 )
+			{
+				// do kicking
+				KickStage = 2;
+				MESSAGE_BEGIN( MSG_ONE, gmsgKickPunch, nullptr, pev );
+				WRITE_BYTE( KickStage );
+				MESSAGE_END();
+
+				pev->viewmodel = MAKE_STRING( "models/v_kick.mdl" );
+				MESSAGE_BEGIN( MSG_ONE, gmsgSendAnim, nullptr, pev );
+				WRITE_SHORT( RANDOM_LONG(0,1) );	   // sequence number
+				WRITE_SHORT( 0 ); // weaponmodel bodygroup.
+				// BLEND BY DEFAULT???
+				WRITE_BYTE( 1 );
+				MESSAGE_END();
+
+				EMIT_SOUND( edict(), CHAN_WEAPON, "weapons/melee_kick.wav", 1, ATTN_NORM );
+			}
+		}
+		else if( KickStage == 2 )
+		{
+			if( gpGlobals->time > KickPunchStartTime + 0.7 )
+			{
+				// bring back weapon
+				KickStage = 3;
+				MESSAGE_BEGIN( MSG_ONE, gmsgKickPunch, nullptr, pev );
+				WRITE_BYTE( KickStage );
+				MESSAGE_END();
+
+			//	pev->viewmodel = saved_viewmodel;
+				// better do deploy
+				m_pActiveItem->Deploy();
+			}
+		}
+		else if( KickStage == 3 )
+		{
+			// weapon brought back, restore shooting functionality
+			if( gpGlobals->time > KickPunchStartTime + 1.3 )
+			{
+				// bring back weapon
+				KickStage = 0;
+				MESSAGE_BEGIN( MSG_ONE, gmsgKickPunch, nullptr, pev );
+				WRITE_BYTE( KickStage );
+				MESSAGE_END();
+
+				DoPlayerKickPunch = false;
+				KickPunchStartTime = 0;
+				DoKickDamage = false;
+			}
+		}
+
+		return; // skip weapon functions, can't shoot, reload etc.
+	}
+
 	m_pActiveItem->ItemPostFrame( );
 }
 
@@ -4718,6 +4864,18 @@ void CBasePlayer :: UpdateClientData()
 		MESSAGE_BEGIN( MSG_ONE, gmsgResetHUD, nullptr, pev );
 			WRITE_BYTE( 0 );
 		MESSAGE_END();
+
+		// Aynekko: kick punch
+		MESSAGE_BEGIN( MSG_ONE, gmsgKickPunch, nullptr, pev );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+		DoPlayerKickPunch = false;
+		KickStage = 0;
+		KickPunchStartTime = 0;
+		DoKickDamage = false;
+		// this is an attempt to fix stuck kick if player saved during it.
+		if( m_pActiveItem )
+			m_pActiveItem->Deploy();
 
 		if ( !m_fGameHUDInitialized )
 		{
@@ -6427,7 +6585,7 @@ void CBasePlayer::ClimbingPhysics()
 			isClimbing = false;
 		}
 
-		ALERT(at_console, "diff %f %f", finalAngle, pev->v_angle[YAW]);
+	//	ALERT(at_console, "diff %f %f\n", finalAngle, pev->v_angle[YAW]);
 	}
 }
 //===========================================================================================

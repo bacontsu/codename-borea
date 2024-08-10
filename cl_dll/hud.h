@@ -981,6 +981,9 @@ public:
 	int  _cdecl MsgFunc_Inventory( const char *pszName, int iSize, void *pbuf );	//AJH
 	void _cdecl MsgFunc_ClampView( const char *pszName, int iSize, void *pbuf );	//LRC 1.8
 
+	// Aynekko: kick punch
+	int KickStage;
+
 	// Screen information
 	SCREENINFO	m_scrinfo;
 
@@ -1015,6 +1018,10 @@ public:
 	int  _cdecl MsgFunc_PPGray(const char* pszName, int iSize, void* pbuf);
 	int  _cdecl MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf);
 //RENDERERS END
+
+	// Aynekko
+	int  _cdecl MsgFunc_KickPunch( const char *pszName, int iSize, void *pbuf );
+
 	bool isNightVisionOn() { return mNightVisionState; }
 
 	void setNightVisionState( bool state );

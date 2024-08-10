@@ -476,6 +476,13 @@ int __MsgFunc_UseEnt(const char* pszName, int iSize, void* pbuf)
 	return 1;
 }
 
+// Aynekko: kick
+int __MsgFunc_KickPunch( const char *pszName, int iSize, void *pbuf )
+{
+	gHUD.MsgFunc_KickPunch( pszName, iSize, pbuf );
+	return 1;
+}
+
 
 //void InitPostEffects(); //Forward Declaration for Post-Processing
 
@@ -615,6 +622,9 @@ void CHud :: Init()
 	gLensflare.Init();
 	gBloomRenderer.Init();
 	//RENDERERS END
+
+	// Aynekko
+	HOOK_MESSAGE( KickPunch );
 
 	g_ImGUIManager.Init();
 	g_DiscordRPC.Init();
