@@ -4691,7 +4691,7 @@ void CBasePlayer::ItemPostFrame()
 				if( pEntity )
 				{
 					ClearMultiDamage();
-					pEntity->TraceAttack( pev, gSkillData.plrDmgPipewrench, gpGlobals->v_forward, &tr, DMG_CLUB );
+					pEntity->TraceAttack( pev, gSkillData.kickDmg, gpGlobals->v_forward, &tr, DMG_CLUB );
 					ApplyMultiDamage( pev, pev );
 					if( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 					{
@@ -4729,7 +4729,7 @@ void CBasePlayer::ItemPostFrame()
 
 				pev->viewmodel = MAKE_STRING( "models/v_kick.mdl" );
 				MESSAGE_BEGIN( MSG_ONE, gmsgSendAnim, nullptr, pev );
-				WRITE_SHORT( RANDOM_LONG(0,1) );	   // sequence number
+				WRITE_SHORT( (pev->flags & FL_ONGROUND) ? 0 : 1 );	   // sequence number
 				WRITE_SHORT( 0 ); // weaponmodel bodygroup.
 				// BLEND BY DEFAULT???
 				WRITE_BYTE( 1 );
@@ -4748,9 +4748,9 @@ void CBasePlayer::ItemPostFrame()
 				WRITE_BYTE( KickStage );
 				MESSAGE_END();
 
-			//	pev->viewmodel = saved_viewmodel;
+				pev->viewmodel = saved_viewmodel;
 				// better do deploy
-				m_pActiveItem->Deploy();
+			//	m_pActiveItem->Deploy(); // no, not better
 			}
 		}
 		else if( KickStage == 3 )

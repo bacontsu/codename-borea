@@ -327,6 +327,7 @@ void CGameRules::RefreshSkillData ()
 	gSkillData.spiderHealth = GetSkillCvar( "sk_spider_health" );
 	gSkillData.spiderDmg = GetSkillCvar( "sk_spider_dmg" );
 	gSkillData.firepersecDmg = CVAR_GET_FLOAT( "sk_fire_dmg_per_second" );
+	gSkillData.kickDmg = CVAR_GET_FLOAT( "sk_kick_dmg" );
 
 // PLAYER WEAPONS
 

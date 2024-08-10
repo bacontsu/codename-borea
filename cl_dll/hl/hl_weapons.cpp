@@ -326,6 +326,8 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (!pItem)
 		return;
 
+	if( DoPlayerKickPunch )
+		return;
 	
 	if (pItem == m_pActiveItem)
 		return;

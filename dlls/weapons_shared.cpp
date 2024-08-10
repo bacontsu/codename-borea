@@ -239,6 +239,9 @@ void CBasePlayerWeapon::ItemPostFrame()
 
 void CBasePlayer::SelectLastItem()
 {
+	if( DoPlayerKickPunch )
+		return;
+	
 	if (!m_pLastItem)
 	{
 		return;

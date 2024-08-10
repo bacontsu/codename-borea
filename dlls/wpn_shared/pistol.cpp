@@ -83,7 +83,7 @@ void CGlock::Precache()
 int CGlock::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "9mm";
+	p->pszAmmo1 = "pskammo";
 	p->iMaxAmmo1 = _9MM_MAX_CARRY;
 	p->pszAmmo2 = nullptr;
 	p->iMaxAmmo2 = -1;
@@ -99,7 +99,7 @@ int CGlock::GetItemInfo(ItemInfo *p)
 
 void CGlock::IncrementAmmo(CBasePlayer* pPlayer)
 {
-	if (pPlayer->GiveAmmo(1, "9mm", _9MM_MAX_CARRY))
+	if (pPlayer->GiveAmmo(1, "pskammo", _9MM_MAX_CARRY))
 	{
 		EMIT_SOUND(pPlayer->edict(), CHAN_STATIC, "ctf/pow_backpack.wav", 0.5, ATTN_NORM);
 	}
@@ -273,17 +273,17 @@ class CGlockAmmo : public CBasePlayerAmmo
 	void Spawn() override
     { 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_9mmclip.mdl");
+		SET_MODEL(ENT(pev), "models/w_pskclip.mdl");
 		CBasePlayerAmmo::Spawn( );
 	}
 	void Precache() override
     {
-		PRECACHE_MODEL ("models/w_9mmclip.mdl");
+		PRECACHE_MODEL ("models/w_pskclip.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	BOOL AddAmmo( CBaseEntity *pOther ) override
     { 
-		if (pOther->GiveAmmo( AMMO_GLOCKCLIP_GIVE, "9mm", _9MM_MAX_CARRY ) != -1)
+		if (pOther->GiveAmmo( AMMO_GLOCKCLIP_GIVE, "pskammo", _9MM_MAX_CARRY ) != -1)
 		{
 			EMIT_SOUND(ENT(pev), CHAN_ITEM, "items/9mmclip1.wav", 1, ATTN_NORM);
 			return TRUE;

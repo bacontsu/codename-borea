@@ -663,6 +663,7 @@ cvar_t	sk_spider_dmg1 = { "sk_spider_dmg1","5" };
 cvar_t	sk_spider_dmg2 = { "sk_spider_dmg2","5" };
 cvar_t	sk_spider_dmg3 = { "sk_spider_dmg3","5" };
 cvar_t	sk_fire_dmg_per_second = { "sk_fire_dmg_per_second","15" };
+cvar_t	sk_kick_dmg = { "sk_kick_dmg","15" };
 
 // Register your console variables here
 // This gets called one time when the game is initialied
@@ -1316,6 +1317,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_spider_dmg2 );
 	CVAR_REGISTER( &sk_spider_dmg3 );
 	CVAR_REGISTER( &sk_fire_dmg_per_second );
+	CVAR_REGISTER( &sk_kick_dmg );
 
 	SERVER_COMMAND( "exec skill.cfg\n" );
 	SERVER_COMMAND( "exec skillopfor.cfg\n" );
