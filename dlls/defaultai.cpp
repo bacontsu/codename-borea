@@ -75,6 +75,7 @@ Schedule_t	slIdleStand[] =
 		bits_SOUND_WORLD		|
 		bits_SOUND_PLAYER		|
 		bits_SOUND_DANGER		|
+	bits_SOUND_FIRE |
 
 		bits_SOUND_MEAT			|// scents
 		bits_SOUND_CARCASS		|
@@ -188,6 +189,7 @@ Schedule_t slActiveIdle[] =
 		bits_SOUND_COMBAT		|
 		bits_SOUND_WORLD		|
 		bits_SOUND_PLAYER		|
+	bits_SOUND_FIRE |
 		bits_SOUND_DANGER,
 		"Active Idle"
 	}
@@ -292,6 +294,7 @@ Schedule_t	slAlertStand[] =
 		bits_SOUND_COMBAT		|// sound flags
 		bits_SOUND_WORLD		|
 		bits_SOUND_PLAYER		|
+	bits_SOUND_FIRE |
 		bits_SOUND_DANGER		|
 
 		bits_SOUND_MEAT			|// scent flags
@@ -408,7 +411,7 @@ Schedule_t slStandoff[] =
 		bits_COND_NEW_ENEMY				|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER ,
 		"Standoff"
 	}
 };
@@ -478,7 +481,7 @@ Schedule_t	slRangeAttack1[] =
 		bits_COND_NO_AMMO_LOADED	|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"Range Attack1"
 	},
 };
@@ -503,7 +506,7 @@ Schedule_t	slRangeAttack2[] =
 		bits_COND_ENEMY_OCCLUDED	|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"Range Attack2"
 	},
 };
@@ -575,7 +578,7 @@ Schedule_t	slSpecialAttack1[] =
 		bits_COND_NO_AMMO_LOADED	|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"Special Attack1"
 	},
 };
@@ -601,7 +604,7 @@ Schedule_t	slSpecialAttack2[] =
 		bits_COND_NO_AMMO_LOADED	|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"Special Attack2"
 	},
 };
@@ -628,7 +631,7 @@ Schedule_t slChaseEnemy[] =
 		bits_COND_TASK_FAILED		|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"Chase Enemy"
 	},
 };
@@ -660,7 +663,7 @@ Schedule_t	slChaseEnemyFailed[] =
 		bits_COND_CAN_MELEE_ATTACK2	|
 		bits_COND_HEAR_SOUND,
 
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"tlChaseEnemyFailed"
 	},
 };

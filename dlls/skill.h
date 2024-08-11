@@ -165,7 +165,9 @@ struct skilldata_t
 	float dogHealth;
 	float ratDmg;
 	float ratHealth;
-	float spiderDmg;
+	float spiderDmgJump;
+	float spiderDmgSpit;
+	float spiderDmgBite;
 	float spiderHealth;
 	float firepersecDmg;
 	float kickDmg;

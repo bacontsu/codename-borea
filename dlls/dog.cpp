@@ -965,6 +965,7 @@ Schedule_t	slHoundGuardPack[] =
 		bits_SOUND_COMBAT		|// sound flags
 		bits_SOUND_WORLD		|
 		bits_SOUND_MEAT			|
+	bits_SOUND_FIRE |
 		bits_SOUND_PLAYER,
 		"GuardPack"
 	},
@@ -992,6 +993,7 @@ Schedule_t	slHoundRangeAttack[] =
 		tlHoundYell1,
 		ARRAYSIZE ( tlHoundYell1 ), 
 		bits_COND_LIGHT_DAMAGE	|
+		bits_COND_HEAR_SOUND |
 		bits_COND_HEAVY_DAMAGE,
 		0,
 		"HoundRangeAttack1"
@@ -1033,6 +1035,7 @@ Schedule_t	slHoundSleep[] =
 
 		bits_SOUND_COMBAT		|
 		bits_SOUND_PLAYER		|
+	bits_SOUND_FIRE |
 		bits_SOUND_WORLD,
 		"Hound Sleep"
 	},
@@ -1115,6 +1118,7 @@ Schedule_t	slHoundAgitated[] =
 		tlHoundAgitated,
 		ARRAYSIZE ( tlHoundAgitated ), 
 		bits_COND_NEW_ENEMY			|
+		bits_COND_HEAR_SOUND |
 		bits_COND_LIGHT_DAMAGE		|
 		bits_COND_HEAVY_DAMAGE,
 		0,
@@ -1154,6 +1158,7 @@ Schedule_t	slHoundCombatFailPVS[] =
 		tlHoundCombatFailPVS,
 		ARRAYSIZE ( tlHoundCombatFailPVS ), 
 		bits_COND_NEW_ENEMY			|
+		bits_COND_HEAR_SOUND |
 		bits_COND_LIGHT_DAMAGE		|
 		bits_COND_HEAVY_DAMAGE,
 		0,
@@ -1177,6 +1182,7 @@ Schedule_t	slHoundCombatFailNoPVS[] =
 		tlHoundCombatFailNoPVS,
 		ARRAYSIZE ( tlHoundCombatFailNoPVS ), 
 		bits_COND_NEW_ENEMY			|
+		bits_COND_HEAR_SOUND |
 		bits_COND_LIGHT_DAMAGE		|
 		bits_COND_HEAVY_DAMAGE,
 		0,
@@ -1211,6 +1217,7 @@ Schedule_t* CHoundeye :: GetScheduleOfType ( int Type )
 		// if the hound is sleeping, must wake and stand!
 		if ( HasConditions( bits_COND_HEAR_SOUND ) )
 		{
+			
 			CSound *pWakeSound;
 
 			pWakeSound = PBestSound();
@@ -1314,6 +1321,19 @@ Schedule_t* CHoundeye :: GetScheduleOfType ( int Type )
 //=========================================================
 Schedule_t *CHoundeye :: GetSchedule()
 {
+	if( HasConditions( bits_COND_HEAR_SOUND ) )
+	{
+		ALERT( at_console, "sasffasfasSOUND\n" );
+		CSound *pSound;
+		pSound = PBestSound();
+
+		ASSERT( pSound != nullptr );
+		if( pSound && pSound->m_iType & bits_SOUND_FIRE )
+		{
+			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_BEST_SOUND );
+		}
+	}
+	
 	switch	( m_MonsterState )
 	{
 	case MONSTERSTATE_COMBAT:

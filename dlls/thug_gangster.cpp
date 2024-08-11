@@ -327,6 +327,7 @@ int CHGrunt :: ISoundMask ()
 	return	bits_SOUND_WORLD	|
 			bits_SOUND_COMBAT	|
 			bits_SOUND_PLAYER	|
+		bits_SOUND_FIRE |
 			bits_SOUND_DANGER;
 }
 

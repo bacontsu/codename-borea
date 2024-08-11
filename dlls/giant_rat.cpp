@@ -901,7 +901,7 @@ Schedule_t slPitdroneChaseEnemy[] =
 		bits_COND_TASK_FAILED		|
 		bits_COND_HEAR_SOUND,
 		
-		bits_SOUND_DANGER			|
+		bits_SOUND_FIRE | bits_SOUND_DANGER			|
 		bits_SOUND_MEAT,
 		"Squid Chase Enemy"
 	},
@@ -1077,7 +1077,7 @@ Schedule_t slPitdroneWaitInCover[] =
 		bits_COND_CAN_MELEE_ATTACK2 |
 		bits_COND_NEW_ENEMY |
 		bits_COND_HEAR_SOUND,
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 
 		"PitdroneWaitInCover"
 	}

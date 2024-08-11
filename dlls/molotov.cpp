@@ -50,6 +50,7 @@ void CMolotov::Precache()
 	PRECACHE_MODEL("models/p_molotov.mdl");
 
 	PRECACHE_SOUND( "weapons/molotov_break.wav" );
+	PRECACHE_SOUND( "props/burning4.wav" );
 
 	UTIL_PrecacheOther( "fire" );
 }
@@ -110,7 +111,7 @@ void CMolotov::Holster( int skiplocal /* = 0 */ )
 	else
 	{
 		// no more grenades!
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_HANDGRENADE);
+		m_pPlayer->pev->weapons &= ~(1<<WEAPON_PENGUIN);
 		SetThink( &CHandGrenade::DestroyItem );
 		SetNextThink( 0.1 );
 	}
@@ -279,10 +280,12 @@ void CFire::Spawn()
 	pev->movetype = MOVETYPE_TOSS;
 	pev->gravity = RANDOM_FLOAT( 1.0, 1.5 );
 //	UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 32 ) );
+	pev->dmgtime = gpGlobals->time + 0.5; // half a second before starting doing damage, give monsters a chance!
+	pev->fuser1 = 0.0f; // this will be sound delay
 
 	BurnStartTime = gpGlobals->time; // start burning
-	InsertSoundTime = gpGlobals->time + RANDOM_FLOAT( 0.0, 0.5 ); // insert sound every 2-3 seconds
-	SetNextThink( RANDOM_FLOAT( 0.08, 0.16 ) );
+	InsertSoundTime = gpGlobals->time; // insert sound every 2-3 seconds
+	pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 0.08, 0.16 );
 
 //	SET_MODEL( ENT( pev ), "sprites/pravafire.spr" );
 //	pev->rendermode = kRenderTransAdd;
@@ -301,6 +304,8 @@ void CFire::Think( void )
 	// time's up or hit water, extinguish
 	if( pev->waterlevel > 0 || gpGlobals->time > BurnStartTime + BurningTime )
 	{
+		if( pev->fuser1 > 0.0f )
+			STOP_SOUND( ENT( pev ), CHAN_BODY, "props/burning4.wav" );
 		DontThink();
 		UTIL_Remove( this );
 		return;
@@ -315,28 +320,34 @@ void CFire::Think( void )
 	// notify the world about fire presence
 	if( gpGlobals->time > InsertSoundTime )
 	{
-		CSoundEnt::InsertSound( bits_SOUND_FIRE | bits_SOUND_DANGER, pev->origin, 128, 1.0 );
+		CSoundEnt::InsertSound( bits_SOUND_FIRE | bits_SOUND_DANGER, pev->origin, 300, 1.0 );
 		InsertSoundTime = gpGlobals->time + RANDOM_FLOAT( 1.5, 3.0 );
 	}
 
+	if( pev->fuser1 > 0.0f && gpGlobals->time > pev->fuser1 )
+		EMIT_SOUND_DYN( ENT( pev ), CHAN_BODY, "props/burning4.wav", 1.0, ATTN_NORM, SND_CHANGE_PITCH | SND_CHANGE_VOL, 100 );
+
 	// set monsters on fire
-	CBaseEntity *pOther = nullptr;
-	while( (pOther = UTIL_FindEntityInSphere( pOther, pev->origin, 80 )) != nullptr )
+	if( gpGlobals->time > pev->dmgtime )
 	{
-		if( pOther->IsPlayer() )
+		CBaseEntity *pOther = nullptr;
+		while( (pOther = UTIL_FindEntityInSphere( pOther, pev->origin, 80 )) != nullptr )
 		{
-			// smash the player with fire damage
-			pOther->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), gSkillData.firepersecDmg * 0.01f, DMG_BURN );
-			continue;
+			if( pOther->IsPlayer() )
+			{
+				// smash the player with fire damage
+				pOther->TakeDamage( VARS( eoNullEntity ), VARS( eoNullEntity ), gSkillData.firepersecDmg * 0.01f, DMG_BURN );
+				continue;
+			}
+
+			if( !(pOther->pev->flags & FL_MONSTER) || (pOther->pev->deadflag != DEAD_NO) || (pOther->m_iLFlags & LF_BURNING_IMMUNE) )
+				continue;
+
+			pOther->m_iLFlags |= LF_BURNING;
 		}
-		
-		if( !(pOther->pev->flags & FL_MONSTER) || (pOther->pev->deadflag != DEAD_NO) || (pOther->m_iLFlags & LF_BURNING_IMMUNE) )
-			continue;
-		
-		pOther->m_iLFlags |= LF_BURNING;
 	}
 
-	SetNextThink( RANDOM_FLOAT(0.1,0.2) );
+	pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.1,0.2);
 }
 
 #endif // ! CLIENT_DLL

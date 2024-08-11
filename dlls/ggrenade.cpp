@@ -794,6 +794,8 @@ void CGrenade::MolotovExplode( void )
 	FranUtils::EmitDlight( Vector( pev->origin.x, pev->origin.y, pev->origin.z ), 14, { 255, 180, 0 }, BurningTime, 0 );
 
 	// create 24 fires...
+	bool FireSoundCreated = false;
+	int sound_count = 0;
 	TraceResult tr;
 	for( int i = 0; i < 24; i++ )
 	{
@@ -808,7 +810,26 @@ void CGrenade::MolotovExplode( void )
 		if( tr.fAllSolid || tr.flFraction < 1.0 )
 			continue;
 
-		CBaseEntity::Create( "fire", FireOrigin, pev->angles, edict() );
+		CBaseEntity *pFire = CBaseEntity::Create( "fire", FireOrigin, pev->angles, edict() );
+
+		if( pFire && sound_count < 3 )
+		{
+			// there must be at least one guaranteed sound to be audible
+			if( !FireSoundCreated )
+			{
+				pFire->pev->fuser1 = gpGlobals->time;
+				FireSoundCreated = true;
+				sound_count++;
+			}
+			else // we have at least one sound already, so make subsequent sounds with 10% chance
+			{
+				if( RANDOM_LONG( 0, 100 ) < 10 )
+				{
+					pFire->pev->fuser1 = gpGlobals->time + RANDOM_FLOAT( 0.0, 1.0 );
+					sound_count++;
+				}
+			}
+		}
 	}
 
 	// the bottle magically disappears (breaks)

@@ -4120,6 +4120,19 @@ void CBasePlayer::ImpulseCommands( )
 		}
 	case 206:
 		{
+			if( m_pActiveItem )
+			{
+				CBasePlayerWeapon *gun;
+				gun = (CBasePlayerWeapon *)m_pActiveItem->GetWeaponPtr();
+				if( gun )
+				{
+				//	ALERT( at_console, "%f %f \n", gpGlobals->time, gpGlobals->time + gun->m_flNextSecondaryAttack );
+					if( gpGlobals->time < gpGlobals->time + gun->m_flNextPrimaryAttack || gpGlobals->time < gpGlobals->time + gun->m_flNextSecondaryAttack )
+					{
+						break;
+					}
+				}
+			}		
 			if( !DoPlayerKickPunch )
 			{
 				DoPlayerKickPunch = true;
@@ -4664,7 +4677,7 @@ void CBasePlayer::ItemPostFrame()
 			TraceResult tr;
 			UTIL_MakeVectors( pev->v_angle );
 			Vector vecSrc = GetGunPosition();
-			Vector vecEnd = vecSrc + gpGlobals->v_forward * 32;
+			Vector vecEnd = vecSrc + gpGlobals->v_forward * 50;
 			UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
 			if( tr.flFraction >= 1.0 )
 			{
@@ -4704,6 +4717,16 @@ void CBasePlayer::ItemPostFrame()
 					{
 						EMIT_SOUND_DYN( edict(), CHAN_ITEM, "weapons/pwrench_hitbod3.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG( 0, 3 ) );
 					}
+					if( pEntity->pev->flags & FL_MONSTER )
+					{
+						// push 'em!
+						Vector vecDir = pEntity->pev->origin - pev->origin;
+						vecDir = vecDir.Normalize();
+						vecDir.z = 0;
+						float flForce = 300;
+						pEntity->pev->velocity = pEntity->pev->velocity + vecDir * flForce;
+						pEntity->pev->velocity.z = 150;
+					}
 					m_iWeaponVolume = 128;
 				}
 			}
@@ -4730,7 +4753,7 @@ void CBasePlayer::ItemPostFrame()
 				pev->viewmodel = MAKE_STRING( "models/v_kick.mdl" );
 				MESSAGE_BEGIN( MSG_ONE, gmsgSendAnim, nullptr, pev );
 				WRITE_SHORT( (pev->flags & FL_ONGROUND) ? 0 : 1 );	   // sequence number
-				WRITE_SHORT( 0 ); // weaponmodel bodygroup.
+				WRITE_SHORT( m_pActiveItem->pev->body ); // weaponmodel bodygroup.
 				// BLEND BY DEFAULT???
 				WRITE_BYTE( 1 );
 				MESSAGE_END();

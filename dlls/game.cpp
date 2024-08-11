@@ -659,9 +659,15 @@ cvar_t	sk_rat_dmg3 = { "sk_rat_dmg3","10" };
 cvar_t	sk_spider_health1 = { "sk_spider_health1","100" };
 cvar_t	sk_spider_health2 = { "sk_spider_health2","100" };
 cvar_t	sk_spider_health3 = { "sk_spider_health3","100" };
-cvar_t	sk_spider_dmg1 = { "sk_spider_dmg1","5" };
-cvar_t	sk_spider_dmg2 = { "sk_spider_dmg2","5" };
-cvar_t	sk_spider_dmg3 = { "sk_spider_dmg3","5" };
+cvar_t	sk_spider_dmg_jump1 = { "sk_spider_dmg_jump1","15" };
+cvar_t	sk_spider_dmg_jump2 = { "sk_spider_dmg_jump2","15" };
+cvar_t	sk_spider_dmg_jump3 = { "sk_spider_dmg_jump3","15" };
+cvar_t	sk_spider_dmg_spit1 = { "sk_spider_dmg_spit1","5" };
+cvar_t	sk_spider_dmg_spit2 = { "sk_spider_dmg_spit2","5" };
+cvar_t	sk_spider_dmg_spit3 = { "sk_spider_dmg_spit3","5" };
+cvar_t	sk_spider_dmg_bite1 = { "sk_spider_dmg_bite1","10" };
+cvar_t	sk_spider_dmg_bite2 = { "sk_spider_dmg_bite2","10" };
+cvar_t	sk_spider_dmg_bite3 = { "sk_spider_dmg_bite3","10" };
 cvar_t	sk_fire_dmg_per_second = { "sk_fire_dmg_per_second","15" };
 cvar_t	sk_kick_dmg = { "sk_kick_dmg","15" };
 
@@ -1298,8 +1304,8 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_worker_health1 );
 	CVAR_REGISTER( &sk_worker_health2 );
 	CVAR_REGISTER( &sk_worker_health3 );
-	CVAR_REGISTER( &sk_dog_health3 );
-	CVAR_REGISTER( &sk_dog_health3 );
+	CVAR_REGISTER( &sk_dog_health1 );
+	CVAR_REGISTER( &sk_dog_health2 );
 	CVAR_REGISTER( &sk_dog_health3 );
 	CVAR_REGISTER( &sk_dog_dmg1 );
 	CVAR_REGISTER( &sk_dog_dmg2 );
@@ -1313,9 +1319,15 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_spider_health1 );
 	CVAR_REGISTER( &sk_spider_health2 );
 	CVAR_REGISTER( &sk_spider_health3 );
-	CVAR_REGISTER( &sk_spider_dmg1 );
-	CVAR_REGISTER( &sk_spider_dmg2 );
-	CVAR_REGISTER( &sk_spider_dmg3 );
+	CVAR_REGISTER( &sk_spider_dmg_jump1 );
+	CVAR_REGISTER( &sk_spider_dmg_jump2 );
+	CVAR_REGISTER( &sk_spider_dmg_jump3 );
+	CVAR_REGISTER( &sk_spider_dmg_spit1 );
+	CVAR_REGISTER( &sk_spider_dmg_spit2 );
+	CVAR_REGISTER( &sk_spider_dmg_spit3 );
+	CVAR_REGISTER( &sk_spider_dmg_bite1 );
+	CVAR_REGISTER( &sk_spider_dmg_bite2 );
+	CVAR_REGISTER( &sk_spider_dmg_bite3 );
 	CVAR_REGISTER( &sk_fire_dmg_per_second );
 	CVAR_REGISTER( &sk_kick_dmg );
 

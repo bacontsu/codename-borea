@@ -782,7 +782,7 @@ void EV_FireMP5( event_args_t *args )
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( MP5_FIRE1 + gEngfuncs.pfnRandomLong(0,2), 2 );
+	//	gEngfuncs.pEventAPI->EV_WeaponAnimation( MP5_FIRE1 + gEngfuncs.pfnRandomLong(0,2), 2 );
 
 		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -2, 2 ) );
 	}
@@ -866,7 +866,7 @@ void EV_FirePython( event_args_t *args )
 	VectorCopy( args->velocity, velocity );
 
 	AngleVectors( angles, forward, right, up );
-
+	
 	if ( EV_IsLocal( idx ) )
 	{
 		// Python uses different body in multiplayer versus single player
@@ -879,7 +879,7 @@ void EV_FirePython( event_args_t *args )
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( PYTHON_FIRE1, body );
 
 		V_PunchAxis( 0, -10.0 );
-
+		
 		SetLocalBody( WEAPON_PYTHON, body );
 	}
 
@@ -892,7 +892,7 @@ void EV_FirePython( event_args_t *args )
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/357_shot2.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
 		break;
 	}
-
+	
 	EV_GetGunPosition( args, vecSrc, origin );
 	
 	VectorCopy( forward, vecAiming );

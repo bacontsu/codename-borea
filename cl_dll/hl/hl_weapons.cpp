@@ -573,6 +573,10 @@ void HUD_SetLastOrg()
 
 CBasePlayerWeapon* GetLocalWeapon( int id )
 {
+	// Aynekko: this crashes the game.
+	if( cl_lw->value <= 0 )
+		return nullptr;
+	
 	if (UTIL_UseOldWeapons())
 	{
 		return nullptr;

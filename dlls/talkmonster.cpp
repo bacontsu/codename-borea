@@ -291,6 +291,7 @@ Schedule_t	slTlkIdleWatchClient[] =
 		//bits_SOUND_WORLD		|
 		
 		bits_SOUND_DANGER		|
+	bits_SOUND_FIRE |
 		bits_SOUND_MEAT			|// scents
 		bits_SOUND_CARCASS		|
 		bits_SOUND_GARBAGE,
@@ -314,6 +315,7 @@ Schedule_t	slTlkIdleWatchClient[] =
 		//bits_SOUND_WORLD		|
 		
 		bits_SOUND_DANGER		|
+	bits_SOUND_FIRE |
 		bits_SOUND_MEAT			|// scents
 		bits_SOUND_CARCASS		|
 		bits_SOUND_GARBAGE,

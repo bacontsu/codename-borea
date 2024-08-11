@@ -162,7 +162,7 @@ MONSTERSTATE CBaseMonster :: GetIdealState ()
 				if ( pSound )
 				{
 					MakeIdealYaw ( pSound->m_vecOrigin );
-					if ( pSound->m_iType & (bits_SOUND_COMBAT|bits_SOUND_DANGER) )
+					if ( pSound->m_iType & (bits_SOUND_COMBAT|bits_SOUND_DANGER|bits_SOUND_FIRE) )
 						m_IdealMonsterState = MONSTERSTATE_ALERT;
 				}
 			}

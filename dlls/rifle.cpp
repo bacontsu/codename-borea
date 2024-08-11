@@ -144,6 +144,13 @@ void CMP5::RifleFireBullet( void )
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
+	switch( RANDOM_LONG(0,2) )
+	{
+	case 0: SendWeaponAnim( MP5_FIRE1 ); break;
+	case 1: SendWeaponAnim( MP5_FIRE2 ); break;
+	case 2: SendWeaponAnim( MP5_FIRE3 ); break;
+	}
+
 	m_iClip--;
 
 	if( m_iRifleShotsFired == 0 )

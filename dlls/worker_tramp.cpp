@@ -145,6 +145,7 @@ Schedule_t	slFollow[] =
 		bits_COND_HEAVY_DAMAGE |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_COMBAT |
+	bits_SOUND_FIRE |
 		bits_SOUND_DANGER,
 		"Follow"
 	},
@@ -166,6 +167,7 @@ Schedule_t	slFollowScared[] =
 		bits_COND_HEAR_SOUND |
 		bits_COND_LIGHT_DAMAGE |
 		bits_COND_HEAVY_DAMAGE,
+	bits_SOUND_FIRE |
 		bits_SOUND_DANGER,
 		"FollowScared"
 	},
@@ -185,7 +187,7 @@ Schedule_t	slFaceTargetScared[] =
 		ARRAYSIZE ( tlFaceTargetScared ),
 		bits_COND_HEAR_SOUND |
 		bits_COND_NEW_ENEMY,
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE |  bits_SOUND_DANGER,
 		"FaceTargetScared"
 	},
 };
@@ -247,7 +249,7 @@ Schedule_t	slFaceTarget[] =
 		bits_COND_NEW_ENEMY |
 		bits_COND_HEAR_SOUND,
 		bits_SOUND_COMBAT |
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"FaceTarget"
 	},
 };
@@ -298,7 +300,7 @@ Schedule_t	slIdleSciStand[] =
 		bits_SOUND_COMBAT		|// sound flags
 		//bits_SOUND_PLAYER		|
 		//bits_SOUND_WORLD		|
-		bits_SOUND_DANGER		|
+		bits_SOUND_FIRE | bits_SOUND_DANGER		|
 		bits_SOUND_MEAT			|// scents
 		bits_SOUND_CARCASS		|
 		bits_SOUND_GARBAGE,
@@ -351,7 +353,7 @@ Schedule_t	slScientistHide[] =
 		bits_COND_SEE_HATE |
 		bits_COND_SEE_FEAR |
 		bits_COND_SEE_DISLIKE,
-		bits_SOUND_DANGER,
+		bits_SOUND_FIRE | bits_SOUND_DANGER,
 		"ScientistHide"
 	},
 };
@@ -804,7 +806,7 @@ int CScientist :: ISoundMask ()
 			bits_SOUND_CARCASS	|
 			bits_SOUND_MEAT		|
 			bits_SOUND_GARBAGE	|
-			bits_SOUND_DANGER	|
+		bits_SOUND_FIRE | bits_SOUND_DANGER	|
 			bits_SOUND_PLAYER;
 }
 	
