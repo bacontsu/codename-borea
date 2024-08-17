@@ -166,18 +166,7 @@ void CMolotov::WeaponIdle()
 
 		CGrenade::ShootMolotov( m_pPlayer->pev, vecSrc, vecThrow, time );
 
-		if ( flVel < 500 )
-		{
-			SendWeaponAnim( HANDGRENADE_THROW1 );
-		}
-		else if ( flVel < 1000 )
-		{
-			SendWeaponAnim( HANDGRENADE_THROW2 );
-		}
-		else
-		{
-			SendWeaponAnim( HANDGRENADE_THROW3 );
-		}
+		SendWeaponAnim( HANDGRENADE_THROW1 );
 
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -226,11 +215,6 @@ void CMolotov::WeaponIdle()
 		{
 			iAnim = HANDGRENADE_IDLE;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );// how long till we do this again.
-		}
-		else 
-		{
-			iAnim = HANDGRENADE_FIDGET;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 75.0 / 30.0;
 		}
 
 		SendWeaponAnim( iAnim );

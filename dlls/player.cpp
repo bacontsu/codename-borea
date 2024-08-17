@@ -2222,8 +2222,8 @@ void CBasePlayer::PreThink()
 	{
 		if (targetFov + currFov != m_iFOV)
 		{
-			if (targetFov + currFov < m_iFOV) m_iFOV--;
-			if (targetFov + currFov > m_iFOV) m_iFOV++;
+			if (targetFov + currFov < m_iFOV) m_iFOV -= 5;
+			if (targetFov + currFov > m_iFOV) m_iFOV += 5;
 		}
 
 		nextFovUpdate = gpGlobals->time + 0.01f;

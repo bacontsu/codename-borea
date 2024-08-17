@@ -184,17 +184,13 @@ void CHandGrenade::WeaponIdle()
 
 		CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
 
-		if ( flVel < 500 )
+		if ( !SecondaryAttackPressed )
 		{
 			SendWeaponAnim( HANDGRENADE_THROW1 );
 		}
-		else if ( flVel < 1000 )
-		{
-			SendWeaponAnim( HANDGRENADE_THROW2 );
-		}
 		else
 		{
-			SendWeaponAnim( HANDGRENADE_THROW3 );
+			SendWeaponAnim( HANDGRENADE_THROW2 );
 		}
 
 		// player "shoot" animation
@@ -240,18 +236,12 @@ void CHandGrenade::WeaponIdle()
 	{
 		int iAnim;
 		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
-		if (flRand <= 0.75)
+		if( flRand <= 0.75 )
 		{
 			iAnim = HANDGRENADE_IDLE;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );// how long till we do this again.
+			SendWeaponAnim( iAnim );
 		}
-		else 
-		{
-			iAnim = HANDGRENADE_FIDGET;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 75.0 / 30.0;
-		}
-
-		SendWeaponAnim( iAnim );
 	}
 }
 
