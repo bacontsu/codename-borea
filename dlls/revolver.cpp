@@ -26,6 +26,7 @@
 
 LINK_ENTITY_TO_CLASS( weapon_python, CPython );
 LINK_ENTITY_TO_CLASS( weapon_357, CPython );
+LINK_ENTITY_TO_CLASS( weapon_revolver, CPython );
 
 int CPython::GetItemInfo(ItemInfo *p)
 {
@@ -293,6 +294,7 @@ class CPythonAmmo : public CBasePlayerAmmo
 	}
 };
 LINK_ENTITY_TO_CLASS( ammo_357, CPythonAmmo );
+LINK_ENTITY_TO_CLASS( ammo_revolver, CPythonAmmo );
 
 
 #endif

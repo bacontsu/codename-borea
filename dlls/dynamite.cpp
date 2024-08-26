@@ -24,7 +24,7 @@
 #define	HANDGRENADE_PRIMARY_VOLUME		450
 
 LINK_ENTITY_TO_CLASS( weapon_handgrenade, CHandGrenade );
-
+LINK_ENTITY_TO_CLASS( weapon_dynamite, CHandGrenade );
 
 void CHandGrenade::Spawn( )
 {

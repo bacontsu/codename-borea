@@ -25,6 +25,7 @@
 
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock );
 LINK_ENTITY_TO_CLASS( weapon_9mmhandgun, CGlock );
+LINK_ENTITY_TO_CLASS( weapon_psk, CGlock );
 
 void CGlock::Spawn( )
 {
@@ -291,7 +292,7 @@ class CGlockAmmo : public CBasePlayerAmmo
 		return FALSE;
 	}
 };
-LINK_ENTITY_TO_CLASS( ammo_glockclip, CGlockAmmo );
+LINK_ENTITY_TO_CLASS( ammo_psk, CGlockAmmo );
 LINK_ENTITY_TO_CLASS( ammo_9mmclip, CGlockAmmo );
 
 

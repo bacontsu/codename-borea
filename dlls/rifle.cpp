@@ -25,7 +25,7 @@
 #include "UserMessages.h"
 #include <FranUtils.hpp>
 
-LINK_ENTITY_TO_CLASS( weapon_mp5, CMP5 );
+LINK_ENTITY_TO_CLASS( weapon_mp54, CMP5 );
 LINK_ENTITY_TO_CLASS( weapon_9mmAR, CMP5 );
 
 
@@ -347,6 +347,7 @@ class CMP5AmmoClip : public CBasePlayerAmmo
 };
 LINK_ENTITY_TO_CLASS( ammo_mp5clip, CMP5AmmoClip );
 LINK_ENTITY_TO_CLASS( ammo_9mmAR, CMP5AmmoClip );
+LINK_ENTITY_TO_CLASS( ammo_mp54, CMP5AmmoClip );
 
 
 
