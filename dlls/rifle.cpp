@@ -133,6 +133,9 @@ void CMP5::Holster( int skiplocal /* = 0 */)
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim(MP5_HOLSTER);
 
+	m_iRifleShotsFired = 0;
+	m_flRifleShoot = 0;
+
 	if( m_pPlayer->targetFov != 0 )
 	{
 		SecondaryAttack();
@@ -167,20 +170,23 @@ void CMP5::RifleFireBullet( void )
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	Vector vecDir;
 
-#ifdef CLIENT_DLL
-	if( bIsMultiplayer() )
-#else
-	if( g_pGameRules->IsMultiplayer() )
-#endif
+	// add aim "bloom" system (from Diffusion)
+	float Cone = m_pPlayer->pev->velocity.Length() * 0.0002;
+	Cone = clamp( Cone, 0.01, 0.06 );
+
+	if( Cone < 0.02 )
 	{
-		// optimized multiplayer. Widened to make it easier to hit a moving player
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		if( m_pPlayer->pev->flags & FL_DUCKING )
+			Cone = 0.01;
+		else
+			Cone = 0.02;
 	}
-	else
-	{
-		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
+
+	if( m_pPlayer->targetFov != 0 ) // scoped
+		Cone *= 0.75;
+
+	// single player spread
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( Cone, Cone, Cone ), 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -203,7 +209,7 @@ void CMP5::PrimaryAttack()
 	if( m_flRifleShoot > 0 )
 	{
 #ifndef CLIENT_DLL // sigh...
-		CLIENT_COMMAND( m_pPlayer->edict(), "-attack\n" );
+//		CLIENT_COMMAND( m_pPlayer->edict(), "-attack\n" );
 #endif
 		return;
 	}

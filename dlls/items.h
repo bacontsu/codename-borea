@@ -37,7 +37,9 @@ public:
 	CBaseEntity*	Respawn() override;
 	void	EXPORT ItemTouch( CBaseEntity *pOther );
 	void	EXPORT Materialize();
+	void EXPORT ItemUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; }
+	int	ObjectCaps() override { return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE; }
 };
 
 class CItemMedicalKit : public CItem	//AJH new inventory based manual use medkit
@@ -47,6 +49,7 @@ public:
 	void Precache() override;
 	int MyTouch( CBasePlayer *pPlayer ) override;
 	void EXPORT ItemTouch(CBaseEntity *pOther);
+	void ItemUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) override;
 
 };

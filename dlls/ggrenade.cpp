@@ -793,6 +793,17 @@ void CGrenade::MolotovExplode( void )
 	// light the fire!
 	FranUtils::EmitDlight( Vector( pev->origin.x, pev->origin.y, pev->origin.z ), 14, { 255, 180, 0 }, BurningTime, 0 );
 
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+	WRITE_BYTE( TE_EXPLOSION );
+	WRITE_COORD( pev->origin.x );
+	WRITE_COORD( pev->origin.y );
+	WRITE_COORD( pev->origin.z );
+	WRITE_SHORT( g_sModelIndexFireball );
+	WRITE_BYTE( 25 ); // scale * 10
+	WRITE_BYTE( 15 ); // framerate
+	WRITE_BYTE( TE_EXPLFLAG_NONE );
+	MESSAGE_END();
+
 	// create 24 fires...
 	bool FireSoundCreated = false;
 	int sound_count = 0;

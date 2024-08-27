@@ -3966,7 +3966,8 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	pent->v.spawnflags |= SF_NORESPAWN;
 
 	DispatchSpawn( pent );
-	DispatchTouch( pent, ENT( pev ) );
+//	DispatchTouch( pent, ENT( pev ) );
+	DispatchUse( pent, ENT( pev ) );
 }
 
 BOOL CBasePlayer :: FlashlightIsOn()

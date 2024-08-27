@@ -185,8 +185,18 @@ void CPython::PrimaryAttack()
 	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
+	// add aim "bloom" system (from Diffusion)
+	float Cone = m_pPlayer->pev->velocity.Length() * 0.00017;
+	Cone = clamp( Cone, 0.01, 0.04 );
+	if( Cone < 0.02 )
+	{
+		if( m_pPlayer->pev->flags & FL_DUCKING )
+			Cone = 0.01;
+		else
+			Cone = 0.0175;
+	}
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector(Cone,Cone,Cone), 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )

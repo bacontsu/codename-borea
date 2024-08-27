@@ -168,6 +168,12 @@ void CBasePlayerWeapon::ItemPostFrame()
 		m_fInReload = FALSE;
 	}
 
+	if( m_flRifleShoot > 0 )
+	{
+		m_pPlayer->pev->button &= ~IN_ATTACK;
+		m_pPlayer->pev->button &= ~IN_ATTACK2;
+	}
+
 	if (!(m_pPlayer->pev->button & IN_ATTACK))
 	{
 		m_flLastFireTime = 0.0f;

@@ -335,11 +335,13 @@ public:
 	virtual int AddDuplicate( CBasePlayerItem *pItem ) { return FALSE; }	// return TRUE if you want your duplicate removed from world
 	void EXPORT DestroyItem();
 	void EXPORT DefaultTouch( CBaseEntity *pOther );	// default weapon touch
+	void EXPORT DefaultUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );	// default weapon touch
 	void EXPORT FallThink ();// when an item is first spawned, this think is run to determine when the object has hit the ground.
 	void EXPORT Materialize();// make a weapon visible and tangible
 	void EXPORT AttemptToMaterialize();  // the weapon desires to become visible and tangible, if the game rules allow for it
 	CBaseEntity* Respawn () override;// copy a weapon
 	void FallInit();
+	int ObjectCaps() override;
 	void CheckRespawn();
 	virtual int GetItemInfo(ItemInfo *p) { return 0; };	// returns 0 if struct not filled out
 	virtual BOOL CanDeploy() { return TRUE; };
@@ -502,6 +504,7 @@ public:
 	float	m_flPrevPrimaryAttack;
 	float	m_flLastFireTime;			
 
+	float m_flRifleShoot;
 };
 
 
@@ -511,6 +514,7 @@ class CBasePlayerAmmo : public CBasePlayerItem //AJH
 public:
     void Spawn() override;
 	void EXPORT DefaultTouch( CBaseEntity *pOther ); // default weapon touch
+	void EXPORT DefaultUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );	// default weapon touch
 	virtual BOOL AddAmmo( CBaseEntity *pOther ) { return TRUE; }
 
 	CBaseEntity* Respawn() override;
@@ -798,7 +802,6 @@ private:
 
 	// Aynekko: burst fire stuff
 	int m_iRifleShotsFired;
-	float m_flRifleShoot;
 	void RifleFireBullet( void );
 };
 

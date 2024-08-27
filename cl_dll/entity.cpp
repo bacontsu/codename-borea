@@ -364,6 +364,9 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 {
 	if (entity != gEngfuncs.GetViewModel()) return;
 
+	if( entity && entity->curstate.body == 1 )
+		return; // Aynekko: silenced pistol has no light
+
 	Vector forward;
 	AngleVectors(gHUD.pparams->viewangles, forward, null, null);
 

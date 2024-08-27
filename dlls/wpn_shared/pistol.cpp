@@ -131,6 +131,9 @@ void CGlock::SecondaryAttack()
 
 void CGlock::PrimaryAttack()
 {
+#ifndef CLIENT_DLL // sigh...
+	CLIENT_COMMAND( m_pPlayer->edict(), "-attack\n" );
+#endif
 	GlockFire( 0.01, 0.3, TRUE );
 }
 
@@ -187,8 +190,18 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 		vecAiming = gpGlobals->v_forward;
 	}
 
+	// add aim "bloom" system (from Diffusion)
+	float Cone = m_pPlayer->pev->velocity.Length() * 0.00019;
+	Cone = clamp( Cone, 0.01, 0.05 );
+	if( Cone < 0.02 )
+	{
+		if( m_pPlayer->pev->flags & FL_DUCKING )
+			Cone = 0.01;
+		else
+			Cone = 0.0175;
+	}
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread + Cone, flSpread + Cone, flSpread + Cone ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	// Aynekko: animation and sound done here instead
 	SendWeaponAnim( (m_iClip <= 0) ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 1, pev->body );

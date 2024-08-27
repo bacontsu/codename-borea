@@ -551,19 +551,28 @@ void CBasePlayerItem :: SetObjectCollisionBox()
 	pev->absmax = pev->origin + Vector(24, 24, 16); 
 }
 
+int	CBasePlayerItem::ObjectCaps()
+{ 
+	if( pev->solid == SOLID_TRIGGER )
+		return FCAP_ACROSS_TRANSITION | FCAP_IMPULSE_USE;
+
+	return FCAP_ACROSS_TRANSITION;
+}
 
 //=========================================================
 // Sets up movetype, size, solidtype for a new weapon. 
 //=========================================================
 void CBasePlayerItem :: FallInit()
 {
-	pev->movetype = MOVETYPE_BOUNCE;
-	pev->solid = SOLID_BBOX;
+	pev->movetype = MOVETYPE_TOSS;
+	pev->solid = SOLID_TRIGGER;
+	ObjectCaps();
 
 	UTIL_SetOrigin( this, pev->origin );
 	UTIL_SetSize(pev, Vector( 0,0,0 ), Vector(5, 5, 5) );//pointsize until it lands on the ground.
 	
-	SetTouch( &CBasePlayerItem::DefaultTouch );
+//	SetTouch( &CBasePlayerItem::DefaultTouch );
+	SetUse( &CBasePlayerItem::DefaultUse );
 	SetThink( &CBasePlayerItem::FallThink );
 
 	SetNextThink( 0.1 );
@@ -623,9 +632,11 @@ void CBasePlayerItem::Materialize()
 	}
 
 	pev->solid = SOLID_TRIGGER;
+	ObjectCaps();
 
 	UTIL_SetOrigin( this, pev->origin );// link into world.
-	SetTouch (&CBasePlayerItem::DefaultTouch);
+//	SetTouch (&CBasePlayerItem::DefaultTouch);
+	SetUse( &CBasePlayerItem::DefaultUse );
 	SetThink (nullptr);
 
 }
@@ -677,7 +688,8 @@ CBaseEntity* CBasePlayerItem::Respawn()
 	if ( pNewWeapon )
 	{
 		pNewWeapon->pev->effects |= EF_NODRAW;// invisible for now
-		pNewWeapon->SetTouch( nullptr );// no touch
+	//	pNewWeapon->SetTouch( nullptr );// no touch
+		pNewWeapon->SetUse( nullptr );
 		pNewWeapon->SetThink( &CBasePlayerItem::AttemptToMaterialize );
 
 		DROP_TO_FLOOR ( ENT(pev) );
@@ -692,6 +704,63 @@ CBaseEntity* CBasePlayerItem::Respawn()
 	}
 
 	return pNewWeapon;
+}
+
+void CBasePlayerItem::DefaultUse(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value)
+{
+	pev->velocity = pev->velocity / 2;
+
+	if( !(pev->flags & FL_ONGROUND) && pev->velocity.Length2D() > 10 )
+	{
+		switch( RANDOM_LONG( 0, 2 ) )
+		{
+		case 0:	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/g_bounce1.wav", 1, ATTN_NORM );	break;
+		case 1:	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/g_bounce2.wav", 1, ATTN_NORM );	break;
+		case 2:	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "weapons/g_bounce3.wav", 1, ATTN_NORM );	break;
+		}
+	}
+
+
+	// if it's not a player, ignore
+	if( pActivator && !pActivator->IsPlayer() )
+		return;
+
+	CBasePlayer *pPlayer = (CBasePlayer *)pActivator;
+
+	// can I have this?
+	if( !g_pGameRules->CanHavePlayerItem( pPlayer, this ) )
+	{
+		if( gEvilImpulse101 )
+		{
+			UTIL_Remove( this );
+		}
+		return;
+	}
+
+	if( pActivator->AddPlayerItem( this ) )
+	{
+		AttachToPlayer( pPlayer );
+		EMIT_SOUND( ENT( pPlayer->pev ), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM );
+
+		if( !gEvilImpulse101 )
+		{
+			int i;
+			char sample[32];
+			char weapon_name[32];
+			strcpy( weapon_name, STRING( pev->classname ) );
+
+			if( strncmp( weapon_name, "weapon_", 7 ) == 0 )
+				i = 7;
+			else if( strncmp( weapon_name, "item_", 5 ) == 0 )
+				i = 5;
+
+			// Aynekko: remove
+		//	sprintf(sample, "!%s", weapon_name + i);
+		//	pPlayer->SetSuitUpdate(sample, FALSE, SUIT_NEXT_IN_30SEC);
+		}
+	}
+
+	SUB_UseTargets( pActivator, USE_TOGGLE, 0 ); // UNDONE: when should this happen?
 }
 
 void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
@@ -742,8 +811,9 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 			else if (strncmp(weapon_name, "item_", 5) == 0)
 				i = 5;
 
-			sprintf(sample, "!%s", weapon_name + i);
-			pPlayer->SetSuitUpdate(sample, FALSE, SUIT_NEXT_IN_30SEC);
+			// Aynekko: remove
+		//	sprintf(sample, "!%s", weapon_name + i);
+		//	pPlayer->SetSuitUpdate(sample, FALSE, SUIT_NEXT_IN_30SEC);
 		}
 	}
 
@@ -776,14 +846,16 @@ int CBasePlayerItem::AddToPlayer( CBasePlayer *pPlayer )
 
 void CBasePlayerItem::Drop()
 {
-	SetTouch( nullptr );
+//	SetTouch( nullptr );
+	SetUse( nullptr );
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	SetNextThink( 0.1 );
 }
 
 void CBasePlayerItem::Kill()
 {
-	SetTouch( nullptr );
+//	SetTouch( nullptr );
+	SetUse( nullptr );
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	SetNextThink( 0.1 );
 }
@@ -798,13 +870,15 @@ void CBasePlayerItem::AttachToPlayer ( CBasePlayer *pPlayer )
 {
 	pev->movetype = MOVETYPE_FOLLOW;
 	pev->solid = SOLID_NOT;
+	ObjectCaps();
 	pev->aiment = pPlayer->edict();
 	pev->effects = EF_NODRAW; // ??
 	pev->modelindex = 0;// server won't send down to clients if modelindex == 0
 	pev->model = iStringNull;
 	pev->owner = pPlayer->edict();
 	SetNextThink( 0.1 );
-	SetTouch( nullptr );
+//	SetTouch( nullptr );
+	SetUse( nullptr );
 }
 
 //LRC
@@ -1059,16 +1133,19 @@ void CBasePlayerAmmo::Spawn()
 {
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
+	ObjectCaps();
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
 	UTIL_SetOrigin( this, pev->origin );
 
-	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+//	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+	SetUse( &CBasePlayerAmmo::DefaultUse );
 }
 
 CBaseEntity* CBasePlayerAmmo::Respawn()
 {
 	pev->effects |= EF_NODRAW;
-	SetTouch( nullptr );
+//	SetTouch( nullptr );
+	SetUse( nullptr );
 
 	UTIL_SetOrigin( this, g_pGameRules->VecAmmoRespawnSpot( this ) );// move to wherever I'm supposed to repawn.
 
@@ -1088,7 +1165,43 @@ void CBasePlayerAmmo::Materialize()
 		pev->effects |= EF_MUZZLEFLASH;
 	}
 
-	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+//	SetTouch( &CBasePlayerAmmo::DefaultTouch );
+	SetUse( &CBasePlayerAmmo::DefaultUse );
+}
+
+void CBasePlayerAmmo::DefaultUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	if( !pActivator->IsPlayer() )
+	{
+		return;
+	}
+
+	if( !UTIL_IsMasterTriggered( m_sMaster, m_pPlayer ) )	//
+		return;										// AJH allows for locked weapons
+
+	if( AddAmmo( pActivator ) )
+	{
+		if( g_pGameRules->AmmoShouldRespawn( this ) == GR_AMMO_RESPAWN_YES )
+		{
+			Respawn();
+		}
+		else
+		{
+			SetTouch( nullptr );
+			SetUse( nullptr );
+			SetThink( &CBasePlayerAmmo::SUB_Remove );
+			SetNextThink( 0.1 );
+		}
+		SUB_UseTargets( pActivator, USE_TOGGLE, 0 );	//AJH now ammo can trigger stuff too
+	}
+	else if( gEvilImpulse101 )
+	{
+		// evil impulse 101 hack, kill always
+		SetTouch( nullptr );
+		SetUse( nullptr );
+		SetThink( &CBasePlayerAmmo::SUB_Remove );
+		SetNextThink( 0.1 );
+	}
 }
 
 void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
@@ -1110,6 +1223,7 @@ void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
 		else
 		{
 			SetTouch( nullptr );
+			SetUse( nullptr );
 			SetThink(&CBasePlayerAmmo::SUB_Remove);
 			SetNextThink( 0.1 );
 		}
@@ -1119,6 +1233,7 @@ void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
 	{
 		// evil impulse 101 hack, kill always
 		SetTouch( nullptr );
+		SetUse( nullptr );
 		SetThink(&CBasePlayerAmmo::SUB_Remove);
 		SetNextThink( 0.1 );
 	}
@@ -1310,6 +1425,7 @@ void CWeaponBox::Spawn()
 
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
+	ObjectCaps();
 
 	UTIL_SetSize( pev, g_vecZero, g_vecZero );
 
@@ -1411,6 +1527,7 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 
 	EMIT_SOUND( pOther->edict(), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM );
 	SetTouch(nullptr);
+	SetUse( nullptr );
 	UTIL_Remove(this);
 }
 
@@ -1452,12 +1569,14 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	pWeapon->pev->spawnflags |= SF_NORESPAWN;// never respawn
 	pWeapon->pev->movetype = MOVETYPE_NONE;
 	pWeapon->pev->solid = SOLID_NOT;
+	pWeapon->ObjectCaps();
 	pWeapon->pev->effects = EF_NODRAW;
 	pWeapon->pev->modelindex = 0;
 	pWeapon->pev->model = iStringNull;
 	pWeapon->pev->owner = edict();
 	pWeapon->SetThink( nullptr );// crowbar may be trying to swing again, etc.
 	pWeapon->SetTouch( nullptr );
+	pWeapon->SetUse( nullptr );
 	pWeapon->m_pPlayer = nullptr;
 
 	//ALERT ( at_console, "packed %s\n", STRING(pWeapon->pev->classname) );

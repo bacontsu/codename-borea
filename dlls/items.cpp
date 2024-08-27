@@ -107,7 +107,8 @@ void CItem::Spawn()
 	pev->solid = SOLID_TRIGGER;
 	UTIL_SetOrigin( this, pev->origin );
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
-	SetTouch(&CItem::ItemTouch);
+//	SetTouch(&CItem::ItemTouch);
+	SetUse( &CItem::ItemUse );
 
 	if (DROP_TO_FLOOR(ENT(pev)) == 0)
 	{
@@ -118,6 +119,46 @@ void CItem::Spawn()
 }
 
 extern int gEvilImpulse101;
+
+void CItem::ItemUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	// if it's not a player, ignore
+	if( !pActivator->IsPlayer() )
+	{
+		return;
+	}
+
+	CBasePlayer *pPlayer = (CBasePlayer *)pActivator;
+
+	// ok, a player is touching this item, but can he have it?
+	if( !g_pGameRules->CanHaveItem( pPlayer, this ) )
+	{
+		// no? Ignore the touch.
+		return;
+	}
+
+	if( MyTouch( pPlayer ) )
+	{
+		SUB_UseTargets( pActivator, USE_TOGGLE, 0 );
+		SetTouch( nullptr );
+		SetUse( NULL );
+
+		// player grabbed the item. 
+		g_pGameRules->PlayerGotItem( pPlayer, this );
+		if( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_YES )
+		{
+			Respawn();
+		}
+		else
+		{
+			UTIL_Remove( this );
+		}
+	}
+	else if( gEvilImpulse101 )
+	{
+		UTIL_Remove( this );
+	}
+}
 
 void CItem::ItemTouch( CBaseEntity *pOther )
 {
@@ -140,6 +181,7 @@ void CItem::ItemTouch( CBaseEntity *pOther )
 	{
 		SUB_UseTargets( pOther, USE_TOGGLE, 0 );
 		SetTouch( nullptr );
+		SetUse( NULL );
 		
 		// player grabbed the item. 
 		g_pGameRules->PlayerGotItem( pPlayer, this );
@@ -161,6 +203,7 @@ void CItem::ItemTouch( CBaseEntity *pOther )
 CBaseEntity* CItem::Respawn()
 {
 	SetTouch( nullptr );
+	SetUse( NULL );
 	pev->effects |= EF_NODRAW;
 
 	UTIL_SetOrigin( this, g_pGameRules->VecItemRespawnSpot( this ) );// blip to whereever you should respawn.
@@ -180,7 +223,8 @@ void CItem::Materialize()
 		pev->effects |= EF_MUZZLEFLASH;
 	}
 
-	SetTouch( &CItem::ItemTouch );
+//	SetTouch( &CItem::ItemTouch );
+	SetUse( &CItem::ItemUse );
 }
 
 #define SF_SUIT_SHORTLOGON		0x0001
@@ -436,7 +480,8 @@ void CItemMedicalKit :: Spawn( )
 	pev->solid = SOLID_TRIGGER;
 	UTIL_SetOrigin( this, pev->origin );
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
-	SetTouch(&CItemMedicalKit::ItemTouch);
+//	SetTouch(&CItemMedicalKit::ItemTouch);
+	SetUse( &CItemMedicalKit::ItemUse );
 
 	if (DROP_TO_FLOOR(ENT(pev)) == 0)
 	{
@@ -481,6 +526,7 @@ int CItemMedicalKit::MyTouch( CBasePlayer *pPlayer )
 		else
 		{
 			SetTouch( nullptr ); //Is this necessary?
+			SetUse( NULL );
 			UTIL_Remove(this);	
 		}
 	
@@ -540,6 +586,38 @@ void CItemMedicalKit::ItemTouch( CBaseEntity *pOther )
 		// player grabbed the item. 
 		g_pGameRules->PlayerGotItem( pPlayer, this );
 		
+	}
+}
+
+void CItemMedicalKit::ItemUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	// if it's not a player, ignore
+	if( !pActivator->IsPlayer() )
+	{
+		return;
+	}
+
+	CBasePlayer *pPlayer = (CBasePlayer *)pActivator;
+
+	// ok, a player is touching this item, but can he have it?
+	if( !g_pGameRules->CanHaveItem( pPlayer, this ) )
+	{
+		// no? Ignore the touch.
+		return;
+	}
+
+	if( MyTouch( pPlayer ) )
+	{
+		if( pev->noise )
+			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, STRING( pev->noise ), 1, ATTN_NORM );
+		else
+			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM );
+
+		SUB_UseTargets( pActivator, USE_TOGGLE, 0 );
+
+		// player grabbed the item. 
+		g_pGameRules->PlayerGotItem( pPlayer, this );
+
 	}
 }
 

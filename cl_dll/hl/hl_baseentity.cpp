@@ -338,6 +338,7 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther ) { }
 void CBasePlayerItem::DestroyItem() { }
 int CBasePlayerItem::AddToPlayer( CBasePlayer *pPlayer ) { return TRUE; }
 void CBasePlayerItem::Drop() { }
+int CBasePlayerItem::ObjectCaps() { return 0; }
 void CBasePlayerItem::Kill() { }
 void CBasePlayerItem::Holster( int skiplocal ) { }
 void CBasePlayerItem::AttachToPlayer ( CBasePlayer *pPlayer ) { }

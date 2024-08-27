@@ -167,8 +167,8 @@ void CHandGrenade::WeaponIdle()
 			flVel = 500;
 		if( SecondaryAttackPressed )
 		{
-			if( flVel > 150 )
-				flVel = 150;
+			if( flVel > 220 )
+				flVel = 220;
 		}
 
 		UTIL_MakeVectors( angThrow );
