@@ -593,34 +593,37 @@ void HUD_MarkUsableEnt(void)
 	if (!ent)
 		return;
 
-	if (ent->model && ent->model->type != mod_brush)
+	if (!ent->model)
 		return;
 
+
+	// Aynekko
+	Vector CenterOffset = (ent->curstate.mins + ent->curstate.maxs) / 2.f;
+	Vector EntOrigin = ent->curstate.origin + CenterOffset;
+	Vector scr_new;
+	gEngfuncs.pTriAPI->WorldToScreen( EntOrigin, scr_new );
+	int x_coord = XPROJECT( scr_new[0] );
+	int y_coord = YPROJECT( scr_new[1] );
+	int r = 255;
+	int g = 255;
+	int b = 255;
+
+
+	std::string sprite = "sprites/use.spr";
+
+	const int spr_half_scale = 32;
+	gHUD.DrawBackground( x_coord - spr_half_scale, y_coord - spr_half_scale, x_coord + spr_half_scale, y_coord + spr_half_scale, (char *)sprite.c_str(), Vector( r, g, b ), kRenderTransAdd );
+
+
+	/*
 	Vector org, tmp, modelmins, modelmaxs;
-
-
-
 	int j;
-
 	Vector p[8];
-
-
-
 	float gap = 0.0f;
-
-
-
 	Vector screen[8];
-
 	int max_x, max_y, min_x, min_y;
-
-
-
 	max_x = max_y = 0;
-
 	min_x = min_y = 8192;
-
-
 
 	if (ent->model)
 
@@ -883,25 +886,25 @@ void HUD_MarkUsableEnt(void)
 	//FillRGBA(max_x, max_y, BRACKET_TX, -BRACKET_LY, r, g, b, a); // ?
 	//FillRGBA(max_x + BRACKET_TX, max_y, -BRACKET_LX, BRACKET_TY, r, g, b, a); // ?
 
-	char* keyout;
-	KB_ConvertString("+use", &keyout);
-	strUpper(keyout);
-	std::string boundkey;
+//	char* keyout;
+//	KB_ConvertString("+use", &keyout);
+//	strUpper(keyout);
+//	std::string boundkey;
 	std::string sprite;
 
 	if (g_szUseEntClassname == "func_pushable")
 	{
-		boundkey = keyout;
+	//	boundkey = keyout;
 		sprite = "sprites/grab.spr";
 	}
 	else
 	{
-		boundkey = keyout;
+	//	boundkey = keyout;
 		sprite = "sprites/use.spr";
 	}
 
 	// drawing
 	gHUD.DrawBackground(min_x + BRACKET_TX * 2, min_y + BRACKET_TY, min_x + BRACKET_TX * 2 + 50, min_y + BRACKET_TY + 50 ,(char*)sprite.c_str(), Vector(r, g, b), kRenderTransAdd);
-	gHUD.DrawHudString(min_x + BRACKET_TX * 2 + 60, min_y + BRACKET_TY + 10, BRACKET_LX * 2, (char*)boundkey.c_str(), r, g, b);
-
+//	gHUD.DrawHudString(min_x + BRACKET_TX * 2 + 60, min_y + BRACKET_TY + 10, BRACKET_LX * 2, (char*)boundkey.c_str(), r, g, b);
+*/
 }

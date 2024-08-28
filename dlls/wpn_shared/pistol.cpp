@@ -134,7 +134,7 @@ void CGlock::PrimaryAttack()
 #ifndef CLIENT_DLL // sigh...
 	CLIENT_COMMAND( m_pPlayer->edict(), "-attack\n" );
 #endif
-	GlockFire( 0.01, 0.3, TRUE );
+	GlockFire( 0.01, 0.1, TRUE );
 }
 
 void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )

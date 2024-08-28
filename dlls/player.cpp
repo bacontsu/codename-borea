@@ -5423,9 +5423,10 @@ void CBasePlayer :: UpdateClientData()
 
 
 	int idx = 0;
-	if (pObject)
-
+	if( pObject && !(pObject->pev->flags & FL_MONSTER) )
+	{
 		idx = pObject->entindex();
+	}
 
 	if (m_iUseEnt != idx)
 	{
@@ -5439,8 +5440,8 @@ void CBasePlayer :: UpdateClientData()
 
 		m_iUseEnt = idx;
 
-		//if (!idx) ALERT(at_console, "No usable ent found.\n");
-		//else ALERT(at_console, "Usable ent found.\n");
+	//	if (!idx) ALERT(at_console, "No usable ent found.\n");
+	//	else ALERT(at_console, "Usable ent found.\n");
 	}
 
 	// send map chapter data
