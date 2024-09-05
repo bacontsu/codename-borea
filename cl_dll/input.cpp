@@ -779,6 +779,8 @@ void DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int activ
 
 		// clip to maxspeed
 		spd = gEngfuncs.GetClientMaxspeed();
+		// Aynekko - FIXME!!! "fix" of increased movement speed when moving diagonally
+		spd = (cl_forwardspeed->value + cl_backspeed->value + cl_sidespeed->value) / 3;
 		if ( spd != 0.0 )
 		{
 			// scale the 3 speeds so that the total velocity is not > cl.maxspeed

@@ -878,9 +878,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->origin[2] += bobRight;
 
 	//magic nipples - view lag
-	float mouseX = gHUD.mouse_x * 0.045;
-	float mouseY = gHUD.mouse_y * 0.045;
-	float mouseZ = gHUD.mouse_x * 0.02;
+	// Aynekko: disable
+	float mouseX = 0;// gHUD.mouse_x * 0.045;
+	float mouseY = 0;// gHUD.mouse_y * 0.045;
+	float mouseZ = 0;// gHUD.mouse_x * 0.02;
 	float frameadj = (1.0f / pparams->frametime) * 0.01;
 
 	gHUD.lagangle_x = SmoothValues(gHUD.lagangle_x, mouseX * frameadj, pparams->frametime * 4);
@@ -973,6 +974,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[PITCH] += gHUD.lerpedPitch;
 
 	// Bacontsu - running hold down viewmodel
+	// ChiefSmokey - Remove weapon lowering when sprinting
+	/*
 	float holdTarget = 0;
 	float holdTargetYaw = 0;
 	if (gHUD.isRunning && !(in_attack.state & 3) && !(in_attack2.state & 3))
@@ -988,6 +991,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	view->angles[PITCH] += lerpedHold;
 	view->angles[YAW] += lerpedHoldYaw;
+	*/
 
 	// Aynekko: kick punch
 	//---------------------------------------------------------------

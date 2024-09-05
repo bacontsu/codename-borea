@@ -6364,7 +6364,7 @@ void CBasePlayer::RunningThink()
 		!(pev->button & IN_JUMP) && playerStamina != 0 && !isScoping)
 	{
 		isRunning = true;
-		targetFov = 5;
+	//	targetFov = 5; // Aynekko: remove
 
 		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
 		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));

@@ -46,6 +46,9 @@ void AddAmmoNameToAmmoRegistry(const char* szAmmoname)
 
 BOOL CBasePlayerWeapon::CanDeploy()
 {
+	if( !m_pPlayer->m_pActiveItem )
+		return FALSE; // not sure maybe it works...
+
 	BOOL bHasAmmo = 0;
 
 	if (!pszAmmo1())
