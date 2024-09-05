@@ -367,16 +367,16 @@ void W_Precache()
 
 	// Aynekko: The Last Goodbye weapons
 	UTIL_PrecacheOtherWeapon( "weapon_fists" );
-	UTIL_PrecacheOtherWeapon( "weapon_9mmhandgun" );
+	UTIL_PrecacheOtherWeapon( "weapon_psk" );
 	UTIL_PrecacheOther( "ammo_9mmclip" );
 	UTIL_PrecacheOther( "ammo_9mmbox" ); //LRC
-	UTIL_PrecacheOtherWeapon( "weapon_357" );
+	UTIL_PrecacheOtherWeapon( "weapon_revolver" );
 	UTIL_PrecacheOther( "ammo_357" );
 	UTIL_PrecacheOtherWeapon( "weapon_shotgun" );
 	UTIL_PrecacheOther( "ammo_buckshot" );
-	UTIL_PrecacheOtherWeapon( "weapon_9mmAR" );
+	UTIL_PrecacheOtherWeapon( "weapon_mp54" );
 	UTIL_PrecacheOther( "ammo_9mmAR" );
-	UTIL_PrecacheOtherWeapon( "weapon_handgrenade" );
+	UTIL_PrecacheOtherWeapon( "weapon_dynamite" );
 	UTIL_PrecacheOtherWeapon( "weapon_molotov" );
 
 	// Aynekko: disable unnecessary weapons

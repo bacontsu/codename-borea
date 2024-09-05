@@ -4272,11 +4272,11 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		}
 		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) )
 		{
-			DropItem( "weapon_9mmhandgun", vecGunPos, vecGunAngles );
+			DropItem( "weapon_psk", vecGunPos, vecGunAngles );
 		}
 		else
 		{
-			DropItem( "weapon_9mmAR", vecGunPos, vecGunAngles );
+			DropItem( "weapon_mp54", vecGunPos, vecGunAngles );
 		}
 		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) )
 		{

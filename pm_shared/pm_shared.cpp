@@ -1491,19 +1491,6 @@ void PM_WalkMove ()
 	Vector down, downvel;
 	float downdist, updist;
 
-	bool bIsSprint;
-	float iSprintFactor = 135.0f;
-	if( (pmove->cmd.buttons & IN_RUN) && (pmove->cmd.buttons & IN_FORWARD) && !(pmove->flags & FL_DUCKING) )
-	{
-		pmove->oldbuttons |= IN_RUN;
-		bIsSprint = true;
-	}
-	else
-	{
-		pmove->oldbuttons &= ~IN_RUN;
-		bIsSprint = false;
-	}
-
 	pmtrace_t trace;
 	
 	// Copy movement amounts
@@ -1517,15 +1504,8 @@ void PM_WalkMove ()
 	VectorNormalize (pmove->forward);  // Normalize remainder of vectors.
 	VectorNormalize (pmove->right);    // 
 
-//	for (i=0 ; i<2 ; i++)       // Determine x and y parts of velocity
-//		wishvel[i] = pmove->forward[i]*fmove + pmove->right[i]*smove;
-	for( i = 0; i < 2; i++ )       // Determine x and y parts of velocity DiffusionSprint
-	{
-		if( bIsSprint && (!(pmove->flags & FL_DUCKING)) )
-			wishvel[i] = pmove->forward[i] * (fmove * iSprintFactor) + pmove->right[i] * smove * iSprintFactor * 0.75f;
-		else
-			wishvel[i] = pmove->forward[i] * fmove + pmove->right[i] * smove;
-	}
+	for (i=0 ; i<2 ; i++)       // Determine x and y parts of velocity
+		wishvel[i] = pmove->forward[i]*fmove + pmove->right[i]*smove;
 	
 	wishvel[2] = 0;             // Zero out z part of velocity
 

@@ -33,7 +33,7 @@ LINK_ENTITY_TO_CLASS( weapon_9mmAR, CMP5 );
 //=========================================================
 void CMP5::Spawn( )
 {
-	pev->classname = MAKE_STRING("weapon_9mmAR"); // hack to allow for old names
+//	pev->classname = MAKE_STRING("weapon_9mmAR"); // hack to allow for old names
 	Precache( );
 	SET_MODEL(ENT(pev), "models/w_mp54.mdl");
 	m_iId = WEAPON_MP5;

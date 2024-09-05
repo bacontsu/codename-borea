@@ -1383,7 +1383,7 @@ void CBasePlayer::TabulateAmmo()
 	ammo_buckshot = AmmoInventory( GetAmmoIndex( "buckshot" ) );
 	ammo_rockets = AmmoInventory( GetAmmoIndex( "rockets" ) );
 	ammo_uranium = AmmoInventory( GetAmmoIndex( "uranium" ) );
-	ammo_hornets = AmmoInventory( GetAmmoIndex( "Hornets" ) );
+	ammo_hornets = AmmoInventory( GetAmmoIndex( "pskammo" ) ); // USED FOR PISTOL
 	ammo_spores = AmmoInventory( GetAmmoIndex( "spores" ) );
 	ammo_762 = AmmoInventory( GetAmmoIndex( "762" ) );
 }
@@ -4250,18 +4250,18 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 
 		// Aynekko: The Last Goodbye weapons
 		GiveNamedItem( "weapon_fists" );
-		GiveNamedItem( "weapon_9mmhandgun" );
+		GiveNamedItem( "weapon_psk" );
 		GiveNamedItem( "ammo_9mmclip" );
-		GiveNamedItem( "weapon_357" );
+		GiveNamedItem( "weapon_revolver" );
 		GiveNamedItem( "ammo_357" );
 
 		GiveNamedItem( "weapon_shotgun" );
 		GiveNamedItem( "ammo_buckshot" );
 
-		GiveNamedItem( "weapon_9mmAR" );
+		GiveNamedItem( "weapon_mp54" );
 		GiveNamedItem( "ammo_9mmAR" );
 
-		GiveNamedItem( "weapon_handgrenade" );
+		GiveNamedItem( "weapon_dynamite" );
 		GiveNamedItem( "weapon_molotov" );
 
 	//	GiveNamedItem( "weapon_crowbar" );
@@ -6367,28 +6367,42 @@ void CBasePlayer::RunningThink()
 	//	targetFov = 5; // Aynekko: remove
 
 		//ALERT(at_console, "fov value %i", this->m_iClientFOV);
-		pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
-
-		if (pev->button & IN_MOVERIGHT)
-		{
-			pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
-		}
-
-		if (pev->button & IN_MOVELEFT)
-		{
-			pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
-		}
-
-		if (pev->velocity.Length2D() > 320)
-		{
-			pev->velocity = pev->velocity.Normalize() * 320;
-		}
 	}
-	else if (isRunning)
+	
+	if (isRunning)
 	{
-		//this->m_iFOV = 0;
-		isRunning = false;
-		targetFov = 0;
+		bool StillRunning = (
+			pev->button & IN_FORWARD
+			&& !(pev->button & IN_DUCK)
+			&& pev->flags & FL_ONGROUND
+			&& playerStamina > 0
+			&& !isScoping
+			);
+		if( !StillRunning )
+		{
+			//this->m_iFOV = 0;
+			isRunning = false;
+			targetFov = 0;
+		}
+		else
+		{
+			pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
+
+			if( pev->button & IN_MOVERIGHT )
+			{
+				pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+			}
+
+			if( pev->button & IN_MOVELEFT )
+			{
+				pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+			}
+
+			if( pev->velocity.Length2D() > 320 )
+			{
+				pev->velocity = pev->velocity.Normalize() * 320;
+			}
+		}
 	}
 
 	// player stamina mechanism

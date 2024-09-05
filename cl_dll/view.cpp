@@ -879,9 +879,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	//magic nipples - view lag
 	// Aynekko: disable
-	float mouseX = 0;// gHUD.mouse_x * 0.045;
-	float mouseY = 0;// gHUD.mouse_y * 0.045;
-	float mouseZ = 0;// gHUD.mouse_x * 0.02;
+	float mouseX = gHUD.mouse_x * 0.045;
+	float mouseY = gHUD.mouse_y * 0.045;
+	float mouseZ = gHUD.mouse_x * 0.02;
 	float frameadj = (1.0f / pparams->frametime) * 0.01;
 
 	gHUD.lagangle_x = SmoothValues(gHUD.lagangle_x, mouseX * frameadj, pparams->frametime * 4);

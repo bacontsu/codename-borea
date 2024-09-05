@@ -93,6 +93,9 @@ BOOL CHalfLifeRules :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem 
 	iBestWeight = -1;// no weapon lower than -1 can be autoswitched to
 	pBest = nullptr;
 
+	if( !pCurrentWeapon )
+		return FALSE;
+
 	if( !pCurrentWeapon->CanHolster() )
 	{
 		// can't put this gun away right now, so can't switch.

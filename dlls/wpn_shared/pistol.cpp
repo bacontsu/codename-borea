@@ -29,7 +29,7 @@ LINK_ENTITY_TO_CLASS( weapon_psk, CGlock );
 
 void CGlock::Spawn( )
 {
-	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
+//	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
 	Precache( );
 	m_iId = WEAPON_GLOCK;
 	SET_MODEL(ENT(pev), "models/w_pistol.mdl");
@@ -220,7 +220,7 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 
 void CGlock::Reload()
 {
-	if ( m_pPlayer->ammo_9mm <= 0 )
+	if ( m_pPlayer->ammo_hornets <= 0 )
 		 return;
 
 	if( m_iClip == GLOCK_MAX_CLIP )
