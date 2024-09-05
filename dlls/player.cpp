@@ -6386,21 +6386,23 @@ void CBasePlayer::RunningThink()
 		}
 		else
 		{
-			pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (300 / (1 / gpGlobals->frametime));
+			float maxspd = CVAR_GET_FLOAT( "sv_maxspeed" );
+			if( maxspd <= 0 ) maxspd = 560;
+			pev->velocity = pev->velocity + gpGlobals->v_forward * 10 * (maxspd / (1 / gpGlobals->frametime));
 
 			if( pev->button & IN_MOVERIGHT )
 			{
-				pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+				pev->velocity = pev->velocity + gpGlobals->v_right * 5 * (maxspd / (1 / gpGlobals->frametime));
 			}
 
 			if( pev->button & IN_MOVELEFT )
 			{
-				pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (300 / (1 / gpGlobals->frametime));
+				pev->velocity = pev->velocity - gpGlobals->v_right * 5 * (maxspd / (1 / gpGlobals->frametime));
 			}
 
-			if( pev->velocity.Length2D() > 320 )
+			if( pev->velocity.Length2D() > maxspd )
 			{
-				pev->velocity = pev->velocity.Normalize() * 320;
+				pev->velocity = pev->velocity.Normalize() * maxspd;
 			}
 		}
 	}
