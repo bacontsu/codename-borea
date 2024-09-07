@@ -602,8 +602,8 @@ void HUD_MarkUsableEnt(void)
 	Vector EntOrigin = ent->curstate.origin + CenterOffset;
 	Vector scr_new;
 	gEngfuncs.pTriAPI->WorldToScreen( EntOrigin, scr_new );
-	int x_coord = XPROJECT( scr_new[0] );
-	int y_coord = YPROJECT( scr_new[1] );
+//	int x_coord = XPROJECT( scr_new[0] );
+//	int y_coord = YPROJECT( scr_new[1] );
 	int r = 255;
 	int g = 255;
 	int b = 255;
@@ -612,6 +612,8 @@ void HUD_MarkUsableEnt(void)
 	std::string sprite = "sprites/use.spr";
 
 	const int spr_half_scale = 32;
+	int x_coord = ScreenWidth / 2 - spr_half_scale;
+	int y_coord = ScreenHeight / 2 - spr_half_scale;
 	gHUD.DrawBackground( x_coord - spr_half_scale, y_coord - spr_half_scale, x_coord + spr_half_scale, y_coord + spr_half_scale, (char *)sprite.c_str(), Vector( r, g, b ), kRenderTransAdd );
 
 

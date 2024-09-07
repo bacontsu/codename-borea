@@ -352,6 +352,8 @@ void DLLEXPORT HUD_CreateEntities()
 	if (pView)
 		SetupFlashlight(pView->origin + Vector(0, 0, 8), Vector(-pView->angles[0], pView->angles[1], pView->angles[2]), gEngfuncs.GetClientTime(), gHUD.m_flTimeDelta, false);
 
+	gEngfuncs.pfnClientCmd( "gl_texturemode GL_NEAREST" ); // can you work?
+
 	//RENDERERS END
 }
 
