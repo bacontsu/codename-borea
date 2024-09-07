@@ -611,9 +611,9 @@ void HUD_MarkUsableEnt(void)
 
 	std::string sprite = "sprites/use.spr";
 
-	const int spr_half_scale = 32;
-	int x_coord = ScreenWidth / 2 - spr_half_scale;
-	int y_coord = ScreenHeight / 2 - spr_half_scale;
+	const int spr_half_scale = 24;
+	int x_coord = ScreenWidth / 2;
+	int y_coord = ScreenHeight / 2;
 	gHUD.DrawBackground( x_coord - spr_half_scale, y_coord - spr_half_scale, x_coord + spr_half_scale, y_coord + spr_half_scale, (char *)sprite.c_str(), Vector( r, g, b ), kRenderTransAdd );
 
 
