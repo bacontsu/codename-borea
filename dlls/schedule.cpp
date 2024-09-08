@@ -121,7 +121,7 @@ void CBaseMonster :: ChangeSchedule ( Schedule_t *pNewSchedule )
 // this is very useful code if you can isolate a test case in a level with a single monster. It will notify
 // you of every schedule selection the monster makes.
 #if 0
-	if ( FClassnameIs( pev, "monster_tramp" ) )
+	if ( FClassnameIs( pev, "monster_thug_pipe" ) )
 	{
 		Task_t *pTask = GetTask();
 		

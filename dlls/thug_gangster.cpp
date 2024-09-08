@@ -1015,13 +1015,17 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			CBaseEntity *pHurt = Kick();
 
+			float dmg = gSkillData.hgruntDmgKick;
+			if( FClassnameIs( pev, "monster_thug_pipe" ) || FClassnameIs( pev, "monster_thug_wrench" ) || FClassnameIs( pev, "monster_thug_crowbar" ) )
+				dmg = gSkillData.thugDmg;
+
 			if ( pHurt )
 			{
 				// SOUND HERE!
 				UTIL_MakeVectors( pev->angles );
 				pHurt->pev->punchangle.x = 15;
 				pHurt->pev->velocity = pHurt->pev->velocity + gpGlobals->v_forward * 100 + gpGlobals->v_up * 50;
-				pHurt->TakeDamage( pev, pev, gSkillData.hgruntDmgKick, DMG_CLUB );
+				pHurt->TakeDamage( pev, pev, dmg, DMG_CLUB );
 			}
 		}
 		break;
@@ -2664,6 +2668,7 @@ public:
 	void Precache() override;
 	void SpeakSentence();
 	BOOL CheckRangeAttack1( float flDot, float flDist ) override; // thugs don't have ranged attack
+	BOOL CheckRangeAttack2( float flDot, float flDist ) override;
 	void CheckAmmo() override; // thugs don't use ammo
 	Schedule_t *GetSchedule() override;
 	Schedule_t *GetScheduleOfType( int Type ) override;
@@ -2821,6 +2826,11 @@ void CMonsterThugPipe::OnCatchFire( void )
 }
 
 BOOL CMonsterThugPipe::CheckRangeAttack1( float flDot, float flDist )
+{
+	return FALSE;
+}
+
+BOOL CMonsterThugPipe::CheckRangeAttack2( float flDot, float flDist )
 {
 	return FALSE;
 }
@@ -3178,8 +3188,8 @@ Schedule_t *CMonsterThugPipe::GetSchedule()
 			return CBaseMonster::GetSchedule();
 		}
 
-		// low hp, 75% chance of running away
-		if( pev->health < pev->max_health * 0.25f && RANDOM_LONG( 0, 100 ) > 25 )
+		// low hp, 50% chance of running away
+		if( pev->health < pev->max_health * 0.25f && RANDOM_LONG( 0, 100 ) > 50 )
 			return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
 
 		// Aynekko: make taunt sounds during combat (20% chance)
@@ -3231,31 +3241,10 @@ Schedule_t *CMonsterThugPipe::GetSchedule()
 			}
 		}
 
-		// damaged just a little
-		else if( HasConditions( bits_COND_LIGHT_DAMAGE ) )
+		// damaged just a little - 20% chance of flinch.
+		else if( HasConditions( bits_COND_LIGHT_DAMAGE ) && RANDOM_LONG(1, 100) > 80 )
 		{
-			// if hurt:
-			// 90% chance of taking cover
-			// 10% chance of flinch.
-			int iPercent = RANDOM_LONG( 0, 99 );
-
-			if( iPercent <= 90 && m_hEnemy != nullptr )
-			{
-				// only try to take cover if we actually have an enemy!
-
-				//!!!KELLY - this grunt was hit and is going to run to cover.
-				if( FOkToSpeak() ) // && RANDOM_LONG(0,1))
-				{
-					//SENTENCEG_PlayRndSz( ENT(pev), "HG_COVER", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch);
-					m_iSentence = HGRUNT_SENT_COVER;
-					//JustSpoke();
-				}
-				return GetScheduleOfType( SCHED_TAKE_COVER_FROM_ENEMY );
-			}
-			else
-			{
 				return GetScheduleOfType( SCHED_SMALL_FLINCH );
-			}
 		}
 		// can kick
 		else if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
@@ -3319,6 +3308,9 @@ Schedule_t *CMonsterThugPipe::GetScheduleOfType( int Type )
 	}
 	case SCHED_GRUNT_TAKECOVER_FAILED:
 	{
+		if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
 		return GetScheduleOfType( SCHED_FAIL );
 	}
 	break;
