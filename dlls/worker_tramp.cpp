@@ -1658,6 +1658,19 @@ void CWorker::Precache( void )
 		m_szGrp[TLK_MORTAL] = "SC_MORTAL";
 	}
 
+	if( FClassnameIs( pev, "monster_worker" ) )
+	{
+		m_szFriends[0] = "monster_worker";
+		m_szFriends[1] = "monster_tramp";
+		m_szFriends[2] = "monster_barney";
+	}
+	else // tramp
+	{
+		m_szFriends[0] = "monster_tramp";
+		m_szFriends[1] = "monster_worker";
+		m_szFriends[2] = "monster_barney";
+	}
+
 	CTalkMonster::Precache();
 }
 
