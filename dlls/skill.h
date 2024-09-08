@@ -171,6 +171,7 @@ struct skilldata_t
 	float spiderHealth;
 	float firepersecDmg;
 	float kickDmg;
+	float punchDmg;
 
 // Player Weapons
 	float plrDmgCrowbar;

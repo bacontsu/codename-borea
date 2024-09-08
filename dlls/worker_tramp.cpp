@@ -1698,6 +1698,7 @@ void CWorker::Spawn( void )
 	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD | bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE;
 
 	// White hands
+	/*
 	pev->skin = 0;
 
 	if( pev->body == -1 )
@@ -1707,11 +1708,12 @@ void CWorker::Spawn( void )
 
 	// Luther is black, make his hands black
 	if( pev->body == HEAD_LUTHER )
-		pev->skin = 1;
+		pev->skin = 1;*/
 
 	MonsterInit();
 	SetUse( &CTalkMonster::FollowerUse );
-
+	m_voicePitch = 100;
+	/*
 	// get voice for head
 	if( !m_voicePitch )
 	{
@@ -1723,7 +1725,7 @@ void CWorker::Spawn( void )
 		case HEAD_LUTHER:	m_voicePitch = 95;  break;	//luther
 		case HEAD_SLICK:	m_voicePitch = 100; break;	//slick
 		}
-	}
+	}*/
 
 	//	ALERT(at_aiconsole, "PITCH: %3d body: %3d name: %s\n", m_voicePitch, pev->body, GetTargetname());
 }
