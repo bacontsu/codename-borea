@@ -75,7 +75,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define GUN_GROUP					2
 #define GUN_MP5						0
 #define GUN_SHOTGUN					1
-#define GUN_NONE					2
+#define GUN_NONE					1 // Aynekko: for gangsters.
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -1310,7 +1310,7 @@ Task_t	tlGruntFail[] =
 {
 	{ TASK_STOP_MOVING,			0				},
 	{ TASK_SET_ACTIVITY,		(float)ACT_IDLE },
-	{ TASK_WAIT,				(float)2		},
+	{ TASK_WAIT,				(float)0.5		},
 	{ TASK_WAIT_PVS,			(float)0		},
 };
 
@@ -1335,7 +1335,7 @@ Task_t	tlGruntCombatFail[] =
 {
 	{ TASK_STOP_MOVING,			0				},
 	{ TASK_SET_ACTIVITY,		(float)ACT_IDLE },
-	{ TASK_WAIT_FACE_ENEMY,		(float)2		},
+	{ TASK_WAIT_FACE_ENEMY,		(float)0.5		},
 	{ TASK_WAIT_PVS,			(float)0		},
 };
 
@@ -1441,8 +1441,8 @@ Task_t	tlGruntCombatFace1[] =
 	{ TASK_STOP_MOVING,				0							},
 	{ TASK_SET_ACTIVITY,			(float)ACT_IDLE				},
 	{ TASK_FACE_ENEMY,				(float)0					},
-	{ TASK_WAIT,					(float)1.5					},
-	{ TASK_SET_SCHEDULE,			(float)SCHED_GRUNT_SWEEP	},
+	{ TASK_WAIT,					(float)0.4					},
+//	{ TASK_SET_SCHEDULE,			(float)SCHED_GRUNT_SWEEP	},
 };
 
 Schedule_t	slGruntCombatFace[] =
