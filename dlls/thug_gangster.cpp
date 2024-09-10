@@ -293,9 +293,13 @@ void CHGrunt :: GibMonster ()
 		{
 			pGun = DropItem( "weapon_shotgun", vecGunPos, vecGunAngles );
 		}
+		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) )
+		{
+			DropItem( "weapon_psk", vecGunPos, vecGunAngles );
+		}
 		else
 		{
-			pGun = DropItem( "weapon_9mmAR", vecGunPos, vecGunAngles );
+			pGun = DropItem( "weapon_mp54", vecGunPos, vecGunAngles );
 		}
 		if ( pGun )
 		{
@@ -3170,7 +3174,7 @@ Schedule_t *CMonsterThugPipe::GetSchedule()
 	{
 		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 		{
-			if( FOkToSpeak() )
+		//	if( FOkToSpeak() )
 			{
 				SENTENCEG_PlayRndSz( ENT( pev ), "THU_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
 				JustSpoke();
@@ -3921,7 +3925,7 @@ Schedule_t *CMonsterGangster::GetSchedule()
 	{
 		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 		{
-			if( FOkToSpeak() )
+		//	if( FOkToSpeak() )
 			{
 				SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
 				JustSpoke();
