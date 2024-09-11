@@ -90,6 +90,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define		HGRUNT_AE_GREN_DROP		( 9 )
 #define		HGRUNT_AE_CAUGHT_ENEMY	( 10) // grunt established sight with an enemy (player only) that had previously eluded the squad.
 #define		HGRUNT_AE_DROP_GUN		( 11) // grunt (probably dead) is dropping his mp5.
+#define		HGRUNT_AE_VICTORYDANCE (12)
 
 //=========================================================
 // monster-specific schedule types
@@ -295,7 +296,7 @@ void CHGrunt :: GibMonster ()
 		}
 		else if( FBitSet( pev->weapons, HGRUNT_PISTOL ) )
 		{
-			DropItem( "weapon_psk", vecGunPos, vecGunAngles );
+			pGun = DropItem( "weapon_psk", vecGunPos, vecGunAngles );
 		}
 		else
 		{
@@ -880,6 +881,12 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	switch( pEvent->event )
 	{
+		case HGRUNT_AE_VICTORYDANCE:
+		{
+			SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+			JustSpoke();
+		}
+		break;
 		case HGRUNT_AE_DROP_GUN:
 			{
 			if (pev->spawnflags & SF_MONSTER_NO_WPN_DROP) break; //LRC
@@ -2432,7 +2439,7 @@ Schedule_t* CHGrunt :: GetScheduleOfType ( int Type )
 		}
 	case SCHED_VICTORY_DANCE:
 		{
-			if ( InSquad() )
+			if ( 0 )//InSquad() )
 			{
 				if ( !IsLeader() )
 				{
@@ -3174,7 +3181,7 @@ Schedule_t *CMonsterThugPipe::GetSchedule()
 	{
 		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 		{
-		//	if( FOkToSpeak() )
+			if( 0 )//FOkToSpeak() )
 			{
 				SENTENCEG_PlayRndSz( ENT( pev ), "THU_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
 				JustSpoke();
@@ -3366,7 +3373,7 @@ Schedule_t *CMonsterThugPipe::GetScheduleOfType( int Type )
 	}
 	case SCHED_VICTORY_DANCE:
 	{
-		if( InSquad() )
+		if( 0 )//InSquad() )
 		{
 			if( !IsLeader() )
 			{
@@ -3925,7 +3932,7 @@ Schedule_t *CMonsterGangster::GetSchedule()
 	{
 		if( HasConditions( bits_COND_ENEMY_DEAD ) && LookupActivity( ACT_VICTORY_DANCE ) != ACTIVITY_NOT_AVAILABLE )
 		{
-		//	if( FOkToSpeak() )
+			if( 0)// FOkToSpeak() )
 			{
 				SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
 				JustSpoke();
@@ -4184,7 +4191,7 @@ Schedule_t *CMonsterGangster::GetScheduleOfType( int Type )
 	}
 	case SCHED_VICTORY_DANCE:
 	{
-		if( InSquad() )
+		if( 0 )//InSquad() )
 		{
 			if( !IsLeader() )
 			{
@@ -4246,6 +4253,12 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	switch( pEvent->event )
 	{
+	case HGRUNT_AE_VICTORYDANCE:
+	{
+		SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
+		JustSpoke();
+	}
+	break;
 	case HGRUNT_AE_DROP_GUN:
 	{
 		if( pev->spawnflags & SF_MONSTER_NO_WPN_DROP ) break; //LRC
