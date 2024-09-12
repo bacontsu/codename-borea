@@ -3516,7 +3516,9 @@ void CMonsterGangster::Precache()
 
 	AllyDied = false;
 
-	PRECACHE_SOUND( "weapons/psk_npc.wav" ); //LRC
+	PRECACHE_SOUND( "weapons/psk_npc.wav" );
+	PRECACHE_SOUND( "weapons/m67_npc.wav" );
+	PRECACHE_SOUND( "weapons/mp54_npc.wav" );
 }
 
 void CMonsterGangster::Spawn()
