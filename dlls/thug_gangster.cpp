@@ -853,7 +853,7 @@ void CHGrunt :: Shotgun ()
 
 	// Aynekko: add custom gang stuff right here...less functions
 	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
-		FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, gSkillData.gangDmgShotgun ); // shoot +-7.5 degrees
+		FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_7DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, gSkillData.gangDmgShotgun ); // shoot +-7.5 degrees
 	else
 		FireBullets(gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0 ); // shoot +-7.5 degrees
 
@@ -912,6 +912,8 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 			{
 				DropItem( "ammo_ARgrenades", BodyTarget( pev->origin ), vecGunAngles );
 			}
+			
+			pev->spawnflags |= SF_MONSTER_NO_WPN_DROP; // Aynekko: just in case
 
 			}
 			break;
@@ -4295,6 +4297,8 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			DropItem( "ammo_ARgrenades", BodyTarget( pev->origin ), vecGunAngles );
 		}
+
+		pev->spawnflags |= SF_MONSTER_NO_WPN_DROP; // Aynekko: just in case
 
 	}
 	break;
