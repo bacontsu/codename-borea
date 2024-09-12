@@ -157,7 +157,7 @@ void CMP5::RifleFireBullet( void )
 	m_iClip--;
 
 	if( m_iRifleShotsFired == 0 )
-		EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, "weapons/mp54_fire.wav", 0.5, ATTN_NORM );
+		EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, "weapons/mp54_fire.wav", 1.0, ATTN_NORM );
 	m_iRifleShotsFired++;
 	m_flRifleShoot = gpGlobals->time + 0.05; // time for the next burst bullet
 

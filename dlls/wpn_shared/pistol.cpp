@@ -205,7 +205,7 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 
 	// Aynekko: animation and sound done here instead
 	SendWeaponAnim( (m_iClip <= 0) ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 1, pev->body );
-	EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, pev->body == 1 ? "weapons/psk_silenced.wav" : "weapons/psk_fire.wav", 0.5, ATTN_NORM );
+	EMIT_SOUND( m_pPlayer->edict(), CHAN_WEAPON, pev->body == 1 ? "weapons/psk_silenced.wav" : "weapons/psk_fire.wav", 1.0, ATTN_NORM );
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
