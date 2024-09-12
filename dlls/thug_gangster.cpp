@@ -3515,6 +3515,8 @@ void CMonsterGangster::Precache()
 	m_iShotgunShell = PRECACHE_MODEL( "models/shotgunshell.mdl" );
 
 	AllyDied = false;
+
+	PRECACHE_SOUND( "weapons/psk_npc.wav" ); //LRC
 }
 
 void CMonsterGangster::Spawn()
