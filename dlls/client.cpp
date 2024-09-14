@@ -1177,6 +1177,7 @@ void ClientPrecache()
 	PRECACHE_SOUND( "common/npc_step2.wav" );
 	PRECACHE_SOUND( "common/npc_step3.wav" );
 	PRECACHE_SOUND( "common/npc_step4.wav" );
+	PRECACHE_SOUND( "zombie/claw_miss2.wav" );
 
 	/*
 	PRECACHE_SOUND("player/pl_step1.wav");		// walk on concrete
