@@ -801,7 +801,7 @@ void CGrenade::MolotovExplode( void )
 	WRITE_SHORT( g_sModelIndexFireball );
 	WRITE_BYTE( 25 ); // scale * 10
 	WRITE_BYTE( 15 ); // framerate
-	WRITE_BYTE( TE_EXPLFLAG_NONE );
+	WRITE_BYTE( TE_EXPLFLAG_NOSOUND );
 	MESSAGE_END();
 
 	// create 24 fires...
