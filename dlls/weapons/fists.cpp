@@ -96,6 +96,7 @@ BOOL CPipewrench::Deploy()
 	m_flNextSecondaryAttack = GetNextAttackDelay( 0.15 );
 	attack_state = ATTACK_IDLE;
 	time_counter = 0;
+	bDidStartAnim = false;
 	m_flTimeWeaponIdle = gpGlobals->time + 1;
 	return DefaultDeploy( "models/v_fists.mdl", "models/p_fists.mdl", PIPEWRENCH_DRAW, "crowbar" );
 }
