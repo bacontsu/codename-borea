@@ -56,13 +56,17 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	void EXPORT SwingAgain();
-	void EXPORT Smack();
+	void DoAttack();
+	float time_counter;
+	int attack_state;
+	bool bDidStartAnim;
+//	void EXPORT SwingAgain();
+//	void EXPORT Smack();
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
-	bool Swing( const bool bFirst );
-	void EXPORT BigSwing();
+//	bool Swing( const bool bFirst );
+//	void EXPORT BigSwing();
 	BOOL Deploy() override;
 	void Holster( int skiplocal = 0 ) override;
 	void WeaponIdle() override;

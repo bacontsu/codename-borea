@@ -28,6 +28,11 @@
 #define	PIPEWRENCH_BODYHIT_VOLUME 128
 #define	PIPEWRENCH_WALLHIT_VOLUME 512
 
+#define ANIM_FISTS_RIGHTSTART 11
+#define ANIM_FISTS_RIGHTEND 12
+#define ANIM_FISTS_LEFTSTART 15
+#define ANIM_FISTS_LEFTEND 16
+
 #ifndef CLIENT_DLL
 TYPEDESCRIPTION	CPipewrench::m_SaveData[] =
 {
@@ -76,8 +81,22 @@ void CPipewrench::Precache()
 	m_usPipewrench = PRECACHE_EVENT ( 1, "events/pipewrench.sc" );
 }
 
+// attack_state
+#define ATTACK_LMB_SMALL 1
+#define ATTACK_LMB_BIG 2
+#define ATTACK_RMB_SMALL 3
+#define ATTACK_RMB_BIG 4
+#define ATTACK_IDLE 5
+
+//#define FISTS_DBG_MSG
+
 BOOL CPipewrench::Deploy()
 {
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.15 );
+	m_flNextSecondaryAttack = GetNextAttackDelay( 0.15 );
+	attack_state = ATTACK_IDLE;
+	time_counter = 0;
+	m_flTimeWeaponIdle = gpGlobals->time + 1;
 	return DefaultDeploy( "models/v_fists.mdl", "models/p_fists.mdl", PIPEWRENCH_DRAW, "crowbar" );
 }
 
@@ -89,29 +108,255 @@ void CPipewrench::Holster( int skiplocal )
 
 void CPipewrench::PrimaryAttack()
 {
-	if( m_iSwingMode == SWING_NONE && !Swing( true ) && !UTIL_UseOldWeapons() )
+	attack_state = ATTACK_LMB_SMALL;
+
+	time_counter += gpGlobals->frametime;
+	if( time_counter > 0.25f )
+		attack_state = ATTACK_LMB_BIG;
+
+	if( attack_state == ATTACK_LMB_BIG && !bDidStartAnim )
 	{
-#ifndef CLIENT_DLL
-		SetThink( &CPipewrench::SwingAgain );
-		pev->nextthink = gpGlobals->time + 0.1;
-#endif
+		SendWeaponAnim( ANIM_FISTS_LEFTSTART );
+		bDidStartAnim = true;
 	}
+
+	m_flTimeWeaponIdle = 0;
+	m_flNextSecondaryAttack = GetNextAttackDelay( 0.15 );
+
+#ifdef FISTS_DBG_MSG
+	ALERT( at_console, "LMB pressed!\n" );
+#endif
 }
 
 void CPipewrench::SecondaryAttack()
 {
-	if ( m_iSwingMode != SWING_START_BIG )
+	attack_state = ATTACK_RMB_SMALL;
+
+	time_counter += gpGlobals->frametime;
+	if( time_counter > 0.25f )
+		attack_state = ATTACK_RMB_BIG;
+
+	if( attack_state == ATTACK_RMB_BIG && !bDidStartAnim )
 	{
-		SendWeaponAnim( PIPEWRENCH_BIG_SWING_START );
-		m_flBigSwingStart = gpGlobals->time;
+		SendWeaponAnim( ANIM_FISTS_RIGHTSTART );
+		bDidStartAnim = true;
 	}
 
-	m_iSwingMode = SWING_START_BIG;
+	m_flTimeWeaponIdle = 0;
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.15 );
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( 0.1 );
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2;
+#ifdef FISTS_DBG_MSG
+	ALERT( at_console, "RMB pressed!\n" );
+#endif
 }
 
+void CPipewrench::WeaponIdle()
+{
+#ifndef CLIENT_DLL
+	if( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if( !m_pPlayer )
+		return;
+
+	if( !attack_state )
+	{
+		SendWeaponAnim( 0 );
+		attack_state = ATTACK_IDLE;
+	}
+
+	DoAttack();
+
+#endif // !CLIENT_DLL
+}
+
+void CPipewrench::DoAttack()
+{
+#ifndef CLIENT_DLL
+	if( !attack_state || attack_state == ATTACK_IDLE )
+		return;
+
+#ifdef FISTS_DBG_MSG
+	ALERT( at_console, "DoAttack()\n" );
+#endif
+
+	bool bDidHit = false;
+
+	// setup damage values
+	int Damage = 0;
+	switch( attack_state )
+	{
+	case ATTACK_LMB_SMALL:
+		Damage = gSkillData.punchDmg; // left hand punch
+		break;
+	case ATTACK_RMB_SMALL:
+		Damage = gSkillData.punchDmg; // right hand punch
+		break;
+	case ATTACK_LMB_BIG:
+		Damage = gSkillData.punch2Dmg; // left hand punch
+		break;
+	case ATTACK_RMB_BIG:
+		Damage = gSkillData.punch2Dmg; // right hand punch
+		break;
+	}
+	if( !Damage )
+		ALERT( at_console, "ERROR: Zero damage for fists!" );
+
+	TraceResult tr;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecEnd = vecSrc + gpGlobals->v_forward * 32;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+	if( tr.flFraction >= 1.0 )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if( tr.flFraction < 1.0 )
+		{
+			// Calculate the point of intersection of the line (or hull) and the object we hit
+			// This is and approximation of the "best" intersection
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if( !pHit || pHit->IsBSPModel() )
+				FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+		}
+	}
+
+	switch( attack_state )
+	{
+	case ATTACK_LMB_SMALL:
+		SendWeaponAnim( 5 ); // left hand punch
+		break;
+	case ATTACK_RMB_SMALL:
+		SendWeaponAnim( 7 ); // right hand punch
+		break;
+	case ATTACK_LMB_BIG:
+		SendWeaponAnim( ANIM_FISTS_LEFTEND ); // left hand punch
+		break;
+	case ATTACK_RMB_BIG:
+		SendWeaponAnim( ANIM_FISTS_RIGHTEND ); // right hand punch
+		break;
+	}
+
+	if( tr.flFraction >= 1.0 )
+	{
+		EMIT_SOUND( m_pPlayer->edict(), CHAN_ITEM, "zombie/claw_miss2.wav", 1, ATTN_NORM );
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	}
+	else
+	{
+		// player "shoot" animation
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+		// screen shake
+		if( attack_state == ATTACK_LMB_BIG || attack_state == ATTACK_RMB_BIG )
+			UTIL_ScreenShake( m_pPlayer->pev->origin, 0.01, 100, 0.5, 300 );
+
+		// hit
+		bDidHit = true;
+		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+
+		if( pEntity )
+		{
+			ClearMultiDamage();
+
+			pEntity->TraceAttack( m_pPlayer->pev, Damage, gpGlobals->v_forward, &tr, DMG_CLUB );
+
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+		}
+
+		// play thwack, smack, or dong sound
+		float flVol = 1.0;
+		bool bHitWorld = true;
+
+		if( pEntity )
+		{
+			if( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+			{
+				// play thwack or smack sound
+				switch( RANDOM_LONG( 0, 2 ) )
+				{
+				case 0:
+					EMIT_SOUND( m_pPlayer->edict(), CHAN_ITEM, "weapons/pwrench_hitbod1.wav", 1, ATTN_NORM ); break;
+				case 1:
+					EMIT_SOUND( m_pPlayer->edict(), CHAN_ITEM, "weapons/pwrench_hitbod2.wav", 1, ATTN_NORM ); break;
+				case 2:
+					EMIT_SOUND( m_pPlayer->edict(), CHAN_ITEM, "weapons/pwrench_hitbod3.wav", 1, ATTN_NORM ); break;
+				}
+				m_pPlayer->m_iWeaponVolume = PIPEWRENCH_BODYHIT_VOLUME;
+				if( !pEntity->IsAlive() )
+				{
+					// nothing
+				}
+				else
+					flVol = 0.1;
+
+				bHitWorld = false;
+			}
+		}
+
+		// play texture hit sound
+		// UNDONE: Calculate the correct point of intersection when we hit with the hull instead of the line
+
+		if( bHitWorld )
+		{
+			float fvolbar = TEXTURETYPE_PlaySound( &tr, vecSrc, vecSrc + (vecEnd - vecSrc) * 2, BULLET_PLAYER_CROWBAR );
+
+			if( g_pGameRules->IsMultiplayer() )
+			{
+				// override the volume here, cause we don't play texture sounds in multiplayer, 
+				// and fvolbar is going to be 0 from the above call.
+
+				fvolbar = 1;
+			}
+
+			// also play pipe wrench strike
+			switch( RANDOM_LONG( 0, 1 ) )
+			{
+			case 0:
+				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_ITEM, "weapons/pwrench_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG( 0, 3 ) );
+				break;
+			case 1:
+				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_ITEM, "weapons/pwrench_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG( 0, 3 ) );
+				break;
+			}
+
+			// delay the decal a bit
+			m_trHit = tr;
+		}
+
+		m_pPlayer->m_iWeaponVolume = flVol * PIPEWRENCH_WALLHIT_VOLUME;
+
+		//RENDERERS START
+		DecalGunshot( &m_trHit, BULLET_PLAYER_CROWBAR, vecSrc, vecEnd );
+		//RENDERERS END
+	}
+
+	if( attack_state == ATTACK_LMB_SMALL || attack_state == ATTACK_RMB_SMALL )
+	{
+		m_flNextPrimaryAttack = GetNextAttackDelay( 0.15 );
+		m_flNextSecondaryAttack = GetNextAttackDelay( 0.15 );
+	}
+	else
+	{
+		m_flNextPrimaryAttack = GetNextAttackDelay( 0.25 );
+		m_flNextSecondaryAttack = GetNextAttackDelay( 0.25 );
+	}
+
+	attack_state = 0;
+	bDidStartAnim = false;
+	time_counter = 0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1;
+#ifdef FISTS_DBG_MSG
+	ALERT( at_console, "DID ATTACK!\n" );
+#endif
+#endif
+}
+
+
+#if 0
 void CPipewrench::Smack()
 {
 	//DecalGunshot( &m_trHit, BULLET_PLAYER_CROWBAR );
@@ -452,48 +697,7 @@ void CPipewrench::BigSwing()
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 	}
 }
-
-void CPipewrench::WeaponIdle()
-{
-	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
-		return;
-
-	if (m_iSwingMode == SWING_START_BIG)
-	{
-		if (gpGlobals->time > m_flBigSwingStart + 1)
-		{
-			m_iSwingMode = SWING_DOING_BIG;
-
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.2;
-			SetThink(&CPipewrench::BigSwing);
-			pev->nextthink = gpGlobals->time + 0.1;
-		}
-	}
-	else
-	{
-		m_iSwingMode = SWING_NONE;
-		int iAnim;
-		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0, 1.0 );
-
-		if (flRand <= 0.5)
-		{
-			iAnim = PIPEWRENCH_IDLE3;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0;
-		}
-		else if (flRand <= 0.9)
-		{
-			iAnim = PIPEWRENCH_IDLE1;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
-		}
-		else
-		{
-			iAnim = PIPEWRENCH_IDLE2;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0;
-		}
-
-		SendWeaponAnim( iAnim );
-	}
-}
+#endif
 
 void CPipewrench::GetWeaponData( weapon_data_t& data )
 {

@@ -172,6 +172,7 @@ struct skilldata_t
 	float firepersecDmg;
 	float kickDmg;
 	float punchDmg;
+	float punch2Dmg;
 
 // Player Weapons
 	float plrDmgCrowbar;
