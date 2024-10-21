@@ -1011,32 +1011,18 @@ int DrawBar(int x, int y, int width, int height, float f)
 		if (w <= 0)
 			w = 1;
 
-		if( gHUD.isNightVisionOn() )
-		{
-			gHUD.getNightVisionHudItemColor( r, g, b );
-		}
-		else
-		{
-			r = giR;
-			g = giG;
-			b = giB;
-		}
+		r = giR;
+		g = giG;
+		b = giB;
 
 		FillRGBA(x, y, w, height, r, g, b, 255);
 		x += w;
 		width -= w;
 	}
 
-	if( gHUD.isNightVisionOn() )
-	{
-		gHUD.getNightVisionHudItemColor( r, g, b );
-	}
-	else
-	{
-		r = giR;
-		g = giG;
-		b = giB;
-	}
+	r = giR;
+	g = giG;
+	b = giB;
 
 	FillRGBA(x, y, width, height, r, g, b, 128);
 
@@ -1117,17 +1103,10 @@ int CHudAmmo::DrawWList(float flTime)
 		else
 			a = 192;
 
-		if( gHUD.isNightVisionOn() )
-		{
-			gHUD.getNightVisionHudItemColor( r, g, b );
-		}
-		else
-		{
-			r = giR;
-			g = giG;
-			b = giB;
-			ScaleColors( r, g, b, 255 );
-		}
+		r = giR;
+		g = giG;
+		b = giB;
+		ScaleColors(r, g, b, 255);
 
 		SPR_Set(gHUD.GetSprite(m_HUD_bucket0 + i), r, g, b );
 
@@ -1173,16 +1152,9 @@ int CHudAmmo::DrawWList(float flTime)
 				if ( !p || !p->iId )
 					continue;
 
-				if( gHUD.isNightVisionOn() )
-				{
-					gHUD.getNightVisionHudItemColor( r, g, b );
-				}
-				else
-				{
-					r = giR;
-					g = giG;
-					b = giB;
-				}
+				r = giR;
+				g = giG;
+				b = giB;
 			
 				// if active, then we must have ammo.
 
@@ -1200,16 +1172,9 @@ int CHudAmmo::DrawWList(float flTime)
 
 					if( gWR.HasAmmo( p ) )
 					{
-						if( gHUD.isNightVisionOn() )
-						{
-							gHUD.getNightVisionHudItemColor( r, g, b );
-						}
-						else
-						{
-							r = giR;
-							g = giG;
-							b = giB;
-						}
+						r = giR;
+						g = giG;
+						b = giB;
 						ScaleColors( r, g, b, 192 );
 					}
 					else
@@ -1236,16 +1201,9 @@ int CHudAmmo::DrawWList(float flTime)
 		{
 			// Draw Row of weapons.
 
-			if( gHUD.isNightVisionOn() )
-			{
-				gHUD.getNightVisionHudItemColor( r, g, b );
-			}
-			else
-			{
-				r = giR;
-				g = giG;
-				b = giB;
-			}
+			r = giR;
+			g = giG;
+			b = giB;
 
 			for ( int iPos = 0; iPos < MAX_WEAPON_POSITIONS; iPos++ )
 			{
@@ -1256,16 +1214,9 @@ int CHudAmmo::DrawWList(float flTime)
 
 				if ( gWR.HasAmmo(p) )
 				{
-					if( gHUD.isNightVisionOn() )
-					{
-						gHUD.getNightVisionHudItemColor( r, g, b );
-					}
-					else
-					{
-						r = giR;
-						g = giG;
-						b = giB;
-					}
+					r = giR;
+					g = giG;
+					b = giB;
 					a = 128;
 				}
 				else

@@ -4218,7 +4218,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 		dt >>= 4;
 
 		lightmap = surf->samples;
-		if (lightmap)
+		if (lightmap && m_pCurrentEntity)
 		{
 			int surfindex = node->firstsurface+i;
 			int size = ((surf->extents[1]>>4)+1)*((surf->extents[0]>>4)+1);

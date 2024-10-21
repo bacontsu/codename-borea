@@ -667,12 +667,12 @@ void CBSPRenderer::Init( )
 	m_bDontPromptShadersError		= true;
 
 	gEngfuncs.pfnAddCommand ("te_dump", RenderersDumpInfo);
-	gEngfuncs.pfnAddCommand ("te_detail_auto", GenDetail );
+	//gEngfuncs.pfnAddCommand ("te_detail_auto", GenDetail );
 	gEngfuncs.pfnAddCommand ("te_exportworld", ExportWorld );
 
 	m_pCvarDrawWorld				= CVAR_CREATE( "te_world", "1", 0 );
 	m_pCvarSpeeds					= CVAR_CREATE( "te_speeds", "0", 0 );
-	m_pCvarDetailTextures			= CVAR_CREATE( "te_detail", "1", 0 );
+	//m_pCvarDetailTextures			= CVAR_CREATE( "te_detail", "1", 0 );
 	m_pCvarWorldShaders				= CVAR_CREATE( "te_world_shaders", "1", FCVAR_ARCHIVE );
 	m_pCvarWireFrame				= CVAR_CREATE( "te_wireframe", "0", 0 );
 	m_pCvarDynamic					= CVAR_CREATE( "te_dynlights", "1", FCVAR_ARCHIVE);
@@ -6377,6 +6377,7 @@ void CBSPRenderer::DrawSky( )
 		glDepthFunc(GL_LEQUAL);
 
 		SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_OFF, ENVSTATE_OFF, ENVSTATE_OFF);
+		glColor4f(1, 1, 1, 1);
 
 		Vector m_vPoints[8];
 		m_vPoints[0] = m_vRenderOrigin + Vector(0, -10, 0) - Vector(10, 0, 0) + Vector(0, 0, -10);
