@@ -3568,6 +3568,8 @@ void CMonsterGangster::Spawn()
 	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
 	{
 		pev->weapons |= HGRUNT_SHOTGUN;
+		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+			pev->weapons |= HGRUNT_HANDGRENADE;
 		m_cClipSize = 8;
 	}
 	else if( FClassnameIs( pev, "monster_gangster_smg" ) )
