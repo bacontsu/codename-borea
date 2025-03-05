@@ -60,7 +60,7 @@ cvar_t* te_render_distance = NULL;
 struct cl_stored_light
 {
 	int index = 0;
-	Vector color = 0;
+	Vector color = Vector(0, 0, 0);
 };
 
 std::vector<cl_stored_light>StoredLightBuffer;
