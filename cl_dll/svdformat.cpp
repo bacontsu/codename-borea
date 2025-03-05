@@ -297,7 +297,7 @@ svdheader_t* SVD_Create( char* filename, model_t* pmodel )
 	if (pstudiohdr->numbodyparts == 0)
 	{
 		gEngfuncs.Con_Printf("Error: model %s has 0 submodels\n", pmodel->name);
-		return false;
+		return nullptr;
 	}
 	
 	// Allocate the buffer

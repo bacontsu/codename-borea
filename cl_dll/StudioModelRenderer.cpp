@@ -4232,17 +4232,17 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 			// bacontsu - smoothed lightmap while moving
 			// scan for existing index
 			bool bFoundStoredLight = false;
-			int iFoundIndex = 0;
+			size_t iFoundIndex = 0;
 
 			// make sure we're not lerping particles
 			if(!isParticle)
 			{
-				for (int jaja = 0; jaja < StoredLightBuffer.size(); jaja++)
+				for (size_t k = 0; k < StoredLightBuffer.size(); k++)
 				{
-					if (StoredLightBuffer[jaja].index == m_pCurrentEntity->index)
+					if (StoredLightBuffer[k].index == m_pCurrentEntity->index)
 					{
 						bFoundStoredLight = true;
-						iFoundIndex = jaja;
+						iFoundIndex = k;
 					}
 				}
 
@@ -7092,8 +7092,7 @@ StudioDrawPointsShadow
 */
 void CStudioModelRenderer::StudioDrawPointsShadow()
 {
-	float* av, height;
-	float vec_x, vec_y;
+	float* av;
 	mstudiomesh_t* pmesh;
 	Vector point;
 	int i, k;

@@ -310,8 +310,6 @@ void CMOFAssassin::MonsterThink()
 
 	if (m_hEnemy)
 	{
-
-		float ang;
 		Vector forward, enemy;
 		Vector dist = m_hEnemy->pev->origin - pev->origin;
 

@@ -388,7 +388,7 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 	{
 		Vector dist = tr.endpos - VecSrc;
 		dist.z = 0;
-		dist.Normalize();
+		dist = dist.Normalize();
 		VectorAngles(dist, angles);
 	}
 
