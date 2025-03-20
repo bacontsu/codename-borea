@@ -795,7 +795,7 @@ void CBullsquid :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 		case BSQUID_AE_THROW:
 			{
-				int iPitch;
+				//int iPitch;
 
 				// squid throws its prey IF the prey is a client. 
 				CBaseEntity *pHurt = CheckTraceHullAttack( 70, gSkillData.spiderDmgJump, DMG_CLUB | DMG_ALWAYSGIB );

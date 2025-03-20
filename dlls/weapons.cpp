@@ -745,7 +745,8 @@ void CBasePlayerItem::DefaultUse(CBaseEntity *pActivator, CBaseEntity *pCaller, 
 		if( !gEvilImpulse101 )
 		{
 			int i;
-			char sample[32];
+			// Aynekko: remove
+			//char sample[32];
 			char weapon_name[32];
 			strcpy( weapon_name, STRING( pev->classname ) );
 
@@ -802,7 +803,8 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		if(!gEvilImpulse101)
 		{
 			int i;
-			char sample[32];
+			// Aynekko: remove
+			//char sample[32];
 			char weapon_name[32];
 			strcpy(weapon_name, STRING(pev->classname));
 
