@@ -83,7 +83,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>C:\Steam\steamapps\common\Half-Life\Prava\cl_dlls\</OutDir>
+    <OutDir>D:\SteamLibrary\steamapps\common\Half-Life\Prava\cl_dlls</OutDir>
     <TargetName>client</TargetName>
     <IntDir>D:\SteamLibrary\steamapps\common\Half-Life\Prava\cl_dlls\int</IntDir>
   </PropertyGroup>
@@ -118,6 +118,7 @@
       </DelayLoadDLLs>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>cd /D "$(ProjectDir)..\.."
@@ -152,6 +153,7 @@ EXIT /B 0</Command>
       </DelayLoadDLLs>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>cd /D "$(ProjectDir)..\.."
@@ -192,6 +194,7 @@ EXIT /B 0</Command>
       </BaseAddress>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -230,6 +233,7 @@ EXIT /B 0</Command>
       </BaseAddress>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>
