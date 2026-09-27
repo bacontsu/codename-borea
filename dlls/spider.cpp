@@ -1828,6 +1828,9 @@ void CSpiderRepel::RepelUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_
 	// Aynekko - pass trigger conditions too
 	pSpider->m_iTriggerCondition = m_iTriggerCondition;
 	pSpider->m_iszTriggerTarget = m_iszTriggerTarget;
+	// body and skin
+	pSpider->pev->body = pev->body;
+	pSpider->pev->skin = pev->skin;
 
 	CBeam *pBeam = CBeam::BeamCreate( "sprites/spidersilk.spr", 10 );
 	pBeam->PointEntInit( pev->origin + Vector( 0, 0, 112 ), pSpider->entindex() );

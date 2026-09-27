@@ -320,7 +320,9 @@ CBaseMonster* CMonsterMaker::MakeMonster()
 		pMonst->m_iPlayerReact = this->m_iPlayerReact;
 		pMonst->m_iTriggerCondition = this->m_iTriggerCondition;	//AJH
 		pMonst->m_iszTriggerTarget = this->m_iszTriggerTarget;		//AJH	
-
+		// Aynekko - copy these too!
+		pMonst->pev->body = pev->body;
+		pMonst->pev->skin = pev->skin;
 	}
 
 	if ( !FStringNull( pev->netname ) )
