@@ -300,7 +300,6 @@ void ReloadSubtitles()
 		strcpy_s(newsubtitle.text, szText);
 		newsubtitle.staytime = atof(szTime);
 		subtitles_vector_client.push_back(newsubtitle);
-
 	}
 
 }
@@ -332,6 +331,16 @@ int __MsgFunc_AddSubtitle(const char* pszName, int iSize, void* pbuf)
 
 extern SDL_Window* hlWindow;
 
+static std::string getSelectedFont()
+{
+	std::vector<std::byte> textfile = FileSystem_LoadFileIntoBuffer("resource\\CustomFontFiles\\subtitles_font.txt", FileContentFormat::Text);
+	if (textfile.empty())
+		return "Liberation Serif";
+
+	char* pFile = (char*)textfile.data();
+	return pFile;
+}
+
 bool CImguiManager::Init()
 {
 	HOOK_MESSAGE(AddSubtitle);
@@ -357,7 +366,7 @@ bool CImguiManager::Init()
 		0,
 	};
 
-	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/Liberation Serif.ttf");
+	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getSelectedFont());
 
 	customfont = io.Fonts->AddFontFromFileTTF(path.c_str(), 20.0f, &config, full_glyph_range);
 
