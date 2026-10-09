@@ -636,6 +636,8 @@ public:
 
 	void SubtitleLifeLogic();
 
+	void ReloadSubtitles();
+
 	void AddSubtitle(const char subtitle[512], float staytime);
 
 	struct subtitles_t
@@ -649,6 +651,7 @@ public:
 	int m_iNumTexts;
 	cvar_t* r_subtitles;
 	cvar_t* r_subtitleslang;
+	cvar_t* r_subtitlesfont;
 	subtitles_t m_sTexts[MAX_SUBTITLES_AT_ONCE];
 };
 

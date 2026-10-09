@@ -35,10 +35,19 @@ SDL_GLContext mainContext;
 CImguiManager g_ImGUIManager;
 
 
-ImFont* customfont;
+ImFont* customfont = nullptr;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+static std::string getSelectedFont(cvar_t* fontcvar)
+{
+	std::string fontfile = std::string(fontcvar->string);
+	if (fontfile.find(".ttf") == std::string::npos)
+		return "Liberation Serif.ttf";
+
+	return fontfile;
+}
 
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width = nullptr, int* out_height = nullptr, int filter = GL_LINEAR, int wrap = GL_CLAMP_TO_EDGE)
@@ -136,7 +145,7 @@ GLuint noise2 = 0;
 
 std::vector<subtitlelist_t> subtitles_vector_client;
 
-void ReloadSubtitles()
+void CImguiManager::ReloadSubtitles()
 {
 	int iFlags = 0;
 	char szFlag[32];
@@ -158,6 +167,20 @@ void ReloadSubtitles()
 		gEngfuncs.Con_Printf("Could not load subtitles!\n");
 		return;
 	}
+
+	ImGuiIO& io = ImGui::GetIO();
+	ImFontConfig config;
+	config.OversampleH = 2; // Horizontal oversampling
+	config.OversampleV = 1; // Vertical oversampling
+	config.GlyphExtraSpacing.x = 1.0f; // Extra spacing between glyphs
+	static const ImWchar full_glyph_range[] = {
+		0x0020, 0xFFFF,
+		0,
+	};
+
+	std::string fontpath = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getSelectedFont(r_subtitlesfont));
+	customfont = io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f, &config, full_glyph_range);
+	ImGui_ImplOpenGL2_DestroyFontsTexture();
 
 	subtitles_vector_client.clear();
 
@@ -331,21 +354,17 @@ int __MsgFunc_AddSubtitle(const char* pszName, int iSize, void* pbuf)
 
 extern SDL_Window* hlWindow;
 
-static std::string getSelectedFont()
-{
-	std::vector<std::byte> textfile = FileSystem_LoadFileIntoBuffer("resource\\CustomFontFiles\\subtitles_font.txt", FileContentFormat::Text);
-	if (textfile.empty())
-		return "Liberation Serif";
-
-	char* pFile = (char*)textfile.data();
-	return pFile;
-}
-
 bool CImguiManager::Init()
 {
 	HOOK_MESSAGE(AddSubtitle);
 	mainWindow = hlWindow;
 	// mainContext = SDL_GL_CreateContext(mainWindow);
+
+
+	r_subtitles = CVAR_CREATE("r_subtitles", "1", FCVAR_ARCHIVE);
+	r_subtitleslang = CVAR_CREATE("r_subtitleslang", "subtitles_en.txt", FCVAR_ARCHIVE);
+	r_subtitlesfont = CVAR_CREATE("r_subtitlesfont", "Liberation Serif.ttf", FCVAR_ARCHIVE);
+
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -355,30 +374,11 @@ bool CImguiManager::Init()
 
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
-
-	ImFontConfig config;
-	config.OversampleH = 2; // Horizontal oversampling
-	config.OversampleV = 1; // Vertical oversampling
-	config.GlyphExtraSpacing.x = 1.0f; // Extra spacing between glyphs
-
-	static const ImWchar full_glyph_range[] = {
-		0x0020, 0xFFFF,
-		0,
-	};
-
-	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getSelectedFont());
-
-	customfont = io.Fonts->AddFontFromFileTTF(path.c_str(), 20.0f, &config, full_glyph_range);
-
-
 	// For Overdraw
 	ClientImGui_Init();
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-
-	r_subtitles = CVAR_CREATE("r_subtitles", "1", FCVAR_ARCHIVE);
-	r_subtitleslang = CVAR_CREATE("r_subtitleslang", "subtitles_en.txt", FCVAR_ARCHIVE);
 
 	return true;
 }
@@ -551,12 +551,11 @@ void CImguiManager::DrawSubtitles()
 {
 	SubtitleLifeLogic();
 
+	if (m_iNumTexts == 0 || !r_subtitles->value || !customfont)
+		return;
+
 
 	bool hasGlyph = customfont->FindGlyphNoFallback(0x2019);
-
-
-	if (m_iNumTexts == 0 || !r_subtitles->value)
-		return;
 
 	// setup
 	bool is_open;
