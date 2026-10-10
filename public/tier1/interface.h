@@ -1,4 +1,4 @@
-//========= Copyright Â© 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -9,8 +9,7 @@
 #ifndef TIER1_INTERFACE_H
 #define TIER1_INTERFACE_H
 
-//#include "tier0/platform.h"
-#include "Platform.h"
+#include "tier0/platform.h"
 #include "tier1/interface.h"
 #include "../public/interface.h"
 

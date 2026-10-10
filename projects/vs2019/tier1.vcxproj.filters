@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="CharacterSet.cpp" />
+    <ClCompile Include="checksum_crc.cpp" />
+    <ClCompile Include="checksum_md5.cpp" />
+    <ClCompile Include="ConVar.cpp" />
+    <ClCompile Include="DataManager.cpp" />
+    <ClCompile Include="Diff.cpp" />
+    <ClCompile Include="generichash.cpp" />
+    <ClCompile Include="interface.cpp" />
+    <ClCompile Include="JobThread.cpp" />
+    <ClCompile Include="KeyValues.cpp" />
+    <ClCompile Include="MemPool.cpp" />
+    <ClCompile Include="MemStack.cpp" />
+    <ClCompile Include="netadr.cpp" />
+    <ClCompile Include="processor_detect.cpp" />
+    <ClCompile Include="RangeCheckedVar.cpp" />
+    <ClCompile Include="StringPool.cpp" />
+    <ClCompile Include="strtools.cpp" />
+    <ClCompile Include="tier1.cpp" />
+    <ClCompile Include="TokenReader.cpp" />
+    <ClCompile Include="unicode_strtools.cpp" />
+    <ClCompile Include="UtlBuffer.cpp" />
+    <ClCompile Include="UtlString.cpp" />
+    <ClCompile Include="UtlSymbol.cpp" />
+  </ItemGroup>
+</Project>

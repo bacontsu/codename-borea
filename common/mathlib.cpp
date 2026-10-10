@@ -12,4 +12,4 @@
 *   without written permission from Valve LLC.
 *
 ****/
-#include "mathlib.h"
+#include "goldsrcmathlib.h"

@@ -35,12 +35,21 @@ SDL_GLContext mainContext;
 CImguiManager g_ImGUIManager;
 
 
-ImFont* customfont = nullptr;
+ImFont* subtitlefont = nullptr;
+ImFont* titlefont = nullptr;
 
 #define STB_IMAGE_IMPLEMENTATION
+
+#define FONT_BASESCALEWIDTH 1366.f
+#define FONT_BASESCALEHEIGHT 768.f
+#define FONT_SCALEFACTOR 20.f
 #include "stb_image.h"
 
-static std::string getSelectedFont(cvar_t* fontcvar)
+static float getTitleTextScale(){
+	return (ScreenWidth/FONT_BASESCALEWIDTH) * FONT_SCALEFACTOR;
+}
+
+static std::string getCvarFont(cvar_t* fontcvar)
 {
 	std::string fontfile = std::string(fontcvar->string);
 	if (fontfile.find(".ttf") == std::string::npos)
@@ -178,8 +187,13 @@ void CImguiManager::ReloadSubtitles()
 		0,
 	};
 
-	std::string fontpath = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getSelectedFont(r_subtitlesfont));
-	customfont = io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f, &config, full_glyph_range);
+	std::string fontpath = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getCvarFont(r_subtitlesfont));
+	subtitlefont = io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f, &config, full_glyph_range);
+
+	fontpath = gEngfuncs.pfnGetGameDirectory() + std::string("/resource/CustomFontFiles/" + getCvarFont(r_titlesfont));
+	titlefont = io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f, &config, full_glyph_range);
+
+
 	ImGui_ImplOpenGL2_DestroyFontsTexture();
 
 	subtitles_vector_client.clear();
@@ -364,6 +378,7 @@ bool CImguiManager::Init()
 	r_subtitles = CVAR_CREATE("r_subtitles", "1", FCVAR_ARCHIVE);
 	r_subtitleslang = CVAR_CREATE("r_subtitleslang", "subtitles_en.txt", FCVAR_ARCHIVE);
 	r_subtitlesfont = CVAR_CREATE("r_subtitlesfont", "Liberation Serif.ttf", FCVAR_ARCHIVE);
+	r_titlesfont = CVAR_CREATE("r_titlesfont", "Liberation Serif.ttf", FCVAR_ARCHIVE);
 
 
 	// Setup Dear ImGui context
@@ -403,6 +418,8 @@ void CImguiManager::Draw()
 	DrawSpeeds();
 
 	DrawSubtitles();
+
+	DrawExtra();
 
 	// glViewport( 0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y );
 	ImGui::Render();
@@ -551,11 +568,8 @@ void CImguiManager::DrawSubtitles()
 {
 	SubtitleLifeLogic();
 
-	if (m_iNumTexts == 0 || !r_subtitles->value || !customfont)
+	if (m_iNumTexts == 0 || !r_subtitles->value || !subtitlefont)
 		return;
-
-
-	bool hasGlyph = customfont->FindGlyphNoFallback(0x2019);
 
 	// setup
 	bool is_open;
@@ -623,7 +637,7 @@ void CImguiManager::DrawSubtitles()
 
 	ImGui::PushTextWrapPos(width);
 
-	ImGui::PushFont(customfont);
+	ImGui::PushFont(subtitlefont);
 
 	for(int i = 0; i < m_iNumTexts; i++)
 	{
@@ -646,4 +660,58 @@ void CImguiManager::AddSubtitle(const char subtitle[256], float staytime)
 	m_sTexts[m_iNumTexts].time_to_die = engine_cl->time + staytime;
 	m_sTexts[m_iNumTexts].fade = 0;
 	m_iNumTexts++;
+}
+
+struct drawchars_t
+{
+	int x, y;
+	std::string character;
+	int r, g, b;
+};
+static std::vector< drawchars_t> s_drawcmds;
+
+void CImguiManager::DrawExtra()
+{
+	bool is_open;
+	ImGuiWindowFlags window_flags = 0;
+	window_flags |= ImGuiWindowFlags_NoResize;
+	window_flags |= ImGuiWindowFlags_NoTitleBar;
+	window_flags |= ImGuiWindowFlags_NoCollapse;
+	window_flags |= ImGuiWindowFlags_NoMove;
+	window_flags |= ImGuiWindowFlags_NoScrollbar;
+	window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	// override imgui styles
+	ImVec4* colours = ImGui::GetStyle().Colors;
+	colours[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(ScreenWidth, ScreenHeight));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+	ImGui::Begin("Titles", &is_open, window_flags);
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	for (const auto& cmd : s_drawcmds)
+	{
+		draw_list->AddText(titlefont, getTitleTextScale(), ImVec2(cmd.x, cmd.y), IM_COL32(cmd.r, cmd.g, cmd.b, (cmd.r + cmd.g + cmd.b) / 3.f), &cmd.character[0], &cmd.character[0] + cmd.character.size());
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::End();
+
+	s_drawcmds.clear();
+}
+float CImguiManager::DrawCharacter(int x, int y, const char* character, int r, int g, int b)
+{
+	s_drawcmds.push_back({ x, y, character, r, g, b });
+	return x + titlefont->CalcTextSizeA(getTitleTextScale(), FLT_MAX, 0.0f, &character[0], &character[strlen(character)]).x;
+}
+
+float CImguiManager::GetTextWidth(const char* text)
+{
+	return titlefont->CalcTextSizeA(getTitleTextScale(), FLT_MAX, 0.0f, &text[0], &text[strlen(text)]).x;
 }

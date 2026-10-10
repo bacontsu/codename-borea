@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Controls">
+      <UniqueIdentifier>{add9f722-314a-4678-b508-8a82d0414e1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src">
+      <UniqueIdentifier>{f4d89ec4-2d4f-4407-9631-9cbce7b57a99}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\public\FileSystem_Helpers.cpp" />
+    <ClCompile Include="..\..\tier1\CharacterSet.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\AnimatingImagePanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\AnimationController.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\BitmapImagePanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\BuildFactoryHelper.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\BuildGroup.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\BuildModeDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Button.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\CheckButton.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\CheckButtonList.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ComboBox.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Controls.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\DirectorySelectDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Divider.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\EditablePanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ExpandButton.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\FileOpenDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\FocusNavGroup.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Frame.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\GraphPanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\HTML.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Image.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ImageList.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ImagePanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\InputDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\KeyBindingHelpDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\KeyBoardEditorDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Label.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ListPanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ListViewPanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Menu.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\MenuBar.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\MenuButton.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\MenuItem.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\MessageBox.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Panel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\PanelListPanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ProgressBar.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ProgressBox.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\PropertyDialog.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\PropertyPage.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\PropertySheet.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\QueryBox.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\RadioButton.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\RichText.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ScrollBar.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ScrollBarSlider.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\SectionedListPanel.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Slider.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Splitter.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\TextEntry.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\TextImage.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ToggleButton.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\Tooltip.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\ToolWindow.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\TreeView.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\TreeViewListControl.cpp" />
+    <ClCompile Include="..\..\vgui2\controls\URLLabel.cpp" />
+    <ClCompile Include="..\..\vgui2\src\vgui_key_translation.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\vgui_key_translation.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

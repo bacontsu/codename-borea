@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Controls">
+      <UniqueIdentifier>{add9f722-314a-4678-b508-8a82d0414e1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src">
+      <UniqueIdentifier>{f4d89ec4-2d4f-4407-9631-9cbce7b57a99}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="controls\AnimatingImagePanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\BitmapImagePanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\BuildFactoryHelper.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\BuildGroup.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\BuildModeDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Button.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\CheckButton.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\CheckButtonList.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ComboBox.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Controls.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\DirectorySelectDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Divider.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\EditablePanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ExpandButton.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\FileOpenDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\FocusNavGroup.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Frame.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\GraphPanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\HTML.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Image.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ImageList.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ImagePanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\InputDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\KeyBindingHelpDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\KeyBoardEditorDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Label.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ListPanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ListViewPanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Menu.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\MenuBar.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\MenuButton.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\MenuItem.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\MessageBox.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Panel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\PanelListPanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ProgressBar.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ProgressBox.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\PropertyDialog.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\PropertyPage.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\PropertySheet.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\QueryBox.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\RadioButton.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\RichText.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ScrollBar.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ScrollBarSlider.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\SectionedListPanel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Slider.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Splitter.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\TextEntry.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\TextImage.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ToggleButton.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\Tooltip.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\ToolWindow.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\TreeView.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\TreeViewListControl.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\URLLabel.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vgui_key_translation.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\FileSystem_Helpers.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tier1\CharacterSet.cpp" />
+    <ClCompile Include="controls\AnimationController.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\vgui_key_translation.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

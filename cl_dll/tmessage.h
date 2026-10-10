@@ -42,4 +42,3 @@ void TextMessageParse(unsigned char* pMemFile, int fileSize);
 void TextMessageShutdown(void);
 void TextMessageInit(void);
 client_textmessagecustom_t* TextMessageGet(const char* pName);
-int TextMessageDrawCharacter(int x, int y, int number, int r, int g, int b);

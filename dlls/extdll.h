@@ -27,7 +27,7 @@ typedef unsigned int func_t;					//
 typedef unsigned int string_t;				// from engine's pr_comp.h;
 
 // Vector class
-#include "mathlib.h"
+#include "goldsrcmathlib.h"
 
 // Shared engine/DLL constants
 #include "const.h"

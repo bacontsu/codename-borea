@@ -741,10 +741,12 @@ typedef struct
 	byte r, g, b;
 } color24;
 
+#if !defined(GAMEUI_UNMANGLER)
 typedef struct
 {
 	byte r, g, b, a;
 } color32;
+#endif
 
 typedef struct
 {

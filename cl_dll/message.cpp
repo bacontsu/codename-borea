@@ -33,6 +33,39 @@ client_textmessagecustom_t	g_pCustomMessage;
 const char *g_pCustomName = "Custom";
 char g_pCustomText[1024];
 
+inline float TextMessageDrawChar(int x, int y, const char* character, int r, int g, int b)
+{
+	return g_ImGUIManager.DrawCharacter(x, y, character, r, g, b);
+}
+
+static int getcharutf8len(const char* textptr)
+{
+	unsigned char c = static_cast<unsigned char>(*textptr);
+
+	size_t length = 1;
+
+	if ((c & 0xE0) == 0xC0)      length = 2;
+	else if ((c & 0xF0) == 0xE0) length = 3;
+	else if ((c & 0xF8) == 0xF0) length = 4;
+
+	return length;
+}
+
+void ParseUTF8Characters(std::vector<std::string>& characters, const char* text)
+{
+	if (!text)
+		return;
+
+	while (*text)
+	{
+		size_t length = getcharutf8len(text);
+
+		characters.emplace_back(text, length);
+
+		text += length;
+	}
+}
+
 int CHudMessage::Init()
 {
 	HOOK_MESSAGE( HudText );
@@ -198,7 +231,7 @@ void CHudMessage::MessageScanNextChar()
 
 	if ( m_parms.pMessage->effect == 1 && m_parms.charTime != 0 )
 	{
-		if ( m_parms.x >= 0 && m_parms.y >= 0 && (m_parms.x + gHUD.m_scrinfo.charWidths[ m_parms.text ]) <= ScreenWidth )
+		if ( m_parms.x >= 0 && m_parms.y >= 0 && (m_parms.x + gHUD.m_scrinfo.charWidths[ m_parms.text[0] ]) <= ScreenWidth )
 			TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2 );
 	}
 }
@@ -244,12 +277,22 @@ void CHudMessage::MessageScanStart()
 	}
 }
 
+std::string getutf8character(const char* pText)
+{
+	char character[8];
+	character[getcharutf8len(pText)] = '\0';
+
+	for (int i = 0; i < getcharutf8len(pText); i++)
+		character[i] = pText[i];
+
+	return character;
+}
 
 void CHudMessage::MessageDrawScan( client_textmessagecustom_t *pMessage, float time )
 {
 	int i, j, length, width;
 	const char *pText;
-	unsigned char line[250]; // Aynekko - buff it up from 80
+	std::string line;
 
 	pText = pMessage->pMessage;
 	// Count lines
@@ -269,8 +312,10 @@ void CHudMessage::MessageDrawScan( client_textmessagecustom_t *pMessage, float t
 			width = 0;
 		}
 		else
-			width += gHUD.m_scrinfo.charWidths[*pText];
-		pText++;
+		{
+			width += g_ImGUIManager.GetTextWidth(getutf8character(pText).c_str());
+		}
+		pText += getcharutf8len(pText);
 		length++;
 	}
 	m_parms.length = length;
@@ -286,31 +331,31 @@ void CHudMessage::MessageDrawScan( client_textmessagecustom_t *pMessage, float t
 
 	for ( i = 0; i < m_parms.lines; i++ )
 	{
-		m_parms.lineLength = 0;
 		m_parms.width = 0;
 		while ( *pText && *pText != '\n' )
 		{
-			unsigned char c = *pText;
-			line[m_parms.lineLength] = c;
-			m_parms.width += gHUD.m_scrinfo.charWidths[c];
-			m_parms.lineLength++;
-			pText++;
+			char c = *pText;
+			line += getutf8character(pText).c_str();
+			m_parms.width += g_ImGUIManager.GetTextWidth(getutf8character(pText).c_str());
+			pText += getcharutf8len(pText);
 		}
 		pText++;		// Skip LF
-		line[m_parms.lineLength] = 0;
+
+		std::vector<std::string> chars;
+		ParseUTF8Characters(chars, line.c_str());
 
 		m_parms.x = XPosition( pMessage->x, m_parms.width, m_parms.totalWidth );
 
-		for ( j = 0; j < m_parms.lineLength; j++ )
+		for ( const auto &character : chars )
 		{
-			m_parms.text = line[j];
-			int next = m_parms.x + gHUD.m_scrinfo.charWidths[ m_parms.text ];
+			m_parms.text = character.c_str();
 			MessageScanNextChar();
 			
-			if ( m_parms.x >= 0 && m_parms.y >= 0 && next <= ScreenWidth )
-				TextMessageDrawChar( m_parms.x, m_parms.y, m_parms.text, m_parms.r, m_parms.g, m_parms.b );
-			m_parms.x = next;
+			if ( m_parms.x >= 0 && m_parms.y >= 0 )
+				m_parms.x = TextMessageDrawChar( m_parms.x, m_parms.y, character.c_str(), m_parms.r, m_parms.g, m_parms.b);
 		}
+
+		line = "";
 
 		m_parms.y += gHUD.m_scrinfo.iCharHeight;
 	}

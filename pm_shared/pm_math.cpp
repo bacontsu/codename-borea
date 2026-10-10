@@ -15,7 +15,7 @@
 // pm_math.c -- math primitives
 
 #include "Platform.h"
-#include "mathlib.h"
+#include "goldsrcmathlib.h"
 #include "const.h"
 #include <cassert>
 

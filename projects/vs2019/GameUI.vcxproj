@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug (pre_hl25)|Win32">
+      <Configuration>Debug (pre_hl25)</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release (pre_hl25)|Win32">
+      <Configuration>Release (pre_hl25)</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{53c923a5-e112-4cce-9703-8e15999fb699}</ProjectGuid>
+    <RootNamespace>GameUI</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (pre_hl25)|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (pre_hl25)|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug (pre_hl25)|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release (pre_hl25)|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (pre_hl25)|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>GameUI</TargetName>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Half-Life\prava\cl_dlls</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>GameUI</TargetName>
+    <OutDir>D:\SteamLibrary\steamapps\common\Half-Life\prava\cl_dlls</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (pre_hl25)|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>GameUI</TargetName>
+    <OutDir>D:\SteamLibrary\steamapps\common\Half-Life\prava\cl_dlls</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>GameUI</TargetName>
+    <OutDir>D:\SteamLibrary\steamapps\common\Half-Life\prava\cl_dlls</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (pre_hl25)|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NO_MALLOC_OVERRIDE;GAMEUI_EXPORTS;CS_SHIELD_ENABLED;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../../engine;../../pm_shared;../../cl_dll;../../game_shared;../../game_shared/bot;../../common;../../public;../../public/tier1;../../external</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\..\lib\public\sdl2.lib;vgui2/controls/Debug (pre_hl25)/vgui2_controls.lib;../../lib/external/vstdlib.lib;tier1/Debug (pre_hl25)/tier1.lib;../../lib/external/tier0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;HL25_UPDATE;NO_MALLOC_OVERRIDE;GAMEUI_EXPORTS;CS_SHIELD_ENABLED;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../../engine;../../pm_shared;../../cl_dll;../../game_shared;../../game_shared/bot;../../common;../../public;../../public/tier1;../../external</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\..\lib\public\sdl2.lib;vgui2/controls/Debug/vgui2_controls.lib;../../lib/external/vstdlib.lib;tier1/Debug/tier1.lib;../../lib/external/tier0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (pre_hl25)|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;HL25_UPDATENO_MALLOC_OVERRIDE;GAMEUI_EXPORTS;CS_SHIELD_ENABLED;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../../engine;../../pm_shared;../../cl_dll;../../game_shared;../../game_shared/bot;../../common;../../public;../../public/tier1;../../external</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\..\lib\public\sdl2.lib;vgui2/controls/Release (pre_hl25)/vgui2_controls.lib;../../lib/external/vstdlib.lib;tier1/Release (pre_hl25)/tier1.lib;../../lib/external/tier0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NO_MALLOC_OVERRIDE;HL25_UPDATE;GAMEUI_EXPORTS;CS_SHIELD_ENABLED;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>../../engine;../../pm_shared;../../cl_dll;../../game_shared;../../game_shared/bot;../../common;../../public;../../public/tier1;../../external</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <Optimization>Disabled</Optimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\..\lib\public\sdl2.lib;vgui2/controls/Release/vgui2_controls.lib;../../lib/external/vstdlib.lib;tier1/Release/tier1.lib;../../lib/external/tier0.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\common\Random.cpp" />
+    <ClCompile Include="..\..\game_shared\shared_util.cpp" />
+    <ClCompile Include="..\..\public\interface.cpp" />
+    <ClCompile Include="..\..\GameUI\BackgroundMenuButton.cpp" />
+    <ClCompile Include="..\..\GameUI\BasePanel.cpp" />
+    <ClCompile Include="..\..\GameUI\BaseSaveGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\BitmapButton.cpp" />
+    <ClCompile Include="..\..\GameUI\BitmapImagePanel.cpp" />
+    <ClCompile Include="..\..\GameUI\CDKeyEntryDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\ChangeGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\CommandCheckButton.cpp" />
+    <ClCompile Include="..\..\GameUI\ContentControlDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\CreateMultiplayerGameBotPage.cpp" />
+    <ClCompile Include="..\..\GameUI\CreateMultiplayerGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\CreateMultiplayerGameGameplayPage.cpp" />
+    <ClCompile Include="..\..\GameUI\CreateMultiplayerGameServerPage.cpp" />
+    <ClCompile Include="..\..\GameUI\CvarLatch.cpp" />
+    <ClCompile Include="..\..\GameUI\CvarNegateCheckButton.cpp" />
+    <ClCompile Include="..\..\GameUI\CvarSlider.cpp" />
+    <ClCompile Include="..\..\GameUI\CvarTextEntry.cpp" />
+    <ClCompile Include="..\..\GameUI\CvarToggleCheckButton.cpp" />
+    <ClCompile Include="..\..\GameUI\DottedLabel.cpp" />
+    <ClCompile Include="..\..\GameUI\GameConsole.cpp" />
+    <ClCompile Include="..\..\GameUI\GameConsoleDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\GameUI_Interface.cpp" />
+    <ClCompile Include="..\..\GameUI\HelpDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\ImageButton.cpp" />
+    <ClCompile Include="..\..\GameUI\KeyToggleCheckButton.cpp" />
+    <ClCompile Include="..\..\GameUI\LabeledCommandComboBox.cpp" />
+    <ClCompile Include="..\..\GameUI\labelslidercombo.cpp" />
+    <ClCompile Include="..\..\GameUI\LoadGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\LoadingDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\LogoFile.cpp" />
+    <ClCompile Include="..\..\GameUI\ModInfo.cpp" />
+    <ClCompile Include="..\..\GameUI\MultiplayerAdvancedDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\MusicManager.cpp" />
+    <ClCompile Include="..\..\GameUI\NewGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubAdvanced.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubAudio.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubDifficulty.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubKeyboard.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubMouse.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubMultiplayer.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubVideo.cpp" />
+    <ClCompile Include="..\..\GameUI\OptionsSubVoice.cpp" />
+    <ClCompile Include="..\..\GameUI\PanelListPanel.cpp" />
+    <ClCompile Include="..\..\GameUI\PlayerListDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\RefreshSteamLogin.cpp" />
+    <ClCompile Include="..\..\GameUI\RunGameEngine.cpp" />
+    <ClCompile Include="..\..\GameUI\SaveGameDialog.cpp" />
+    <ClCompile Include="..\..\GameUI\ScriptObject.cpp" />
+    <ClCompile Include="..\..\GameUI\Sys_Utils.cpp" />
+    <ClCompile Include="..\..\GameUI\Taskbar.cpp" />
+    <ClCompile Include="..\..\GameUI\TaskButton.cpp" />
+    <ClCompile Include="..\..\GameUI\TextEntryBox.cpp" />
+    <ClCompile Include="..\..\GameUI\tga_loader.cpp" />
+    <ClCompile Include="..\..\GameUI\vcontrolslistpanel.cpp" />
+    <ClCompile Include="..\..\GameUI\VGuiSystemModuleLoader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\common\GameUI\ICareerUI.h" />
+    <ClInclude Include="..\..\common\GameUI\IClientVGUI.h" />
+    <ClInclude Include="..\..\common\GameUI\IGameConsole.h" />
+    <ClInclude Include="..\..\common\GameUI\IGameUI.h" />
+    <ClInclude Include="..\..\common\GameUI\IMusicManager.h" />
+    <ClInclude Include="..\..\common\port.h" />
+    <ClInclude Include="..\..\common\Random.h" />
+    <ClInclude Include="..\..\game_shared\shared_util.h" />
+    <ClInclude Include="..\..\GameUI\BackgroundMenuButton.h" />
+    <ClInclude Include="..\..\GameUI\BasePanel.h" />
+    <ClInclude Include="..\..\GameUI\BaseSaveGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\BitmapButton.h" />
+    <ClInclude Include="..\..\GameUI\BitmapImagePanel.h" />
+    <ClInclude Include="..\..\GameUI\CDKeyEntryDialog.h" />
+    <ClInclude Include="..\..\GameUI\ChangeGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\CommandCheckButton.h" />
+    <ClInclude Include="..\..\GameUI\ContentControlDialog.h" />
+    <ClInclude Include="..\..\GameUI\CreateMultiplayerGameBotPage.h" />
+    <ClInclude Include="..\..\GameUI\CreateMultiplayerGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\CreateMultiplayerGameGameplayPage.h" />
+    <ClInclude Include="..\..\GameUI\CreateMultiplayerGameServerPage.h" />
+    <ClInclude Include="..\..\GameUI\CvarLatch.h" />
+    <ClInclude Include="..\..\GameUI\CvarNegateCheckButton.h" />
+    <ClInclude Include="..\..\GameUI\CvarSlider.h" />
+    <ClInclude Include="..\..\GameUI\CvarTextEntry.h" />
+    <ClInclude Include="..\..\GameUI\CvarToggleCheckButton.h" />
+    <ClInclude Include="..\..\GameUI\DottedLabel.h" />
+    <ClInclude Include="..\..\GameUI\EngineInterface.h" />
+    <ClInclude Include="..\..\GameUI\GameConsole.h" />
+    <ClInclude Include="..\..\GameUI\GameConsoleDialog.h" />
+    <ClInclude Include="..\..\GameUI\GameUI_Interface.h" />
+    <ClInclude Include="..\..\GameUI\HelpDialog.h" />
+    <ClInclude Include="..\..\GameUI\ImageButton.h" />
+    <ClInclude Include="..\..\GameUI\KeyToggleCheckButton.h" />
+    <ClInclude Include="..\..\GameUI\LabeledCommandComboBox.h" />
+    <ClInclude Include="..\..\GameUI\labelslidercombo.h" />
+    <ClInclude Include="..\..\GameUI\LoadGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\LoadingDialog.h" />
+    <ClInclude Include="..\..\GameUI\LogoFile.h" />
+    <ClInclude Include="..\..\GameUI\ModInfo.h" />
+    <ClInclude Include="..\..\GameUI\MultiplayerAdvancedDialog.h" />
+    <ClInclude Include="..\..\GameUI\MusicManager.h" />
+    <ClInclude Include="..\..\GameUI\NewGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\OptionsDialog.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubAdvanced.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubAudio.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubDifficulty.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubKeyboard.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubMouse.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubMultiplayer.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubVideo.h" />
+    <ClInclude Include="..\..\GameUI\OptionsSubVoice.h" />
+    <ClInclude Include="..\..\GameUI\PanelListPanel.h" />
+    <ClInclude Include="..\..\GameUI\PlayerListDialog.h" />
+    <ClInclude Include="..\..\GameUI\RefreshSteamLogin.h" />
+    <ClInclude Include="..\..\GameUI\RunGameEngine.h" />
+    <ClInclude Include="..\..\GameUI\SaveGameDialog.h" />
+    <ClInclude Include="..\..\GameUI\ScriptObject.h" />
+    <ClInclude Include="..\..\GameUI\Sys_Utils.h" />
+    <ClInclude Include="..\..\GameUI\Taskbar.h" />
+    <ClInclude Include="..\..\GameUI\TaskButton.h" />
+    <ClInclude Include="..\..\GameUI\taskframe.h" />
+    <ClInclude Include="..\..\GameUI\TextEntryBox.h" />
+    <ClInclude Include="..\..\GameUI\tga_loader.h" />
+    <ClInclude Include="..\..\GameUI\vcontrolslistpanel.h" />
+    <ClInclude Include="..\..\GameUI\VGuiSystemModuleLoader.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -6,9 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hldll", "hldll.vcxproj", "{69DDADC0-97F4-419E-86EB-C91781A0D2E0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hl_cdll", "hl_cdll.vcxproj", "{DC1DD765-CFEB-47DA-A2EA-9F1E20A24272}"
-	ProjectSection(ProjectDependencies) = postProject
-		{69DDADC0-97F4-419E-86EB-C91781A0D2E0} = {69DDADC0-97F4-419E-86EB-C91781A0D2E0}
-	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameUI", "GameUI.vcxproj", "{53C923A5-E112-4CCE-9703-8E15999FB699}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tier1", "tier1.vcxproj", "{B747882D-653D-4EB9-A111-697511FDDF03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vgui2_controls", "vgui2_controls.vcxproj", "{B444E0FA-6FB8-48B9-8388-9D969F6BF001}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +37,30 @@ Global
 		{DC1DD765-CFEB-47DA-A2EA-9F1E20A24272}.Release (pre_hl25)|Win32.Build.0 = Release (pre_hl25)|Win32
 		{DC1DD765-CFEB-47DA-A2EA-9F1E20A24272}.Release|Win32.ActiveCfg = Release|Win32
 		{DC1DD765-CFEB-47DA-A2EA-9F1E20A24272}.Release|Win32.Build.0 = Release|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Debug (pre_hl25)|Win32.ActiveCfg = Debug (pre_hl25)|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Debug (pre_hl25)|Win32.Build.0 = Debug (pre_hl25)|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Debug|Win32.ActiveCfg = Debug|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Debug|Win32.Build.0 = Debug|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Release (pre_hl25)|Win32.ActiveCfg = Release (pre_hl25)|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Release (pre_hl25)|Win32.Build.0 = Release (pre_hl25)|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Release|Win32.ActiveCfg = Release|Win32
+		{53C923A5-E112-4CCE-9703-8E15999FB699}.Release|Win32.Build.0 = Release|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Debug (pre_hl25)|Win32.ActiveCfg = Debug (pre_hl25)|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Debug (pre_hl25)|Win32.Build.0 = Debug (pre_hl25)|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Debug|Win32.Build.0 = Debug|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Release (pre_hl25)|Win32.ActiveCfg = Release (pre_hl25)|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Release (pre_hl25)|Win32.Build.0 = Release (pre_hl25)|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Release|Win32.ActiveCfg = Release|Win32
+		{B747882D-653D-4EB9-A111-697511FDDF03}.Release|Win32.Build.0 = Release|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Debug (pre_hl25)|Win32.ActiveCfg = Debug (pre_hl25)|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Debug (pre_hl25)|Win32.Build.0 = Debug (pre_hl25)|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Debug|Win32.Build.0 = Debug|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Release (pre_hl25)|Win32.ActiveCfg = Release (pre_hl25)|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Release (pre_hl25)|Win32.Build.0 = Release (pre_hl25)|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Release|Win32.ActiveCfg = Release|Win32
+		{B444E0FA-6FB8-48B9-8388-9D969F6BF001}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

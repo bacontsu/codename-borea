@@ -1,0 +1,67 @@
+﻿  FileSystem_Helpers.cpp
+  CharacterSet.cpp
+  AnimatingImagePanel.cpp
+  AnimationController.cpp
+  BitmapImagePanel.cpp
+  BuildFactoryHelper.cpp
+  BuildGroup.cpp
+  BuildModeDialog.cpp
+  Button.cpp
+  CheckButton.cpp
+  CheckButtonList.cpp
+  ComboBox.cpp
+  Controls.cpp
+  DirectorySelectDialog.cpp
+  Divider.cpp
+  EditablePanel.cpp
+  ExpandButton.cpp
+  FileOpenDialog.cpp
+  FocusNavGroup.cpp
+  Frame.cpp
+  GraphPanel.cpp
+  HTML.cpp
+  Image.cpp
+  ImageList.cpp
+  ImagePanel.cpp
+  InputDialog.cpp
+  KeyBindingHelpDialog.cpp
+  KeyBoardEditorDialog.cpp
+  Label.cpp
+  ListPanel.cpp
+  ListViewPanel.cpp
+  Menu.cpp
+  MenuBar.cpp
+  MenuButton.cpp
+  MenuItem.cpp
+  MessageBox.cpp
+  Panel.cpp
+  PanelListPanel.cpp
+  ProgressBar.cpp
+  ProgressBox.cpp
+  PropertyDialog.cpp
+  PropertyPage.cpp
+  PropertySheet.cpp
+  QueryBox.cpp
+  RadioButton.cpp
+  RichText.cpp
+  ScrollBar.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\winnt.h(1429,9): warning C4005: 'ARRAYSIZE': macro redefinition
+  (compiling source file 'controls/Panel.cpp')
+      E:\hl2c\src\gameui_thelastgoodbye\public\interface.h(25,9):
+      see previous definition of 'ARRAYSIZE'
+  
+  ScrollBarSlider.cpp
+  SectionedListPanel.cpp
+  Slider.cpp
+  Splitter.cpp
+  TextEntry.cpp
+  TextImage.cpp
+  ToggleButton.cpp
+  Tooltip.cpp
+  ToolWindow.cpp
+  TreeView.cpp
+  TreeViewListControl.cpp
+  URLLabel.cpp
+  vgui_key_translation.cpp
+E:\hl2c\src\gameui_thelastgoodbye\vgui2\controls\Panel.cpp(3193,1): warning C4172: returning address of local variable or temporary : panel
+  vgui2_controls.vcxproj -> E:\hl2c\src\gameui_thelastgoodbye\vgui2\controls\Release_HL25\vgui2_controls.lib

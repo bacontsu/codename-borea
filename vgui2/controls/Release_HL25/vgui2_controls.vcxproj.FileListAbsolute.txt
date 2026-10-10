@@ -1,0 +1,1 @@
+E:\hl2c\src\gameui_thelastgoodbye\vgui2\controls\Release_HL25\vgui2_controls.lib

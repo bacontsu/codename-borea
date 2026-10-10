@@ -436,10 +436,9 @@ struct message_parms_t
 	int	totalWidth, totalHeight;
 	int width;
 	int lines;
-	int lineLength;
 	int length;
 	int r, g, b;
-	int text;
+	const char* text;
 	int fadeBlend;
 	float charTime;
 	float fadeTime;
@@ -633,10 +632,15 @@ public:
 	void Draw();
 	void DrawSpeeds();
 	void DrawSubtitles();
+	void DrawExtra();
 
 	void SubtitleLifeLogic();
 
 	void ReloadSubtitles();
+
+	float DrawCharacter(int x, int y, const char* character, int r, int g, int b);
+
+	float GetTextWidth(const char* text);
 
 	void AddSubtitle(const char subtitle[512], float staytime);
 
@@ -652,6 +656,7 @@ public:
 	cvar_t* r_subtitles;
 	cvar_t* r_subtitleslang;
 	cvar_t* r_subtitlesfont;
+	cvar_t* r_titlesfont;
 	subtitles_t m_sTexts[MAX_SUBTITLES_AT_ONCE];
 };
 

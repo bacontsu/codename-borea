@@ -1,0 +1,822 @@
+#include <KeyValues.h>
+#include <vgui/IInputInternal.h>
+#include <vgui/ISurface.h>
+#include <vgui/ISystem.h>
+#include <vgui_controls/Controls.h>
+#include <vgui_controls/QueryBox.h>
+
+#include "BackgroundMenuButton.h"
+#include "CreateMultiplayerGameDialog.h"
+#include "ChangeGameDialog.h"
+#include "EngineInterface.h"
+#include "GameUI_Interface.h"
+#include "LoadGameDialog.h"
+#include "ModInfo.h"
+#include "MusicManager.h"
+#include "NewGameDialog.h"
+#include "OptionsDialog.h"
+#include "PlayerListDialog.h"
+#include "SaveGameDialog.h"
+#include "TaskButton.h"
+#include "Taskbar.h"
+#include "VGuiSystemModuleLoader.h"
+#include "BaseUI/IBaseUI.h"
+#include <vgui/KeyCode.h>
+
+CGameMenuItem::CGameMenuItem(vgui2::Menu* parent, const char* panelName)
+	: BaseClass(parent, panelName, "GameMenuItem"), m_bRightAligned(false)
+{
+	m_bRightAligned = false;
+}
+
+CGameMenuItem::~CGameMenuItem()
+{
+}
+
+void CGameMenuItem::ApplySchemeSettings(vgui2::IScheme* pScheme)
+{
+	BaseClass::ApplySchemeSettings(pScheme);
+
+	SetFgColor(GetSchemeColor("Border.Bright", pScheme));
+	SetBgColor(Color(0, 0, 0, 0));
+	SetDefaultColor(GetSchemeColor("MainMenu.TextColor", pScheme), Color(0, 0, 0, 0));
+	SetArmedColor(GetSchemeColor("MainMenu.ArmedTextColor", pScheme), Color(0, 0, 0, 0));
+	SetDepressedColor(GetSchemeColor("MainMenu.DepressedTextColor", pScheme), Color(0, 0, 0, 0));
+	SetContentAlignment(vgui2::Label::a_west);
+
+	SetBorder(nullptr);
+	SetDefaultBorder(nullptr);
+	SetDepressedBorder(nullptr);
+	SetKeyFocusBorder(nullptr);
+
+	SetFont(pScheme->GetFont("Menularge", IsProportional()));
+
+	SetTextInset(0, 0);
+
+	SetArmedSound("sound/UI/buttonrollover.wav");
+	SetDepressedSound("sound/UI/buttonclick.wav");
+	SetReleasedSound("sound/UI/buttonclickrelease.wav");
+
+	SetButtonActivationType(vgui2::Button::ACTIVATE_ONPRESSED);
+
+	if (m_bRightAligned)
+		SetContentAlignment(vgui2::Label::a_east);
+}
+
+CGameMenu::CGameMenu(vgui2::Panel* parent, const char* panelName)
+	: BaseClass(parent, panelName)
+{
+}
+
+CGameMenu::~CGameMenu()
+{
+}
+
+void CGameMenu::LayoutMenuBorder()
+{
+	// Nothing
+}
+
+void CGameMenu::OnKillFocus()
+{
+	BaseClass::OnKillFocus();
+
+	vgui2::surface()->MovePopupToBack(GetVPanel());
+}
+
+int CGameMenu::AddMenuItem(const char* itemName, const char* itemText, const char* command, vgui2::Panel* target, KeyValues* userData)
+{
+	auto item = new CGameMenuItem(this, itemName);
+
+	item->SetPaintEnabled(false);
+	item->AddActionSignalTarget(target);
+	item->SetCommand(command);
+	item->SetText(itemText);
+	item->SetUserData(userData);
+
+	return BaseClass::AddMenuItem(item);
+}
+
+void CGameMenu::ApplySchemeSettings(vgui2::IScheme* pScheme)
+{
+	BaseClass::ApplySchemeSettings(pScheme);
+
+	SetMenuItemHeight(strtol(pScheme->GetResourceString("MainMenu.MenuItemHeight"), nullptr, 10));
+	int x, y;
+	vgui2::surface()->GetScreenSize(x, y);
+
+	SetBgColor(Color(0, 0, 0, 0));
+
+	SetBorder(nullptr);
+
+	SetInset(0, y / 8, 0, y / 8);
+
+	m_flMenuItemVisibilityRate = strtod(pScheme->GetResourceString("MainMenu.MenuItemVisibilityRate"), nullptr);
+
+	if (m_flMenuItemVisibilityRate < 0.0000001)
+		m_flMenuItemVisibilityRate = 0.0000001;
+}
+
+void CGameMenu::OnThink()
+{
+	BaseClass::OnThink();
+
+	if (m_bRestartListUpdate)
+	{
+		m_bUpdatingList = true;
+		m_flListUpdateStartTime = vgui2::system()->GetFrameTime();
+		m_bRestartListUpdate = false;
+	}
+
+	if (m_bUpdatingList)
+	{
+		int iLastVisibleChild = static_cast<int>(floor((vgui2::system()->GetFrameTime() - m_flListUpdateStartTime) / m_flMenuItemVisibilityRate));
+
+		if (iLastVisibleChild >= GetChildCount())
+		{
+			m_bUpdatingList = false;
+			iLastVisibleChild = GetChildCount();
+		}
+
+		for (int i = 0; i < GetChildCount(); ++i)
+		{
+			auto pChild = GetChild(i);
+
+			if (pChild)
+			{
+				pChild->SetPaintEnabled(i > (GetChildCount() - iLastVisibleChild));
+			}
+		}
+
+		InvalidateLayout();
+		Repaint();
+	}
+}
+
+void CGameMenu::SetVisible(bool state)
+{
+	BaseClass::SetVisible(true);
+
+	if (!state)
+	{
+		vgui2::ipanel()->MoveToBack(GetVPanel());
+	}
+}
+
+void CGameMenu::OnCommand(const char* command)
+{
+	if (!stricmp(command, "Open"))
+	{
+		MoveToFront();
+		RequestFocus();
+		m_bRestartListUpdate = true;
+	}
+	else
+	{
+		BaseClass::OnCommand(command);
+	}
+}
+
+int CGameMenu::AddMenuItem(const char* itemName, const char* itemText, KeyValues* command, vgui2::Panel* target, KeyValues* userData)
+{
+	auto item = new CGameMenuItem(this, itemName);
+
+	item->SetPaintEnabled(false);
+	item->AddActionSignalTarget(target);
+	item->SetCommand(command);
+	item->SetText(itemText);
+
+	item->m_bRightAligned = true;
+
+	item->SetUserData(userData);
+
+	return BaseClass::AddMenuItem(item);
+}
+
+CTaskbar::CTaskbar(vgui2::Panel* parent, const char* panelName)
+	: BaseClass(parent, panelName)
+{
+	m_pGameMenu = nullptr;
+
+	CreateMusicManager();
+
+	CreateGameMenu();
+}
+
+CTaskbar::~CTaskbar()
+{
+	ShutdownMusicManager();
+}
+
+void CTaskbar::OnActivateModule(int moduleIndex)
+{
+	g_VModuleLoader.ActivateModule(moduleIndex);
+}
+
+void CTaskbar::ActivateGameUI()
+{
+	baseuifuncs->ActivateGameUI();
+}
+
+void CTaskbar::ApplySchemeSettings(vgui2::IScheme* pScheme)
+{
+	BaseClass::ApplySchemeSettings(pScheme);
+
+	SetBorder(nullptr);
+
+	m_iGameMenuInset = strtol(pScheme->GetResourceString("MainMenu.Inset"), nullptr, 10);
+
+	SetBgColor(GetSchemeColor("Button.BgColor", pScheme));
+
+	InvalidateLayout();
+}
+
+void CTaskbar::RunFrame()
+{
+	InvalidateLayout();
+}
+
+void CTaskbar::OnGameUIActivated()
+{
+	if (m_pGameMenu)
+		m_pGameMenu->m_bRestartListUpdate = true;
+
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: simple querybox that accepts escape
+//-----------------------------------------------------------------------------
+class CQuitQueryBox: public vgui2::QueryBox
+{
+	DECLARE_CLASS_SIMPLE(CQuitQueryBox, vgui2::QueryBox);
+
+public:
+	CQuitQueryBox(const char* title, const char* info, Panel* parent): BaseClass(title, info, parent)
+	{
+	}
+
+	void DoModal(Frame* pFrameOver)
+	{
+		BaseClass::DoModal(pFrameOver);
+		vgui2::surface()->RestrictPaintToSinglePanel(GetVPanel());
+	}
+
+	void OnKeyCodeTyped(vgui2::KeyCode code)
+	{
+		// ESC cancels
+		if (code == vgui2::KEY_ESCAPE)
+		{
+			Close();
+		}
+		else
+		{
+			BaseClass::OnKeyCodeTyped(code);
+		}
+	}
+
+	void OnKeyCodePressed(vgui2::KeyCode code)
+	{
+		// ESC cancels
+		if (code == vgui2::KEY_XBUTTON_B)
+		{
+			Close();
+		}
+		else
+		{
+			BaseClass::OnKeyCodePressed(code);
+		}
+	}
+
+	virtual void OnClose()
+	{
+		BaseClass::OnClose();
+		vgui2::surface()->RestrictPaintToSinglePanel(NULL);
+	}
+};
+
+void CTaskbar::OnOpenQuitConfirmationDialog()
+{
+	vgui2::QueryBox* box = new CQuitQueryBox("#GameUI_QuitConfirmationTitle", "#GameUI_QuitConfirmationText", this);
+	box->SetOKButtonText("#GameUI_Quit");
+	box->SetOKCommand(new KeyValues("Command", "command", "QuitNoConfirm"));
+	box->SetCancelCommand(new KeyValues("Command", "command", "ReleaseModalWindow"));
+	box->AddActionSignalTarget(this);
+	box->DoModal();
+
+	vgui2::surface()->RestrictPaintToSinglePanel(box->GetVPanel());
+}
+
+void CTaskbar::OnOpenServerBrowser()
+{
+	g_VModuleLoader.ActivateModule("Servers");
+}
+
+void CTaskbar::OnOpenChangeGameDialog()
+{
+	if (!m_hChangeGameDialog.Get())
+	{
+		m_hChangeGameDialog = new CChangeGameDialog(this);
+		PositionDialog(m_hChangeGameDialog);
+	}
+
+	m_hChangeGameDialog->Activate();
+}
+
+void CTaskbar::OnOpenPlayerListDialog()
+{
+	if (!m_hPlayerListDialog)
+	{
+		m_hPlayerListDialog = new CPlayerListDialog(this);
+		PositionDialog(m_hPlayerListDialog);
+	}
+
+	m_hPlayerListDialog->Activate();
+}
+void CTaskbar::OnOpenCreateMultiplayerGameDialog()
+{
+	if (!m_hCreateMultiplayerGameDialog)
+	{
+		m_hCreateMultiplayerGameDialog = new CCreateMultiplayerGameDialog(this);
+		PositionDialog(m_hCreateMultiplayerGameDialog);
+	}
+
+	m_hCreateMultiplayerGameDialog->Activate();
+}
+
+void CTaskbar::OnOpenDemoDialog()
+{
+	// TODO: implement - Solokiller
+}
+
+void CTaskbar::OnOpenOptionsDialog()
+{
+	if (!m_hOptionsDialog)
+	{
+		m_hOptionsDialog = new COptionsDialog(this);
+		PositionDialog(m_hOptionsDialog);
+	}
+
+	m_hOptionsDialog->Activate();
+}
+
+void CTaskbar::OnOpenSaveGameDialog()
+{
+	if (!m_hSaveGameDialog)
+	{
+		m_hSaveGameDialog = new CSaveGameDialog(this);
+		PositionDialog(m_hSaveGameDialog);
+	}
+
+	m_hSaveGameDialog->Activate();
+}
+
+void CTaskbar::OnOpenLoadGameDialog()
+{
+	if (!m_hLoadGameDialog)
+	{
+		m_hLoadGameDialog = new CLoadGameDialog(this);
+		PositionDialog(m_hLoadGameDialog);
+	}
+
+	m_hLoadGameDialog->Activate();
+}
+
+void CTaskbar::OnOpenNewGameDialog()
+{
+	if (!m_hNewGameDialog)
+	{
+		m_hNewGameDialog = new CNewGameDialog(this, false);
+		PositionDialog(m_hNewGameDialog);
+	}
+
+	m_hNewGameDialog->Activate();
+}
+
+void CTaskbar::OnCommand(const char* command)
+{
+	if (!stricmp(command, "OpenGameMenu"))
+	{
+		if (m_pGameMenu)
+		{
+			PostMessage(m_pGameMenu, new KeyValues("Command", "command", "Open"));
+		}
+	}
+	else if (!stricmp(command, "OpenPlayerListDialog"))
+	{
+		OnOpenPlayerListDialog();
+	}
+	else if (!stricmp(command, "OpenNewGameDialog"))
+	{
+		OnOpenNewGameDialog();
+	}
+	else if (!stricmp(command, "OpenLoadGameDialog"))
+	{
+		OnOpenLoadGameDialog();
+	}
+	else if (!stricmp(command, "OpenSaveGameDialog"))
+	{
+		OnOpenSaveGameDialog();
+	}
+	else if (!stricmp(command, "OpenOptionsDialog"))
+	{
+		OnOpenOptionsDialog();
+	}
+	else if (!stricmp(command, "OpenServerBrowser"))
+	{
+		g_VModuleLoader.ActivateModule("Servers");
+	}
+	else if (!stricmp(command, "OpenLoadDemoDialog"))
+	{
+		OnOpenDemoDialog();
+	}
+	else if (!stricmp(command, "OpenCreateMultiplayerGameDialog"))
+	{
+		OnOpenCreateMultiplayerGameDialog();
+	}
+	else if (!stricmp(command, "OpenPlayOnLineDialog"))
+	{
+		auto pQuery = new vgui2::QueryBox("#CZero_PlayOnLine", "#CZero_PlayOnLineText");
+		pQuery->AddActionSignalTarget(this);
+		pQuery->SetOKCommand(new KeyValues("Command", "command", "QuitToPlayOnLine"));
+
+		pQuery->DoModal();
+	}
+	else if (!stricmp(command, "OpenChangeGameDialog"))
+	{
+		OnOpenChangeGameDialog();
+	}
+	else if (!stricmp(command, "Quit"))
+	{
+		OnOpenQuitConfirmationDialog();
+	}
+	else if (!stricmp(command, "QuitNoConfirm"))
+	{
+		engine->pfnClientCmd("quit\n");
+
+		SetVisible(false);
+		vgui2::surface()->RestrictPaintToSinglePanel(GetVPanel());
+	}
+	else if (!stricmp(command, "QuitToPlayOnLine"))
+	{
+
+		engine->pfnClientCmd("quit\n");
+
+		SetVisible(false);
+
+		vgui2::surface()->RestrictPaintToSinglePanel(GetVPanel());
+
+		vgui2::system()->ShellExecute("open", "steaminstall.exe");
+	}
+	else if (!stricmp(command, "ResumeGame"))
+	{
+		if (baseuifuncs)
+			baseuifuncs->HideGameUI();
+	}
+	else if (!stricmp(command, "ReallySurrender"))
+	{
+		engine->pfnClientCmd("disconnect\n");
+	}
+	else if (!stricmp(command, "Disconnect"))
+	{
+		engine->pfnClientCmd("disconnect\n");
+	}
+	else if (!stricmp(command, "ReleaseModalWindow"))
+	{
+		vgui2::surface()->RestrictPaintToSinglePanel(NULL_HANDLE);
+	}
+	else if (!stricmp(command, "Surrender"))
+	{
+		auto pQuery = new vgui2::QueryBox("#Career_Surrender", "#GameUI_QuitConfirmationText", this);
+		pQuery->SetProportional(false);
+		pQuery->SetOKCommand(new KeyValues("Command", "command", "ReallySurrender"));
+		pQuery->AddActionSignalTarget(this);
+		pQuery->SetScheme("TrackerScheme");
+
+		pQuery->DoModal();
+	}
+	else if (!stricmp(command, "EndRound"))
+	{
+		auto pQuery = new vgui2::QueryBox("#Career_EndRound", "#Career_EndRoundText", this);
+		pQuery->SetProportional(false);
+		pQuery->SetOKCommand(new KeyValues("Command", "command", "engine career_endround\n"));
+		pQuery->AddActionSignalTarget(this);
+		pQuery->SetScheme("TrackerScheme");
+
+		pQuery->DoModal();
+	}
+	else
+	{
+		// Forward engine commands
+		auto pszCommand = strstr(command, "engine ");
+
+		if (pszCommand)
+		{
+			if (pszCommand[7])
+				gEngfuncs.pfnClientCmd(const_cast<char*>(pszCommand + 7));
+
+			if (baseuifuncs)
+				baseuifuncs->HideGameUI();
+		}
+		else
+		{
+			BaseClass::OnCommand(command);
+		}
+	}
+}
+
+void CTaskbar::AddTask(vgui2::VPANEL panel)
+{
+	// Nothing
+}
+
+CTaskButton* CTaskbar::FindTask(vgui2::VPANEL panel)
+{
+	for (int i = 0; i < g_Tasks.Count(); ++i)
+	{
+		if (g_Tasks[i]->GetTaskPanel() == panel)
+			return g_Tasks[i];
+	}
+
+	return nullptr;
+}
+
+void CTaskbar::SetTitle(vgui2::VPANEL panel, const wchar_t* title)
+{
+	for (int i = 0; i < g_Tasks.Count(); ++i)
+	{
+		if (panel == g_Tasks[i]->GetTaskPanel())
+		{
+			if (g_Tasks[i])
+				g_Tasks[i]->SetTitle(title);
+		}
+	}
+}
+
+void CTaskbar::UpdateGameMenus()
+{
+	int wide, tall;
+	vgui2::surface()->GetScreenSize(wide, tall);
+
+	static bool isInCareerGame = false;
+
+	bool isInGame;
+	bool isMulti;
+
+	auto pszLevelName = engine->pfnGetLevelName();
+
+	if (pszLevelName && *pszLevelName)
+	{
+		if (engine->GetMaxClients() <= 1)
+		{
+			isMulti = false;
+			isInGame = true;
+		}
+		else
+		{
+			isMulti = true;
+			isInGame = true;
+		}
+	}
+	else
+	{
+		isMulti = false;
+		isInGame = false;
+	}
+
+	if (TheMusicManager)
+	{
+		if ((g_hLoadingDialog ||
+				isInGame ||
+				TheMusicManager->IsPlayingTrack(TRACKTYPE_SPLASH)) &&
+			(!g_hLoadingDialog ||
+				isInGame ||
+				!isInCareerGame ||
+				TheMusicManager->IsPlayingTrack(TRACKTYPE_SPLASH)))
+		{
+			if (g_hLoadingDialog &&
+					!isInCareerGame &&
+					TheMusicManager->IsPlayingTrack(TRACKTYPE_SPLASH) ||
+				isInGame &&
+					TheMusicManager->IsPlayingTrack(TRACKTYPE_SPLASH))
+			{
+				TheMusicManager->FadeOutTrack();
+			}
+		}
+		else
+		{
+			TheMusicManager->StartTrack(TRACKTYPE_SPLASH, true);
+		}
+	}
+
+	const auto bIsSteam = engine->CheckParm("-steam", 0) != 0;
+
+	// Determine which menu items are visible
+	for (int i = 0; i < m_pGameMenu->GetChildCount(); ++i)
+	{
+		auto pChild = m_pGameMenu->GetChild(i);
+
+		if (!pChild)
+			continue;
+
+		auto pMenu = dynamic_cast<vgui2::MenuItem*>(pChild);
+
+		if (!pMenu)
+			continue;
+
+		auto pData = pMenu->GetUserData();
+
+		if (!pData)
+			continue;
+
+		bool bAvailable;
+
+		if (isInGame)
+		{
+			bAvailable = true; // pData->GetInt( isInCareerGame ? "NotInCareerGame" : "OnlyInCareerGame", 0 ) != 0;
+		}
+		else
+			bAvailable = pData->GetInt("OnlyInGame", 0) == 0;
+
+		if (isMulti && pData->GetInt("notmulti", 0))
+		{
+			bAvailable = false;
+		}
+		else if (isInGame && !isMulti && pData->GetInt("notsingle", 0))
+		{
+			bAvailable = false;
+		}
+		else if (bIsSteam)
+		{
+			if (pData->GetInt("notsteam", 0))
+				bAvailable = false;
+		}
+
+		pMenu->SetVisible(bAvailable);
+	}
+
+	m_pGameMenu->InvalidateLayout();
+	m_pGameMenu->SetPos(m_iGameMenuInset, tall - m_pGameMenu->GetTall() - 64);
+	m_pGameMenu->SetVisible(true);
+}
+
+void CTaskbar::UpdateTaskButtons()
+{
+	auto hFocus = vgui2::input()->GetFocus();
+
+	int reorderedButtons = 0;
+	int visibleButtonCount = 0;
+
+	for (int i = 0; i < g_Tasks.Count();)
+	{
+		auto pTask = g_Tasks[i];
+
+		if (hFocus && vgui2::ipanel()->HasParent(hFocus, pTask->GetTaskPanel()))
+		{
+			pTask->SetSelected(true);
+		}
+		else
+		{
+			pTask->SetSelected(false);
+		}
+
+		if (NULL_HANDLE == pTask->GetTaskPanel())
+		{
+			pTask->SetVisible(false);
+
+			pTask->MarkForDeletion();
+
+			g_Tasks.Remove(i);
+
+			visibleButtonCount = 0;
+
+			// Start from beginning
+			i = 0;
+		}
+		else
+		{
+			if (pTask->ShouldDisplay())
+			{
+				++visibleButtonCount;
+
+				// if not visible, move to back
+				if (!pTask->IsVisible())
+				{
+					// Avoid infinitely swapping buttons
+					if (reorderedButtons < 100)
+					{
+						// Don't move if already at the back
+						if (i != g_Tasks.Count() - 1)
+						{
+							auto pOther = g_Tasks[i];
+							g_Tasks[i] = g_Tasks[i + 1];
+							g_Tasks[i + 1] = pOther;
+
+							// Start from beginning
+							i = 0;
+							++reorderedButtons;
+							visibleButtonCount = 0;
+						}
+					}
+				}
+			}
+
+			++i;
+		}
+	}
+
+	if (visibleButtonCount == 0)
+		visibleButtonCount = 1;
+
+	int buttonWide = (GetWide() - 256) / visibleButtonCount;
+
+	if (buttonWide > 128)
+		buttonWide = 128;
+
+	int x = 280;
+
+	for (int i = 0; i < g_Tasks.Count(); ++i)
+	{
+		auto pTask = g_Tasks[i];
+
+		if (!pTask->ShouldDisplay())
+		{
+			pTask->SetVisible(false);
+			continue;
+		}
+
+		pTask->SetVisible(true);
+		pTask->SetBounds(x, 20, buttonWide - 8, 24);
+		x += buttonWide;
+	}
+}
+
+void CTaskbar::PerformLayout()
+{
+	int wide, tall;
+	vgui2::surface()->GetScreenSize(wide, tall);
+
+	static int count = 2;
+
+	if (count == 0)
+	{
+		GameUI().ValidateCDKey(false, false);
+	}
+
+	--count;
+
+	SetPos(0, tall - 64);
+	SetSize(wide, 64);
+
+	UpdateTaskButtons();
+	UpdateGameMenus();
+}
+
+void CTaskbar::CreateGameMenu()
+{
+	auto pKV = new KeyValues("GameMenu");
+
+	if (pKV->LoadFromFile(vgui2::filesystem(), "resource/GameMenu.res"))
+	{
+		m_pGameMenu = RecursiveLoadGameMenu(pKV);
+	}
+	else
+	{
+		assert(!("Could not load file Resource/GameMenu.res"));
+	}
+
+	pKV->deleteThis();
+}
+
+void CTaskbar::CreatePlatformMenu()
+{
+
+}
+
+CGameMenu* CTaskbar::RecursiveLoadGameMenu(KeyValues* datafile)
+{
+	auto pGameMenu = new CGameMenu(this, datafile->GetName());
+	for (auto pKV = datafile->GetFirstSubKey(); pKV; pKV = pKV->GetNextKey())
+	{
+		auto pszLabel = pKV->GetString("label", "<unknown>");
+		auto pszCommand = pKV->GetString("command", nullptr);
+		auto pszName = pKV->GetString("name", pszLabel);
+
+		pGameMenu->AddMenuItem(pszName, pszLabel, pszCommand, this, pKV);
+	}
+
+	return pGameMenu;
+}
+
+void CTaskbar::PositionDialog(vgui2::PHandle dlg)
+{
+	if (dlg)
+	{
+		int x, y, ww, wt;
+		vgui2::surface()->GetWorkspaceBounds(x, y, ww, wt);
+
+		int wide, tall;
+		dlg->GetSize(wide, tall);
+
+		dlg->SetPos(x + (ww - wide) / 2, y + (wt - tall) / 2);
+	}
+}

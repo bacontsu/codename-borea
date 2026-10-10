@@ -30,7 +30,7 @@
 
 typedef int (*pfnUserMsgHook)(const char *pszName, int iSize, void *pbuf);
 
-#include "mathlib.h"
+#include "goldsrcmathlib.h"
 
 #include "../engine/cdll_int.h"
 #include "../dlls/cdll_dll.h"

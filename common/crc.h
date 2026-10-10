@@ -21,6 +21,7 @@
 
 #include "archtypes.h"     // DAL
 
+#ifndef CHECKSUM_MD5_H
 // MD5 Hash
 typedef struct
 {
@@ -28,6 +29,7 @@ typedef struct
     unsigned int bits[2];
     unsigned char in[64];
 } MD5Context_t;
+#endif //CHECKSUM_MD5_H
 
 
 #ifdef _WIN32
@@ -62,4 +64,4 @@ int MD5_Hash_CachedFile(unsigned char digest[16], unsigned char *pCache, int nFi
 
 int CRC_MapFile(CRC32_t *crcvalue, char *pszFileName);
 
-#endif
+#endif //CRC_H

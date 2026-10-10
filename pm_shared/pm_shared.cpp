@@ -26,7 +26,7 @@
 #include "Platform.h"
 
 #include <assert.h>
-#include "mathlib.h"
+#include "goldsrcmathlib.h"
 #include "cdll_dll.h"
 #include "const.h"
 #include "usercmd.h"
