@@ -32,9 +32,24 @@
 #define LOW_ARMOR_SPRITE "sprites/lowarmor.spr"
 
 // sprites color
-#define BACKGROUND_COLOR Vector( 251, 177, 43)
-#define HEALTH_COLOR Vector( 251, 177, 43)
-#define INFO_COLOR Vector( 15, 251, 177)
+
+intvec4 backgrndcolor;
+intvec4 healthcolor;
+
+intvec4 flashlighton;
+intvec4 flashlightoff;
+intvec4 oxygencolor;
+intvec4 staminaempty;
+intvec4 staminaclr;
+
+#define BACKGROUND_COLOR Vector(backgrndcolor.r, backgrndcolor.g, backgrndcolor.b)
+#define HEALTH_COLOR Vector(healthcolor.r, healthcolor.g, healthcolor.b)
+
+#define FLASHLIGHT_ON_COLOR flashlighton.r, flashlighton.g, flashlighton.b, flashlighton.a
+#define FLASHLIGHT_OFF_COLOR flashlightoff.r, flashlightoff.g, flashlightoff.b, flashlightoff.a
+#define OXYGEN_COLOR oxygencolor.r, oxygencolor.g, oxygencolor.b, oxygencolor.a
+#define STAMINA_EMPTYCOLOR staminaempty.r, staminaempty.g, staminaempty.b, staminaempty.a
+#define STAMINA_COLOR staminaclr.r, staminaclr.g, staminaclr.b, staminaclr.a
 
 
 DECLARE_MESSAGE(m_Health, Health )
@@ -79,6 +94,22 @@ int CHudHealth::Init()
 	giDmgWidth = 0;
 
 	memset(m_dmg, 0, sizeof(DAMAGE_IMAGE) * NUM_DMG_TYPES);
+
+	findColorFromTxtFile("hudcolors.txt", "BACKGROUNDCOLOR", 
+		&backgrndcolor.r, &backgrndcolor.g, &backgrndcolor.b, &backgrndcolor.a);
+	findColorFromTxtFile("hudcolors.txt", "HEALTHCOLOR",
+		&healthcolor.r, &healthcolor.g, &healthcolor.b, &healthcolor.a);
+
+	findColorFromTxtFile("hudcolors.txt", "FLASHLIGHTONCOLOR",
+		&flashlighton.r, &flashlighton.g, &flashlighton.b, &flashlighton.a);
+	findColorFromTxtFile("hudcolors.txt", "FLASHLIGHTOFFCOLOR",
+		&flashlightoff.r, &flashlightoff.g, &flashlightoff.b, &flashlightoff.a);
+	findColorFromTxtFile("hudcolors.txt", "OXYGENCOLOR",
+		&oxygencolor.r, &oxygencolor.g, &oxygencolor.b, &oxygencolor.a);
+	findColorFromTxtFile("hudcolors.txt", "STAMINAEMPTYCOLOR",
+		&staminaempty.r, &staminaempty.g, &staminaempty.b, &staminaempty.a);
+	findColorFromTxtFile("hudcolors.txt", "STAMINACOLOR",
+		&staminaclr.r, &staminaclr.g, &staminaclr.b, &staminaclr.a);
 
 
 	gHUD.AddHudElem(this);
@@ -245,8 +276,6 @@ void DrawFrame(float xmin, float ymin, float xmax, float ymax, char* sprite, Vec
 
 int CHudHealth::Draw(float flTime)
 {
-	int r, g, b;
-	int a = 0;
 	float x, y;
 	int HealthWidth;
 	int scale;
@@ -256,31 +285,7 @@ int CHudHealth::Draw(float flTime)
 
 	if ( !m_hSprite )
 		m_hSprite = LoadSprite(PAIN_NAME);
-	
-	// Has health changed? Flash the health #
-	if (m_fFade)
-	{
-		m_fFade -= (gHUD.m_flTimeDelta * 20);
-		if (m_fFade <= 0)
-		{
-			a = MIN_ALPHA;
-			m_fFade = 0;
-		}
 
-		// Fade the health number back to dim
-
-		a = MIN_ALPHA +  (m_fFade/FADE_TIME) * 128;
-
-	}
-	else
-		a = MIN_ALPHA;
-
-	// If health is getting low, make it bright red
-	if (m_iHealth <= 15)
-		a = 255;
-		
-	GetPainColor( r, g, b );
-	ScaleColors(r, g, b, a );
 
 	// find heartbeat speed
 	if (m_iHealth > 70)
@@ -418,14 +423,14 @@ int CHudHealth::Draw(float flTime)
 		y = ScreenHeight - 70;
 		float stamina = (gEngfuncs.pfnGetCvarFloat("sv_sprintdur") - m_iStamina) * 0.8f;
 
-		FillRGBA(x, y, stamina, 15, 144, 144, 144, 100);
+		FillRGBA(x, y, stamina, 15, STAMINA_EMPTYCOLOR);
 
 		// draw stamina
 		x = 210;
 		y = ScreenHeight - 70;
 		stamina = m_iStamina * 0.8f;
 
-		FillRGBA(x, y, stamina, 15, 249, 111, 45, 255);
+		FillRGBA(x, y, stamina, 15, STAMINA_COLOR);
 
 		// draw Oxygen bar
 		x = 220;
@@ -433,7 +438,7 @@ int CHudHealth::Draw(float flTime)
 		float oxygen_dur = (float)m_iOxygen;
 
 		//if (m_iOxygen != 100)
-		FillRGBA(x, y, oxygen_dur, 5, 0, 191, 225, 140);
+		FillRGBA(x, y, oxygen_dur, 5, OXYGEN_COLOR);
 
 		// draw flashlight bar
 		x = 220;
@@ -443,9 +448,9 @@ int CHudHealth::Draw(float flTime)
 		extern int g_iFlashLight;
 
 		if(g_iFlashLight)
-			FillRGBA(x, y, flashlight_dur, 5, 224, 224, 224, 140);
+			FillRGBA(x, y, flashlight_dur, 5, FLASHLIGHT_ON_COLOR);
 		else
-			FillRGBA(x, y, flashlight_dur, 5, 144, 144, 144, 100);
+			FillRGBA(x, y, flashlight_dur, 5, FLASHLIGHT_OFF_COLOR);
 
 		// draw slowmo bar
 		x = (ScreenWidth - gHUD.slowmoBar * 1.3f) / 2;

@@ -129,9 +129,9 @@ void ShutdownInput ();
 int __MsgFunc_HudColor(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
-	giR = READ_BYTE();
-	giG = READ_BYTE();
-	giB = READ_BYTE();
+	//giR = READ_BYTE();
+	//giG = READ_BYTE();
+	//giB = READ_BYTE();
 	return 1;
 }
 
@@ -741,6 +741,8 @@ void CHud :: Init()
 	HOOK_MESSAGE(SendAnim);
 	HOOK_MESSAGE(PlayVideo);
 
+	findColorFromTxtFile("hudcolors.txt", "COMMONHUD", &giR, &giG, &giB, nullptr );
+
 	//R_Init(); do this right after getting ienginestudio
 
 	gSoundSystem.Init();
@@ -1236,4 +1238,69 @@ void CHud::DrawBackground(float xmin, float ymin, float xmax, float ymax, char* 
 	//end
 	gEngfuncs.pTriAPI->End();
 	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+}
+
+namespace strutil
+{
+/**
+  * @brief Splits input std::string str according to input std::string delim.
+  *        Taken from: https://github.com/tgalaj/strutil/blob/master/strutil.h.
+  * @param str - std::string that will be split.
+  * @param delim - the delimiter.
+  * @param keep_empty - if true (default), empty tokens are kept in the result;
+  *                     if false, empty tokens are skipped.
+  * @return std::vector<std::string> that contains all splitted tokens.
+  */
+	inline std::vector<std::string> split(const std::string& str, const std::string& delim, bool keep_empty = true)
+	{
+		size_t pos_start = 0, pos_end, delim_len = delim.length();
+		std::string token;
+		std::vector<std::string> tokens;
+
+		while ((pos_end = str.find(delim, pos_start)) != std::string::npos)
+		{
+			token = str.substr(pos_start, pos_end - pos_start);
+			pos_start = pos_end + delim_len;
+			if (keep_empty || !token.empty())
+			{
+				tokens.push_back(token);
+			}
+		}
+
+		token = str.substr(pos_start);
+		if (keep_empty || !token.empty())
+		{
+			tokens.push_back(token);
+		}
+		return tokens;
+	}
+
+}
+
+
+void findColorFromTxtFile(const char* filepath, const char* colorname, int* r_out, int* g_out, int* b_out, int* a_out)
+{
+	std::string path = gEngfuncs.pfnGetGameDirectory() + std::string("/") + std::string(filepath);
+	FileHandle_t f = g_pFileSystem->Open(filepath, "r");
+	if (f == FILESYSTEM_INVALID_HANDLE)
+		return;
+	while (!g_pFileSystem->EndOfFile(f)) {
+		char buffer[512];
+		g_pFileSystem->ReadLine(buffer, 512, f);
+		std::vector<std::string> tokens = strutil::split(buffer, " ");
+		if (tokens.empty())
+			continue;
+		if (tokens[0][0] == '/')
+			continue;
+		if (tokens[0] != colorname)
+			continue;
+
+		assert(tokens.size() == 5);
+		if(r_out) *r_out = atoi(tokens[1].c_str());
+		if(g_out) *g_out = atoi(tokens[2].c_str());
+		if(b_out) *b_out = atoi(tokens[3].c_str());
+		if(a_out) *a_out = atoi(tokens[4].c_str());
+		break;
+	}
+	g_pFileSystem->Close(f);
 }

@@ -76,6 +76,8 @@ typedef struct {
 
 typedef struct cvar_s cvar_t;
 
+struct intvec4 { int r, g, b, a; };
+
 extern int giR, giG, giB;
 
 
@@ -1031,6 +1033,8 @@ typedef struct viewinfo_s
 
 	studiohdr_t* phdr;
 } vminfo_t;
+
+void findColorFromTxtFile(const char* filepath, const char* colorname, int* r_out, int* g_out, int* b_out, int* a_out);
 
 extern viewinfo_s g_viewinfo;
 

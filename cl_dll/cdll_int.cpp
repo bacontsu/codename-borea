@@ -644,7 +644,7 @@ int DLLEXPORT HUD_VidInit()
 
 	SPR_Init();
 
-	UnpackRGB(giR, giG, giB, RGB_HUD_COLOR);
+	//UnpackRGB(giR, giG, giB, RGB_HUD_COLOR);
 
 	gHUD.VidInit();
 

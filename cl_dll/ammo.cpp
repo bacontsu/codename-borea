@@ -33,7 +33,8 @@
 #define BACKGROUND_SPRITE "sprites/healthback.spr"
 
 // sprites color
-#define BACKGROUND_COLOR Vector( 251, 177, 43)
+extern intvec4 backgrndcolor;
+#define BACKGROUND_COLOR Vector(backgrndcolor.r, backgrndcolor.g, backgrndcolor.b)
 
 WEAPON *gpActiveSel;	// NULL means off, 1 means just the menu bar, otherwise
 						// this points to the active weapon menu item
