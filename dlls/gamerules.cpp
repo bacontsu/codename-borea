@@ -312,30 +312,42 @@ void CGameRules::RefreshSkillData ()
 	gSkillData.sentryHealth = GetSkillCvar( "sk_sentry_health");
 
 	// Aynekko: The Last Goodbye stuff
+	// thugs
 	gSkillData.thugHealth = GetSkillCvar( "sk_thug_health" );
 	gSkillData.thugDmg = GetSkillCvar( "sk_thug_dmg" );
 	gSkillData.thugRockDmg = GetSkillCvar( "sk_thug_rock_dmg" );
+	// gangsters
 	gSkillData.gangHealth = GetSkillCvar( "sk_gang_health" );
 	gSkillData.gangDmgSmg = GetSkillCvar( "sk_gang_dmg_smg" );
 	gSkillData.gangDmgShotgun = GetSkillCvar( "sk_gang_dmg_shotgun" );
 	gSkillData.gangDmgPistol = GetSkillCvar( "sk_gang_dmg_pistol" );
+	// mercs
+	gSkillData.mercHealth = GetSkillCvar( "sk_merc_health" );
+	gSkillData.mercDmgSmg = GetSkillCvar( "sk_merc_dmg_smg" );
+	gSkillData.mercDmgShotgun = GetSkillCvar( "sk_merc_dmg_shotgun" );
+	// citizens
 	gSkillData.trampHealth = GetSkillCvar( "sk_tramp_health" );
 	gSkillData.workerHealth = GetSkillCvar( "sk_worker_health" );
 	gSkillData.fishermanHealth = GetSkillCvar( "sk_fisherman_health" );
 	gSkillData.malenpcHealth = GetSkillCvar( "sk_mcit_health" );
 	gSkillData.femalenpcHealth = GetSkillCvar( "sk_fcit_health" );
+	// dog
 	gSkillData.dogHealth = GetSkillCvar( "sk_dog_health" );
 	gSkillData.dogDmg = GetSkillCvar( "sk_dog_dmg" );
 	gSkillData.dogDmgLunge = GetSkillCvar( "sk_dog_dmglunge" );
+	// rat
 	gSkillData.ratHealth = GetSkillCvar( "sk_rat_health" );
 	gSkillData.ratDmg = GetSkillCvar( "sk_rat_dmg" );
+	// spider
 	gSkillData.spiderHealth = GetSkillCvar( "sk_spider_health" );
 	gSkillData.spiderDmgJump = GetSkillCvar( "sk_spider_dmg_jump" );
 	gSkillData.spiderDmgSpit = GetSkillCvar( "sk_spider_dmg_spit" );
 	gSkillData.spiderDmgBite = GetSkillCvar( "sk_spider_dmg_bite" );
+	// baby spider
 	gSkillData.bspiderDmgJump = GetSkillCvar( "sk_bspider_dmg_jump" );
 	gSkillData.bspiderDmgBite = GetSkillCvar( "sk_bspider_dmg_bite" );
 	gSkillData.bspiderHealth = GetSkillCvar( "sk_bspider_health" );
+	// various
 	gSkillData.firepersecDmg = CVAR_GET_FLOAT( "sk_fire_dmg_per_second" );
 	gSkillData.kickDmg = CVAR_GET_FLOAT( "sk_kick_dmg" );
 	gSkillData.punchDmg = GetSkillCvar( "sk_punch_dmg" );

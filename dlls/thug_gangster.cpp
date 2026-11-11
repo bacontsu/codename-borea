@@ -198,6 +198,19 @@ public:
 	static const char *pGruntSentences[];
 
 	float next_idle_sentence_time; // used for thugs and gangs
+
+	// to distinguish between NPCs instead of using FClassnameIs
+	// not saved, set in precache
+	void Distinguish( void );
+	bool bGangPistol;
+	bool bGangShotgun;
+	bool bGangSMG;
+	bool bMercSMG;
+	bool bMercShotgun;
+	bool bThugPipe;
+	bool bThugWrench;
+	bool bThugCrowbar;
+
 };
 
 LINK_ENTITY_TO_CLASS( monster_human_grunt, CHGrunt );
@@ -242,6 +255,18 @@ enum HGRUNT_SENTENCE_TYPES
 	HGRUNT_SENT_CHARGE,
 	HGRUNT_SENT_TAUNT,
 };
+
+void CHGrunt::Distinguish( void )
+{
+	bThugPipe = FClassnameIs( pev, "monster_thug_pipe" );
+	bThugWrench = FClassnameIs( pev, "monster_thug_wrench" );
+	bThugCrowbar = FClassnameIs( pev, "monster_thug_crowbar" );
+	bGangShotgun = FClassnameIs( pev, "monster_gangster_shotgun" );
+	bGangSMG = FClassnameIs( pev, "monster_gangster_smg" );
+	bGangPistol = FClassnameIs( pev, "monster_gangster_pistol" );
+	bMercShotgun = FClassnameIs( pev, "monster_mercenary_shotgun" );
+	bMercSMG = FClassnameIs( pev, "monster_mercenary_smg" );
+}
 
 //=========================================================
 // Speak Sentence - say your cued up sentence.
@@ -830,8 +855,10 @@ void CHGrunt :: Shoot ()
 		EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
 
 		// Aynekko: add custom gang stuff right here...less functions
-		if( FClassnameIs(pev, "monster_gangster_smg") )
+		if( bGangSMG )
 			FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_MONSTER_MP5, 3, gSkillData.gangDmgSmg ); // shoot +-5 degrees
+		else if( bMercSMG )
+			FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_MONSTER_MP5, 3, gSkillData.mercDmgSmg ); // shoot +-5 degrees
 		else
 			FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5 ); // shoot +-5 degrees
 
@@ -880,8 +907,10 @@ void CHGrunt :: Shotgun ()
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL); 
 
 	// Aynekko: add custom gang stuff right here...less functions
-	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+	if( bGangShotgun )
 		FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, gSkillData.gangDmgShotgun ); // shoot +-7.5 degrees
+	else if( bMercShotgun )
+		FireBullets( gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, gSkillData.mercDmgShotgun ); // shoot +-7.5 degrees
 	else
 		FireBullets(gSkillData.hgruntShotgunPellets, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0 ); // shoot +-7.5 degrees
 
@@ -926,7 +955,7 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			if( !(pev->spawnflags & SF_MONSTER_GAG) )
 			{
-				if( FClassnameIs( pev, "monster_thug_pipe" ) || FClassnameIs( pev, "monster_thug_wrench" ) || FClassnameIs( pev, "monster_thug_crowbar" ) )
+				if( bThugPipe || bThugWrench || bThugCrowbar )
 					SENTENCEG_PlayRndSz( ENT( pev ), "THU_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
 				else
 					SENTENCEG_PlayRndSz( ENT( pev ), "GANG_WIN", HGRUNT_SENTENCE_VOLUME, ATTN_NORM, 0, m_voicePitch );
@@ -1077,7 +1106,7 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 			CBaseEntity *pHurt = Kick();
 
 			float dmg = gSkillData.hgruntDmgKick;
-			if( FClassnameIs( pev, "monster_thug_pipe" ) || FClassnameIs( pev, "monster_thug_wrench" ) || FClassnameIs( pev, "monster_thug_crowbar" ) )
+			if( bThugPipe || bThugWrench || bThugCrowbar )
 				dmg = gSkillData.thugDmg;
 
 			if (pHurt)
@@ -1216,6 +1245,8 @@ void CHGrunt :: Spawn()
 //=========================================================
 void CHGrunt :: Precache()
 {
+	Distinguish();
+
 	if (pev->model)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
@@ -2907,15 +2938,17 @@ void CMonsterThug::MonsterThink()
 
 void CMonsterThug::Precache()
 {
+	Distinguish();
+
 	if( pev->model )
 		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_thug_pipe") )
+		if( bThugPipe )
 			PRECACHE_MODEL( "models/thug01.mdl" );
-		else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+		else if( bThugCrowbar )
 			PRECACHE_MODEL( "models/thug02.mdl" );
-		else if( FClassnameIs( pev, "monster_thug_wrench" ) )
+		else if( bThugWrench )
 			PRECACHE_MODEL( "models/thug03.mdl" );
 
 	}
@@ -2973,11 +3006,11 @@ void CMonsterThug::Spawn()
 		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_thug_pipe" ) )
+		if( bThugPipe )
 			SET_MODEL( ENT( pev ), "models/thug01.mdl" );
-		else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+		else if( bThugCrowbar )
 			SET_MODEL( ENT( pev ), "models/thug02.mdl" );
-		else if( FClassnameIs( pev, "monster_thug_wrench" ) )
+		else if( bThugWrench )
 			SET_MODEL( ENT( pev ), "models/thug03.mdl" );
 	}
 
@@ -2990,9 +3023,9 @@ void CMonsterThug::Spawn()
 	if( !pev->health )
 		pev->health = gSkillData.thugHealth;
 
-	if( FClassnameIs( pev, "monster_thug_wrench" ) )
+	if( bThugWrench )
 		pev->health += pev->health * 0.5f; // 50% increase for wrench dude
-	else if( FClassnameIs( pev, "monster_thug_crowbar" ) )
+	else if( bThugCrowbar )
 		pev->health -= pev->health * 0.25f; // 25% decrease for crowbar dude
 
 	pev->max_health = pev->health;
@@ -3793,6 +3826,8 @@ public:
 LINK_ENTITY_TO_CLASS( monster_gangster_shotgun, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_gangster_smg, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_gangster_pistol, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_shotgun, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_smg, CMonsterGangster );
 
 const char *CMonsterGangster::pGangsterSentences[] =
 {
@@ -3807,20 +3842,25 @@ const char *CMonsterGangster::pGangsterSentences[] =
 
 void CMonsterGangster::Precache()
 {
+	Distinguish();
+
 	if( pev->model )
 		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+		if( bGangShotgun )
 			PRECACHE_MODEL( "models/gangster01a.mdl" );
-		else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+		else if( bGangSMG )
 			PRECACHE_MODEL( "models/gangster02a.mdl" );
-		else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+		else if( bGangPistol )
 		{
 			PRECACHE_MODEL( "models/gangster03a.mdl" );
 			PRECACHE_SOUND( "weapons/psk_npc.wav" );
 		}
-
+		else if( bMercShotgun )
+			PRECACHE_MODEL( "models/mercenary02.mdl" );
+		else if( bMercSMG )
+			PRECACHE_MODEL( "models/mercenary01.mdl" );
 	}
 
 	PRECACHE_SOUND( "weapons/dryfire1.wav" ); //LRC
@@ -3864,13 +3904,20 @@ void CMonsterGangster::Spawn()
 		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+		if( bGangShotgun )
 			SET_MODEL( ENT( pev ), "models/gangster01a.mdl" );
-		else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+		else if( bGangSMG )
 			SET_MODEL( ENT( pev ), "models/gangster02a.mdl" );
-		else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+		else if( bGangPistol )
 			SET_MODEL( ENT( pev ), "models/gangster03a.mdl" );
+		else if( bMercShotgun )
+			SET_MODEL( ENT( pev ), "models/mercenary02.mdl" );
+		else if( bMercSMG )
+			SET_MODEL( ENT( pev ), "models/mercenary01.mdl" );
 	}
+
+	if( bMercShotgun || bMercSMG )
+		pev->spawnflags |= SF_MONSTER_GAG; // mute
 
 	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
 
@@ -3881,7 +3928,12 @@ void CMonsterGangster::Spawn()
 	m_bloodColor = BLOOD_COLOR_RED;
 	pev->effects = 0;
 	if( !pev->health )
-		pev->health = gSkillData.gangHealth;
+	{
+		if( bMercShotgun || bMercSMG )
+			pev->health = gSkillData.mercHealth;
+		else // gangsters
+			pev->health = gSkillData.gangHealth;
+	}
 
 	pev->max_health = pev->health;
 	m_flFieldOfView = 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -3900,21 +3952,21 @@ void CMonsterGangster::Spawn()
 	pev->weapons = 0;
 
 	// initialize weapons per class
-	if( FClassnameIs( pev, "monster_gangster_shotgun" ) )
+	if( bGangShotgun || bMercShotgun )
 	{
 		pev->weapons |= HGRUNT_SHOTGUN;
 		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
 			pev->weapons |= HGRUNT_HANDGRENADE;
 		m_cClipSize = 8;
 	}
-	else if( FClassnameIs( pev, "monster_gangster_smg" ) )
+	else if( bGangSMG || bMercSMG )
 	{
 		pev->weapons |= HGRUNT_9MMAR;
 		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
 			pev->weapons |= HGRUNT_HANDGRENADE;
 		m_cClipSize = GRUNT_CLIP_SIZE;
 	}
-	else if( FClassnameIs( pev, "monster_gangster_pistol" ) )
+	else if( bGangPistol )
 	{
 		pev->weapons |= HGRUNT_PISTOL;
 		m_cClipSize = 12;
@@ -3929,6 +3981,9 @@ void CMonsterGangster::Spawn()
 
 void CMonsterGangster::SpeakSentence()
 {
+	if( pev->spawnflags & SF_MONSTER_GAG )
+		return;
+
 	// custom sentences for the thug
 	if( m_iSentence == HGRUNT_SENT_NONE )
 	{

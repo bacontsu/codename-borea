@@ -160,6 +160,9 @@ struct skilldata_t
 	float gangDmgSmg;
 	float gangDmgShotgun;
 	float gangDmgPistol;
+	float mercHealth;
+	float mercDmgShotgun;
+	float mercDmgSmg;
 	float trampHealth;
 	float workerHealth;
 	float fishermanHealth;

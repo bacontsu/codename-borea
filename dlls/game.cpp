@@ -631,6 +631,7 @@ cvar_t dmjumpsound = {"sv_dmjumpsound", "1", FCVAR_SERVER};
 // END Opposing Force variables
 
 // Aynekko: The Last Goodbye
+// thugs
 cvar_t	sk_thug_health1 = { "sk_thug_health1","80" };
 cvar_t	sk_thug_health2 = { "sk_thug_health2","80" };
 cvar_t	sk_thug_health3 = { "sk_thug_health3","80" };
@@ -640,6 +641,7 @@ cvar_t	sk_thug_dmg3 = { "sk_thug_dmg3","10" };
 cvar_t sk_thug_rock_dmg1 = { "sk_thug_rock_dmg1","15" };
 cvar_t sk_thug_rock_dmg2 = { "sk_thug_rock_dmg2","25" };
 cvar_t sk_thug_rock_dmg3 = { "sk_thug_rock_dmg3","35" };
+// gangsters
 cvar_t	sk_gang_health1 = { "sk_gang_health1","100" };
 cvar_t	sk_gang_health2 = { "sk_gang_health2","100" };
 cvar_t	sk_gang_health3 = { "sk_gang_health3","100" };
@@ -652,6 +654,17 @@ cvar_t	sk_gang_dmg_shotgun3 = { "sk_gang_dmg_shotgun3","2" };
 cvar_t	sk_gang_dmg_pistol1 = { "sk_gang_dmg_pistol1","3" };
 cvar_t	sk_gang_dmg_pistol2 = { "sk_gang_dmg_pistol2","3" };
 cvar_t	sk_gang_dmg_pistol3 = { "sk_gang_dmg_pistol3","3" };
+// mercs
+cvar_t	sk_merc_health1 = { "sk_merc_health1","100" };
+cvar_t	sk_merc_health2 = { "sk_merc_health2","100" };
+cvar_t	sk_merc_health3 = { "sk_merc_health3","100" };
+cvar_t	sk_merc_dmg_smg1 = { "sk_merc_dmg_smg1","2" };
+cvar_t	sk_merc_dmg_smg2 = { "sk_merc_dmg_smg2","2" };
+cvar_t	sk_merc_dmg_smg3 = { "sk_merc_dmg_smg3","2" };
+cvar_t	sk_merc_dmg_shotgun1 = { "sk_merc_dmg_shotgun1","2" };
+cvar_t	sk_merc_dmg_shotgun2 = { "sk_merc_dmg_shotgun2","2" };
+cvar_t	sk_merc_dmg_shotgun3 = { "sk_merc_dmg_shotgun3","2" };
+// citizens
 cvar_t	sk_tramp_health1 = { "sk_tramp_health1","50" };
 cvar_t	sk_tramp_health2 = { "sk_tramp_health2","50" };
 cvar_t	sk_tramp_health3 = { "sk_tramp_health3","50" };
@@ -667,6 +680,7 @@ cvar_t	sk_mcit_health3 = { "sk_mcit_health3","25" };
 cvar_t	sk_fcit_health1 = { "sk_fcit_health1","45" };
 cvar_t	sk_fcit_health2 = { "sk_fcit_health2","25" };
 cvar_t	sk_fcit_health3 = { "sk_fcit_health3","25" };
+// dog
 cvar_t	sk_dog_health1 = { "sk_dog_health1","30" };
 cvar_t	sk_dog_health2 = { "sk_dog_health2","30" };
 cvar_t	sk_dog_health3 = { "sk_dog_health3","30" };
@@ -676,12 +690,14 @@ cvar_t	sk_dog_dmg3 = { "sk_dog_dmg3","10" };
 cvar_t	sk_dog_dmglunge1 = { "sk_dog_dmglunge1","10" };
 cvar_t	sk_dog_dmglunge2 = { "sk_dog_dmglunge2","10" };
 cvar_t	sk_dog_dmglunge3 = { "sk_dog_dmglunge3","10" };
+// rat
 cvar_t	sk_rat_health1 = { "sk_rat_health1","20" };
 cvar_t	sk_rat_health2 = { "sk_rat_health2","20" };
 cvar_t	sk_rat_health3 = { "sk_rat_health3","20" };
 cvar_t	sk_rat_dmg1 = { "sk_rat_dmg1","10" };
 cvar_t	sk_rat_dmg2 = { "sk_rat_dmg2","10" };
 cvar_t	sk_rat_dmg3 = { "sk_rat_dmg3","10" };
+// spider
 cvar_t	sk_spider_health1 = { "sk_spider_health1","100" };
 cvar_t	sk_spider_health2 = { "sk_spider_health2","100" };
 cvar_t	sk_spider_health3 = { "sk_spider_health3","100" };
@@ -694,6 +710,7 @@ cvar_t	sk_spider_dmg_spit3 = { "sk_spider_dmg_spit3","5" };
 cvar_t	sk_spider_dmg_bite1 = { "sk_spider_dmg_bite1","10" };
 cvar_t	sk_spider_dmg_bite2 = { "sk_spider_dmg_bite2","10" };
 cvar_t	sk_spider_dmg_bite3 = { "sk_spider_dmg_bite3","10" };
+// baby spider
 cvar_t	sk_bspider_dmg_jump1 = { "sk_bspider_dmg_jump1","6" };
 cvar_t	sk_bspider_dmg_jump2 = { "sk_bspider_dmg_jump2","8" };
 cvar_t	sk_bspider_dmg_jump3 = { "sk_bspider_dmg_jump3","10" };
@@ -703,6 +720,7 @@ cvar_t	sk_bspider_dmg_bite3 = { "sk_bspider_dmg_bite3","8" };
 cvar_t	sk_bspider_health1 = { "sk_bspider_health1","20" };
 cvar_t	sk_bspider_health2 = { "sk_bspider_health2","30" };
 cvar_t	sk_bspider_health3 = { "sk_bspider_health3","40" };
+// various
 cvar_t	sk_fire_dmg_per_second = { "sk_fire_dmg_per_second","15" };
 cvar_t	sk_kick_dmg = { "sk_kick_dmg","15" };
 cvar_t	sk_punch_dmg1 = { "sk_punch_dmg1","10" };
@@ -1353,6 +1371,7 @@ void GameDLLInit()
 	// END REGISTER CVARS FOR OPPOSING FORCE
 
 	// Aynekko: The Last Goodbye
+	// thugs
 	CVAR_REGISTER( &sk_thug_health1 );
 	CVAR_REGISTER( &sk_thug_health2);
 	CVAR_REGISTER( &sk_thug_health3 );
@@ -1362,6 +1381,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_thug_rock_dmg1 );
 	CVAR_REGISTER( &sk_thug_rock_dmg2 );
 	CVAR_REGISTER( &sk_thug_rock_dmg3 );
+	// gangsters
 	CVAR_REGISTER( &sk_gang_health1 );
 	CVAR_REGISTER( &sk_gang_health2 );
 	CVAR_REGISTER( &sk_gang_health3 );
@@ -1374,6 +1394,17 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_gang_dmg_pistol1 );
 	CVAR_REGISTER( &sk_gang_dmg_pistol2 );
 	CVAR_REGISTER( &sk_gang_dmg_pistol3 );
+	// mercs
+	CVAR_REGISTER( &sk_merc_health1 );
+	CVAR_REGISTER( &sk_merc_health2 );
+	CVAR_REGISTER( &sk_merc_health3 );
+	CVAR_REGISTER( &sk_merc_dmg_smg1 );
+	CVAR_REGISTER( &sk_merc_dmg_smg2 );
+	CVAR_REGISTER( &sk_merc_dmg_smg3 );
+	CVAR_REGISTER( &sk_merc_dmg_shotgun1 );
+	CVAR_REGISTER( &sk_merc_dmg_shotgun2 );
+	CVAR_REGISTER( &sk_merc_dmg_shotgun3 );
+	// citizens
 	CVAR_REGISTER( &sk_tramp_health1 );
 	CVAR_REGISTER( &sk_tramp_health2 );
 	CVAR_REGISTER( &sk_tramp_health3 );
@@ -1389,6 +1420,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_fcit_health1 );
 	CVAR_REGISTER( &sk_fcit_health2 );
 	CVAR_REGISTER( &sk_fcit_health3 );
+	// dog
 	CVAR_REGISTER( &sk_dog_health1 );
 	CVAR_REGISTER( &sk_dog_health2 );
 	CVAR_REGISTER( &sk_dog_health3 );
@@ -1398,12 +1430,14 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_dog_dmglunge1 );
 	CVAR_REGISTER( &sk_dog_dmglunge2 );
 	CVAR_REGISTER( &sk_dog_dmglunge3 );
+	// rat
 	CVAR_REGISTER( &sk_rat_health1 );
 	CVAR_REGISTER( &sk_rat_health2 );
 	CVAR_REGISTER( &sk_rat_health3 );
 	CVAR_REGISTER( &sk_rat_dmg1 );
 	CVAR_REGISTER( &sk_rat_dmg2 );
 	CVAR_REGISTER( &sk_rat_dmg3 );
+	// spider
 	CVAR_REGISTER( &sk_spider_health1 );
 	CVAR_REGISTER( &sk_spider_health2 );
 	CVAR_REGISTER( &sk_spider_health3 );
@@ -1416,6 +1450,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_spider_dmg_bite1 );
 	CVAR_REGISTER( &sk_spider_dmg_bite2 );
 	CVAR_REGISTER( &sk_spider_dmg_bite3 );
+	// baby spider
 	CVAR_REGISTER( &sk_bspider_dmg_jump1 );
 	CVAR_REGISTER( &sk_bspider_dmg_jump2 );
 	CVAR_REGISTER( &sk_bspider_dmg_jump3 );
@@ -1425,6 +1460,7 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_bspider_health1 );
 	CVAR_REGISTER( &sk_bspider_health2 );
 	CVAR_REGISTER( &sk_bspider_health3 );
+	// various
 	CVAR_REGISTER( &sk_fire_dmg_per_second );
 	CVAR_REGISTER( &sk_kick_dmg );
 	CVAR_REGISTER( &sk_punch_dmg1 );
