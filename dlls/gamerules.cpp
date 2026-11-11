@@ -321,6 +321,7 @@ void CGameRules::RefreshSkillData ()
 	gSkillData.gangDmgPistol = GetSkillCvar( "sk_gang_dmg_pistol" );
 	gSkillData.trampHealth = GetSkillCvar( "sk_tramp_health" );
 	gSkillData.workerHealth = GetSkillCvar( "sk_worker_health" );
+	gSkillData.fishermanHealth = GetSkillCvar( "sk_fisherman_health" );
 	gSkillData.malenpcHealth = GetSkillCvar( "sk_mcit_health" );
 	gSkillData.femalenpcHealth = GetSkillCvar( "sk_fcit_health" );
 	gSkillData.dogHealth = GetSkillCvar( "sk_dog_health" );

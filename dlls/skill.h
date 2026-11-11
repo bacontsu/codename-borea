@@ -162,6 +162,7 @@ struct skilldata_t
 	float gangDmgPistol;
 	float trampHealth;
 	float workerHealth;
+	float fishermanHealth;
 	float malenpcHealth;
 	float femalenpcHealth;
 	float dogDmg;

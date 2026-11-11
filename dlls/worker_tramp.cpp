@@ -1501,12 +1501,19 @@ public:
 	void StartTask( Task_t *pTask ) override;
 
 	bool HideIfLowHealth; // not saved
+
+	// not saved, checked in precache
+	bool bCitizenMale;
+	bool bCitizenFemale;
+	bool bWorker;
+	bool bFisherman;
 };
 
 LINK_ENTITY_TO_CLASS( monster_worker, CWorker );
 LINK_ENTITY_TO_CLASS( monster_tramp, CWorker );
 LINK_ENTITY_TO_CLASS( monster_citizen_male, CWorker );
 LINK_ENTITY_TO_CLASS( monster_citizen_female, CWorker );
+LINK_ENTITY_TO_CLASS( monster_fisherman, CWorker );
 
 void CWorker::PainSound( void )
 {
@@ -1515,12 +1522,14 @@ void CWorker::PainSound( void )
 
 void CWorker::OnCatchFire( void )
 {
-	if( FClassnameIs( pev, "monster_worker" ) )
+	if( bWorker )
 		PlaySentence( "WORK_BURN", 3, VOL_NORM, ATTN_NORM );
-	else if( FClassnameIs( pev, "monster_citizen_male" ) )
+	else if( bCitizenMale )
 		PlaySentence( "MCIT_BURN", 3, VOL_NORM, ATTN_NORM );
-	else if( FClassnameIs( pev, "monster_citizen_female" ) )
+	else if( bCitizenFemale )
 		PlaySentence( "FCIT_BURN", 3, VOL_NORM, ATTN_NORM );
+	else if( bFisherman )
+		PlaySentence( "FISH_BURN", 3, VOL_NORM, ATTN_NORM );
 	else // monster_tramp
 		PlaySentence( "TRA_BURN", 3, VOL_NORM, ATTN_NORM );
 }
@@ -1534,15 +1543,15 @@ void CWorker::DeathSound( void )
 	sentence_name[0] = '\0';
 	
 	// figure out the hitgroup and use appropriate sounds
-	if( FClassnameIs( pev, "monster_citizen_male" ) )
+	if( bCitizenMale )
 	{
 		sprintf_s( sentence_name, "MCIT_DEAD" );
 	}
-	else if( FClassnameIs( pev, "monster_citizen_female" ) )
+	else if( bCitizenFemale )
 	{
 		sprintf_s( sentence_name, "FCIT_DEAD" );
 	}
-	else if( FClassnameIs( pev, "monster_worker" ) )
+	else if( bWorker )
 	{
 		switch( m_LastHitGroup )
 		{
@@ -1558,6 +1567,25 @@ void CWorker::DeathSound( void )
 		default:
 		case HITGROUP_GENERIC:
 			sprintf_s( sentence_name, "WORK_DEAD" );
+			break;
+		}
+	}
+	else if( bFisherman )
+	{
+		switch( m_LastHitGroup )
+		{
+		case HITGROUP_HEAD:
+			sprintf_s( sentence_name, "FISH_NDEAD" );
+			break;
+		case HITGROUP_CHEST:
+			sprintf_s( sentence_name, "FISH_CDEAD" );
+			break;
+		case HITGROUP_STOMACH:
+			sprintf_s( sentence_name, "FISH_GDEAD" );
+			break;
+		default:
+		case HITGROUP_GENERIC:
+			sprintf_s( sentence_name, "FISH_DEAD" );
 			break;
 		}
 	}
@@ -1587,16 +1615,23 @@ void CWorker::DeathSound( void )
 
 void CWorker::Precache( void )
 {
+	bCitizenMale = FClassnameIs( pev, "monster_citizen_male" );
+	bCitizenFemale = FClassnameIs( pev, "monster_citizen_female" );
+	bWorker = FClassnameIs( pev, "monster_worker" );
+	bFisherman = FClassnameIs( pev, "monster_fisherman" );
+
 	if( pev->model )
 		PRECACHE_MODEL( (char *)STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			PRECACHE_MODEL( "models/citizen_male01.mdl" );
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			PRECACHE_MODEL( "models/citizen_female01.mdl" );
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			PRECACHE_MODEL( "models/worker.mdl" );
+		else if( bFisherman )
+			PRECACHE_MODEL( "models/fisherman.mdl" );
 		else
 			PRECACHE_MODEL( "models/tramp01a.mdl" );
 	}
@@ -1622,17 +1657,23 @@ void CWorker::Precache( void )
 		m_szGrp[TLK_WOUND] = "SC_WOUND";
 		m_szGrp[TLK_MORTAL] = "SC_MORTAL";
 
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 		{
 			m_szGrp[TLK_ANSWER] = "MCIT_ANS";
 			m_szGrp[TLK_QUESTION] = "MCIT_QUES";
 			m_szGrp[TLK_PQUESTION] = "MCIT_QUES";
 		}
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 		{
 			m_szGrp[TLK_ANSWER] = "FCIT_ANS";
 			m_szGrp[TLK_QUESTION] = "FCIT_QUES";
 			m_szGrp[TLK_PQUESTION] = "FCIT_QUES";
+		}
+		else if( bFisherman )
+		{
+			m_szGrp[TLK_ANSWER] = "FISH_ANS";
+			m_szGrp[TLK_QUESTION] = "FISH_QUES";
+			m_szGrp[TLK_PQUESTION] = "FISH_QUES";
 		}
 		else
 		{
@@ -1641,10 +1682,12 @@ void CWorker::Precache( void )
 		}
 
 		// idle
-		if( FClassnameIs( pev, "monster_citizen_male" ) || FClassnameIs( pev, "monster_citizen_female" ) )
+		if( bCitizenMale || bCitizenFemale )
 			m_szGrp[TLK_IDLE] = nullptr;
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			m_szGrp[TLK_IDLE] = "WORK_IDLE";
+		else if( bFisherman )
+			m_szGrp[TLK_IDLE] = "FISH_IDLE";
 		else
 			m_szGrp[TLK_IDLE] = "TRA_IDLE";
 
@@ -1653,20 +1696,25 @@ void CWorker::Precache( void )
 		// reaction to +use
 		if( pev->spawnflags & SF_MONSTER_PREDISASTER )
 		{
-			if( FClassnameIs( pev, "monster_citizen_male" ) )
+			if( bCitizenMale )
 			{
 				m_szGrp[TLK_USE] = "MCIT_BOTH";
 				m_szGrp[TLK_UNUSE] = "MCIT_BOTH";
 			}
-			else if( FClassnameIs( pev, "monster_citizen_female" ) )
+			else if( bCitizenFemale )
 			{
 				m_szGrp[TLK_USE] = "FCIT_BOTH";
 				m_szGrp[TLK_UNUSE] = "FCIT_BOTH";
 			}
-			else if( FClassnameIs( pev, "monster_worker" ) )
+			else if( bWorker )
 			{
 				m_szGrp[TLK_USE] = "WORK_BOTH";
 				m_szGrp[TLK_UNUSE] = "WORK_BOTH";
+			}
+			else if( bFisherman )
+			{
+				m_szGrp[TLK_USE] = "FISH_BOTH";
+				m_szGrp[TLK_UNUSE] = "FISH_BOTH";
 			}
 			else
 			{
@@ -1676,20 +1724,25 @@ void CWorker::Precache( void )
 		}
 		else
 		{
-			if( FClassnameIs( pev, "monster_citizen_male" ) )
+			if( bCitizenMale )
 			{
 				m_szGrp[TLK_USE] = "MCIT_BOTH";
 				m_szGrp[TLK_UNUSE] = "MCIT_BOTH";
 			}
-			else if( FClassnameIs( pev, "monster_citizen_female" ) )
+			else if( bCitizenFemale )
 			{
 				m_szGrp[TLK_USE] = "FCIT_BOTH";
 				m_szGrp[TLK_UNUSE] = "FCIT_BOTH";
 			}
-			else if( FClassnameIs( pev, "monster_worker" ) )
+			else if( bWorker )
 			{
 				m_szGrp[TLK_USE] = "WORK_FOL";
 				m_szGrp[TLK_UNUSE] = "WORK_UFOL";
+			}
+			else if( bFisherman )
+			{
+				m_szGrp[TLK_USE] = "FISH_FOL";
+				m_szGrp[TLK_UNUSE] = "FISH_UFOL";
 			}
 			else
 			{
@@ -1698,28 +1751,34 @@ void CWorker::Precache( void )
 			}
 		}
 
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			m_szGrp[TLK_DECLINE] = "MCIT_BOTH";
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			m_szGrp[TLK_DECLINE] = "FCIT_BOTH";
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			m_szGrp[TLK_DECLINE] = "WORK_BOTH";
+		else if( bFisherman )
+			m_szGrp[TLK_DECLINE] = "FISH_BOTH";
 		else
 			m_szGrp[TLK_DECLINE] = "TRA_BOTH";
 
 		// can't follow anymore
-		if( FClassnameIs( pev, "monster_worker" ) )
+		if( bWorker )
 			m_szGrp[TLK_STOP] = "WORK_HALT";
+		else if( bFisherman )
+			m_szGrp[TLK_STOP] = "FISH_HALT";
 		else
 			m_szGrp[TLK_STOP] = "TRA_HALT";
 
 		// don't shoot!
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			m_szGrp[TLK_NOSHOOT] = "MCIT_WIT";
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			m_szGrp[TLK_NOSHOOT] = "FCIT_WIT";
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			m_szGrp[TLK_NOSHOOT] = "WORK_WIT";
+		else if( bFisherman )
+			m_szGrp[TLK_NOSHOOT] = "FISH_WIT";
 		else
 			m_szGrp[TLK_NOSHOOT] = "TRA_WIT";
 	}
@@ -1740,12 +1799,14 @@ void CWorker::Spawn( void )
 		SET_MODEL( ENT( pev ), STRING( pev->model ) ); //LRC
 	else
 	{
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			SET_MODEL( ENT( pev ), "models/citizen_male01.mdl" );
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			SET_MODEL( ENT( pev ), "models/citizen_female01.mdl" );
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			SET_MODEL( ENT( pev ), "models/worker.mdl" );
+		else if( bFisherman )
+			SET_MODEL( ENT( pev ), "models/fisherman.mdl" );
 		else
 			SET_MODEL( ENT( pev ), "models/tramp01a.mdl" );
 	}
@@ -1758,12 +1819,14 @@ void CWorker::Spawn( void )
 
 	if( !pev->health )
 	{
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			pev->health = gSkillData.malenpcHealth;
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			pev->health = gSkillData.femalenpcHealth;
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			pev->health = gSkillData.workerHealth;
+		else if( bFisherman )
+			pev->health = gSkillData.fishermanHealth;
 		else
 			pev->health = gSkillData.trampHealth;
 	}
@@ -2075,15 +2138,15 @@ int CWorker::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 		m_painTime = gpGlobals->time + RANDOM_FLOAT( 0.5, 0.75 );
 
 		// figure out the hitgroup and use appropriate sounds
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 		{
 			sprintf_s( sentence_name, "MCIT_PAIN" );
 		}
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 		{
 			sprintf_s( sentence_name, "FCIT_PAIN" );
 		}
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 		{
 			switch( m_LastHitGroup )
 			{
@@ -2099,6 +2162,25 @@ int CWorker::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 			default:
 			case HITGROUP_GENERIC:
 				sprintf_s( sentence_name, "WORK_PAIN" );
+				break;
+			}
+		}
+		else if( bFisherman )
+		{
+			switch( m_LastHitGroup )
+			{
+			case HITGROUP_HEAD:
+				sprintf_s( sentence_name, "FISH_HPAIN" );
+				break;
+			case HITGROUP_CHEST:
+				sprintf_s( sentence_name, "FISH_CPAIN" );
+				break;
+			case HITGROUP_STOMACH:
+				sprintf_s( sentence_name, "FISH_GPAIN" );
+				break;
+			default:
+			case HITGROUP_GENERIC:
+				sprintf_s( sentence_name, "FISH_PAIN" );
 				break;
 			}
 		}
@@ -2176,12 +2258,14 @@ void CWorker::StartTask( Task_t *pTask )
 
 	case TASK_RUN_PATH_SCARED:
 		m_movementActivity = ACT_RUN_SCARED;
-		if( FClassnameIs( pev, "monster_citizen_male" ) )
+		if( bCitizenMale )
 			PlaySentence( "MCIT_FLEE", 5, VOL_NORM, ATTN_NORM );
-		else if( FClassnameIs( pev, "monster_citizen_female" ) )
+		else if( bCitizenFemale )
 			PlaySentence( "FCIT_FLEE", 5, VOL_NORM, ATTN_NORM );
-		else if( FClassnameIs( pev, "monster_worker" ) )
+		else if( bWorker )
 			PlaySentence( "WORK_FLEE", 5, VOL_NORM, ATTN_NORM );
+		else if( bFisherman )
+			PlaySentence( "FISH_FLEE", 5, VOL_NORM, ATTN_NORM );
 		else // monster_tramp
 			PlaySentence( "TRA_FLEE", 5, VOL_NORM, ATTN_NORM );
 		break;
