@@ -1120,7 +1120,7 @@ void CScientist::Heal()
 
 int CScientist::FriendNumber( int arrayNumber )
 {
-	static int array[3] = { 1, 2, 0 };
+	static const int array[3] = { 1, 2, 0 };
 	if ( arrayNumber < 3 )
 		return array[ arrayNumber ];
 	return arrayNumber;
@@ -1572,22 +1572,7 @@ void CWorker::DeathSound( void )
 	}
 	else if( bFisherman )
 	{
-		switch( m_LastHitGroup )
-		{
-		case HITGROUP_HEAD:
-			sprintf_s( sentence_name, "FISH_NDEAD" );
-			break;
-		case HITGROUP_CHEST:
-			sprintf_s( sentence_name, "FISH_CDEAD" );
-			break;
-		case HITGROUP_STOMACH:
-			sprintf_s( sentence_name, "FISH_GDEAD" );
-			break;
-		default:
-		case HITGROUP_GENERIC:
-			sprintf_s( sentence_name, "FISH_DEAD" );
-			break;
-		}
+		sprintf_s( sentence_name, "FISH_DEAD" );
 	}
 	else // monster_tramp
 	{
@@ -1787,6 +1772,7 @@ void CWorker::Precache( void )
 	m_szFriends[1] = "monster_worker";
 	m_szFriends[2] = "monster_citizen_male";
 	m_szFriends[3] = "monster_citizen_female";
+	m_szFriends[4] = "monster_fisherman";
 
 	CTalkMonster::Precache();
 }
@@ -2167,22 +2153,7 @@ int CWorker::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 		}
 		else if( bFisherman )
 		{
-			switch( m_LastHitGroup )
-			{
-			case HITGROUP_HEAD:
-				sprintf_s( sentence_name, "FISH_HPAIN" );
-				break;
-			case HITGROUP_CHEST:
-				sprintf_s( sentence_name, "FISH_CPAIN" );
-				break;
-			case HITGROUP_STOMACH:
-				sprintf_s( sentence_name, "FISH_GPAIN" );
-				break;
-			default:
-			case HITGROUP_GENERIC:
-				sprintf_s( sentence_name, "FISH_PAIN" );
-				break;
-			}
+			sprintf_s( sentence_name, "FISH_PAIN" );
 		}
 		else // monster_tramp
 		{

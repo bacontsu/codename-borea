@@ -58,6 +58,10 @@ const char *CTalkMonster::m_szFriends[TLK_CFRIENDS] =
 	"monster_scientist",
 	"monster_sitting_scientist",
 	"monster_barney",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 };
 
 
