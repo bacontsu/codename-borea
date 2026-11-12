@@ -67,12 +67,14 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define HGRUNT_SHOTGUN				( 1 << 3)
 #define HGRUNT_PISTOL				( 1 << 4) // Aynekko: for gangster only
 
+#define HEAD_GROUP_TLG				0
 #define HEAD_GROUP					1
 #define HEAD_GRUNT					0
 #define HEAD_COMMANDER				1
 #define HEAD_SHOTGUN				2
 #define HEAD_M203					3
 
+#define GUN_GROUP_TLG				1
 #define GUN_GROUP					2
 #define GUN_MP5						0
 #define GUN_SHOTGUN					1
@@ -4728,7 +4730,7 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		GetAttachment( 0, vecGunPos, vecGunAngles );
 
 		// switch to body group with no gun.
-		SetBodygroup( GUN_GROUP, GUN_NONE );
+		SetBodygroup( GUN_GROUP_TLG, GUN_NONE );
 
 		// now spawn a gun.
 		if( FBitSet( pev->weapons, HGRUNT_SHOTGUN ) )
