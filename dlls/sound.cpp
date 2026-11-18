@@ -731,8 +731,16 @@ void CAmbientGeneric :: ToggleUse ( CBaseEntity *pActivator, CBaseEntity *pCalle
 		// AJH / MJB - [LN] volume field:
 		if (!FStringNull(pev->noise))
 			m_dpv.vol = CalcLocus_Number(this, STRING(pev->noise), nullptr);
-				
-		if (m_pPlayFrom)
+			
+		if( pev->spawnflags & AMBIENT_SOUND_EVERYWHERE_NOSPATIALIZE )
+		{
+			// Aynekko - a hack to make play everywhere sounds go through the route of HEV suit
+			// Currently it has no stopping procedure.
+			// It's supposed to be used only for Lucille's phrases.
+			edict_t *e = UTIL_PlayerByIndex( 1 )->edict();
+			EMIT_SOUND_DYN( e, CHAN_STATIC, szSoundFile, (m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch );
+		}
+		else if (m_pPlayFrom)
 		{
 			EMIT_SOUND_DYN( m_pPlayFrom, m_iChannel, szSoundFile, //LRC
 					(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch);
