@@ -87,6 +87,8 @@ public:
 	void EXPORT MolotovThink();
 	void EXPORT MolotovExplode();
 	void EXPORT MolotovTouch( CBaseEntity *pOther );
+	int m_iTrail;
+	bool bTrailCreated;
 
 	virtual void BounceSound();
     int	BloodColor() override { return DONT_BLEED; }
@@ -102,6 +104,21 @@ public:
 	int m_iLineCount;
 	float m_iLineCountNextRot;
 
+};
+
+class CSpearProjectile : public CBaseEntity
+{
+	void Spawn() override;
+	void Precache() override;
+	int  Classify() override;
+	void EXPORT FlyThink();
+	void EXPORT SpearTouch( CBaseEntity *pOther );
+
+	int m_iTrail;
+	bool bTrailCreated; // not saved - created in think
+
+public:
+	static CSpearProjectile *SpearCreate();
 };
 
 

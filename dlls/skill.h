@@ -163,6 +163,9 @@ struct skilldata_t
 	float mercHealth;
 	float mercDmgShotgun;
 	float mercDmgSmg;
+	float mercDmgSpear;
+	float mercDmgGrenade;
+	float mercGrenadeCheck;
 	float trampHealth;
 	float workerHealth;
 	float fishermanHealth;

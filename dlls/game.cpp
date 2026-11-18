@@ -207,9 +207,9 @@ cvar_t	sk_hgrunt_pellets1 = {"sk_hgrunt_pellets1","0"};
 cvar_t	sk_hgrunt_pellets2 = {"sk_hgrunt_pellets2","0"};
 cvar_t	sk_hgrunt_pellets3 = {"sk_hgrunt_pellets3","0"};
 
-cvar_t	sk_hgrunt_gspeed1 = {"sk_hgrunt_gspeed1","0"};
-cvar_t	sk_hgrunt_gspeed2 = {"sk_hgrunt_gspeed2","0"};
-cvar_t	sk_hgrunt_gspeed3 = {"sk_hgrunt_gspeed3","0"};
+cvar_t	sk_hgrunt_gspeed1 = {"sk_hgrunt_gspeed1","400"};
+cvar_t	sk_hgrunt_gspeed2 = {"sk_hgrunt_gspeed2","600"};
+cvar_t	sk_hgrunt_gspeed3 = {"sk_hgrunt_gspeed3","800"};
 
 // Hgrunt Ally
 DECLARE_SKILL_CVARS( hgrunt_ally_health );
@@ -664,6 +664,15 @@ cvar_t	sk_merc_dmg_smg3 = { "sk_merc_dmg_smg3","2" };
 cvar_t	sk_merc_dmg_shotgun1 = { "sk_merc_dmg_shotgun1","2" };
 cvar_t	sk_merc_dmg_shotgun2 = { "sk_merc_dmg_shotgun2","2" };
 cvar_t	sk_merc_dmg_shotgun3 = { "sk_merc_dmg_shotgun3","2" };
+cvar_t	sk_merc_dmg_spear1 = { "sk_merc_dmg_spear1","50" };
+cvar_t	sk_merc_dmg_spear2 = { "sk_merc_dmg_spear2","50" };
+cvar_t	sk_merc_dmg_spear3 = { "sk_merc_dmg_spear3","50" };
+cvar_t	sk_merc_dmg_grenade1 = { "sk_merc_dmg_grenade1","100" };
+cvar_t	sk_merc_dmg_grenade2 = { "sk_merc_dmg_grenade2","100" };
+cvar_t	sk_merc_dmg_grenade3 = { "sk_merc_dmg_grenade3","100" };
+cvar_t	sk_merc_grenade_check1 = { "sk_merc_grenade_check1","3" };
+cvar_t	sk_merc_grenade_check2 = { "sk_merc_grenade_check2","3" };
+cvar_t	sk_merc_grenade_check3 = { "sk_merc_grenade_check3","3" };
 // citizens
 cvar_t	sk_tramp_health1 = { "sk_tramp_health1","50" };
 cvar_t	sk_tramp_health2 = { "sk_tramp_health2","50" };
@@ -1404,6 +1413,15 @@ void GameDLLInit()
 	CVAR_REGISTER( &sk_merc_dmg_shotgun1 );
 	CVAR_REGISTER( &sk_merc_dmg_shotgun2 );
 	CVAR_REGISTER( &sk_merc_dmg_shotgun3 );
+	CVAR_REGISTER( &sk_merc_dmg_spear1 );
+	CVAR_REGISTER( &sk_merc_dmg_spear2 );
+	CVAR_REGISTER( &sk_merc_dmg_spear3 );
+	CVAR_REGISTER( &sk_merc_dmg_grenade1 );
+	CVAR_REGISTER( &sk_merc_dmg_grenade2 );
+	CVAR_REGISTER( &sk_merc_dmg_grenade3 );
+	CVAR_REGISTER( &sk_merc_grenade_check1 );
+	CVAR_REGISTER( &sk_merc_grenade_check2 );
+	CVAR_REGISTER( &sk_merc_grenade_check3 );
 	// citizens
 	CVAR_REGISTER( &sk_tramp_health1 );
 	CVAR_REGISTER( &sk_tramp_health2 );

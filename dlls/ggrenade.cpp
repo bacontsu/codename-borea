@@ -427,6 +427,24 @@ void CGrenade::DangerSoundThink()
 	CSoundEnt::InsertSound ( bits_SOUND_DANGER, pev->origin + pev->velocity * 0.5, pev->velocity.Length( ), 0.2 );
 	SetNextThink( 0.2 );
 
+	// create trail
+	if( !bTrailCreated && m_iTrail )
+	{
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMFOLLOW );
+			WRITE_SHORT( entindex() );	// entity
+			WRITE_SHORT( m_iTrail );	// model
+			WRITE_BYTE( 4 ); // life
+			WRITE_BYTE( 2 );  // width
+			WRITE_BYTE( 50 );   // r
+			WRITE_BYTE( 50 );   // g
+			WRITE_BYTE( 50 );   // b
+			WRITE_BYTE( 125 );	// brightness
+		MESSAGE_END();
+
+		bTrailCreated = true;
+	}
+
 	if (pev->waterlevel != 0 && pev->watertype > CONTENT_FLYFIELD)
 	{
 		pev->velocity = pev->velocity * 0.5;
@@ -594,7 +612,7 @@ CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector v
 	
 	// make monsters afaid of it while in the air
 	pGrenade->SetThink( &CGrenade::DangerSoundThink );
-	pGrenade->SetNextThink( 0 );
+	pGrenade->SetNextThink( 0.1 );
 	
 	// Tumble in air
 	//pGrenade->pev->avelocity.x = RANDOM_FLOAT ( -100, -500 );
@@ -603,6 +621,8 @@ CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector v
 	pGrenade->SetTouch( &CGrenade::ExplodeTouch );
 
 	pGrenade->pev->dmg = gSkillData.plrDmgM203Grenade;
+
+	pGrenade->bTrailCreated = false;
 
 	return pGrenade;
 }

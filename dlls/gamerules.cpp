@@ -325,6 +325,9 @@ void CGameRules::RefreshSkillData ()
 	gSkillData.mercHealth = GetSkillCvar( "sk_merc_health" );
 	gSkillData.mercDmgSmg = GetSkillCvar( "sk_merc_dmg_smg" );
 	gSkillData.mercDmgShotgun = GetSkillCvar( "sk_merc_dmg_shotgun" );
+	gSkillData.mercDmgSpear = GetSkillCvar( "sk_merc_dmg_spear" );
+	gSkillData.mercDmgGrenade = GetSkillCvar( "sk_merc_dmg_grenade" );
+	gSkillData.mercGrenadeCheck = GetSkillCvar( "sk_merc_grenade_check" );
 	// citizens
 	gSkillData.trampHealth = GetSkillCvar( "sk_tramp_health" );
 	gSkillData.workerHealth = GetSkillCvar( "sk_worker_health" );

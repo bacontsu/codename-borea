@@ -283,8 +283,8 @@ void CHGrunt::Distinguish( void )
 	
 	bMercShotgun = FClassnameIs( pev, "monster_mercenary_shotgun" );
 	bMercSMG = FClassnameIs( pev, "monster_mercenary_smg" );
-	bMercFrogman = FClassnameIs( pev, "monster_mercenary_frogman" );
-	bMercGrenadier = FClassnameIs( pev, "monster_mercenary_grenadier" );
+	bMercFrogman = FClassnameIs( pev, "monster_mercenary_speargun" );
+	bMercGrenadier = FClassnameIs( pev, "monster_mercenary_grenade" );
 	
 	bMerc = bMercShotgun || bMercSMG || bMercFrogman || bMercGrenadier;
 }
@@ -3829,6 +3829,7 @@ public:
 	float CoverRadius() override { return 1500; }
 	
 	//for the special mercenaries
+	BOOL CheckRangeAttack1( float flDot, float flDist ) override;
 	BOOL CheckRangeAttack2( float flDot, float flDist ) override; 
 	void SetActivity ( Activity NewActivity ) override;
 
@@ -3855,8 +3856,8 @@ LINK_ENTITY_TO_CLASS( monster_gangster_smg, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_gangster_pistol, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_mercenary_shotgun, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_mercenary_smg, CMonsterGangster );
-LINK_ENTITY_TO_CLASS( monster_mercenary_frogman, CMonsterGangster );
-LINK_ENTITY_TO_CLASS( monster_mercenary_grenadier, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_speargun, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_grenade, CMonsterGangster );
 
 const char *CMonsterGangster::pGangsterSentences[] =
 {
@@ -3896,6 +3897,12 @@ void CMonsterGangster::Precache()
 			PRECACHE_MODEL( "models/mercenary04.mdl" );
 	}
 
+	if( bMercFrogman )
+	{
+		UTIL_PrecacheOther( "spear_projectile" );
+		PRECACHE_SOUND( "weapons/speargun.wav" );
+	}
+
 	PRECACHE_SOUND( "weapons/dryfire1.wav" ); //LRC
 
 	PRECACHE_SOUND( "hgrunt/gr_mgun1.wav" );
@@ -3903,7 +3910,8 @@ void CMonsterGangster::Precache()
 
 	PRECACHE_SOUND( "hgrunt/gr_reload1.wav" );
 
-	PRECACHE_SOUND( "weapons/glauncher.wav" );
+	if( bMercGrenadier )
+		PRECACHE_SOUND( "weapons/grenadelauncher.wav" );
 
 	PRECACHE_SOUND( "weapons/sbarrel1.wav" );
 
@@ -4011,15 +4019,17 @@ void CMonsterGangster::Spawn()
 	else if( bMercFrogman )
 	{
 		pev->weapons |= HGRUNT_SPEARGUN;
-		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
-			pev->weapons |= HGRUNT_HANDGRENADE;
+		// they don't use dynamite at all
+	//	if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+	//		pev->weapons |= HGRUNT_HANDGRENADE;
 		m_cClipSize = 1;
 	}
 	else if( bMercGrenadier )
 	{
 		pev->weapons |= HGRUNT_GRENADELAUNCHER;
-		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
-			pev->weapons |= HGRUNT_HANDGRENADE;
+		// they don't use dynamite at all
+	//	if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+	//		pev->weapons |= HGRUNT_HANDGRENADE;
 		m_cClipSize = 1;
 	}
 
@@ -4030,12 +4040,108 @@ void CMonsterGangster::Spawn()
 	MonsterInit();
 }
 
+BOOL CMonsterGangster::CheckRangeAttack1( float flDot, float flDist )
+{
+	if( bMercGrenadier || bMercFrogman )
+		return FALSE;
+
+	return CHGrunt::CheckRangeAttack1( flDot, flDist );
+}
+
 BOOL CMonsterGangster::CheckRangeAttack2( float flDot, float flDist )
 {
-	if(bMercFrogman || bMercGrenadier)
+	if( bMercFrogman || bMercGrenadier )
 	{
-		if (m_cAmmoLoaded > 0)
-			return CheckRangeAttack1(flDot, flDist);
+		if( m_cAmmoLoaded <= 0 )
+			return FALSE;
+
+		if( bMercFrogman && HasConditions( bits_COND_SEE_ENEMY ) )
+		{
+			m_vecTossVelocity = ShootAtEnemy( GetGunPosition() );
+			return TRUE;
+		}
+
+		// if the grunt isn't moving, it's ok to check.
+	//	if( m_flGroundSpeed != 0 )
+	//	{
+	//		m_fThrowGrenade = FALSE;
+	//		return m_fThrowGrenade;
+	//	}
+
+		// assume things haven't changed too much since last time
+		if( gpGlobals->time < m_flNextGrenadeCheck )
+		{
+			return m_fThrowGrenade;
+		}
+
+	//	if( !FBitSet( m_hEnemy->pev->flags, FL_ONGROUND ) && (m_hEnemy->pev->waterlevel == 0 || m_hEnemy->pev->watertype == CONTENT_FOG) && m_vecEnemyLKP.z > pev->absmax.z )
+	//	{
+	//		//!!!BUGBUG - we should make this check movetype and make sure it isn't FLY? Players who jump a lot are unlikely to 
+	//		// be grenaded.
+	//		// don't throw grenades at anything that isn't on the ground!
+	//		m_fThrowGrenade = FALSE;
+	//		return m_fThrowGrenade;
+	//	}
+
+		Vector vecTarget;
+
+		if( bMercGrenadier )
+		{
+			// find target
+			// vecTarget = m_hEnemy->BodyTarget( pev->origin );
+			vecTarget = m_vecEnemyLKP + (m_hEnemy->BodyTarget( pev->origin ) - m_hEnemy->pev->origin);
+			// estimate position
+			if( HasConditions( bits_COND_SEE_ENEMY ) )
+				vecTarget = vecTarget + ((vecTarget - pev->origin).Length() / gSkillData.hgruntGrenadeSpeed) * m_hEnemy->pev->velocity;
+		}
+
+		// are any of my squad members near the intended grenade impact area?
+		// Aynekko - don't care about the squad for now
+		if( 0 )//InSquad() )
+		{
+			if( SquadMemberInRange( vecTarget, 256 ) )
+			{
+				// crap, I might blow my own guy up. Don't throw a grenade and don't check again for a while.
+				m_flNextGrenadeCheck = gpGlobals->time + 1; // one full second.
+				m_fThrowGrenade = FALSE;
+				return m_fThrowGrenade;	//AJH need this or it is overridden later.
+			}
+		}
+
+		// Aynekko - no attacks in close up probably, needs to be looked into during testing
+		// or don't put the enemy near the player
+		if( (vecTarget - pev->origin).Length2D() <= 256 )
+		{
+			// crap, I don't want to blow myself up
+			m_flNextGrenadeCheck = gpGlobals->time + 1; // one full second.
+			m_fThrowGrenade = FALSE;
+			return m_fThrowGrenade;
+		}
+
+		if( bMercGrenadier )
+		{
+			Vector vecToss = VecCheckThrow( pev, GetGunPosition(), vecTarget, gSkillData.hgruntGrenadeSpeed, 0.5 );
+
+			if( vecToss != g_vecZero )
+			{
+				m_vecTossVelocity = vecToss;
+
+				// throw a hand grenade
+				m_fThrowGrenade = TRUE;
+				// don't check again for a while.
+				m_flNextGrenadeCheck = gpGlobals->time + gSkillData.mercGrenadeCheck;
+			}
+			else
+			{
+				// don't throw
+				m_fThrowGrenade = FALSE;
+				// don't check again for a while.
+				m_flNextGrenadeCheck = gpGlobals->time + 1; // one full second.
+			}
+			return m_fThrowGrenade;
+		}
+
+		return FALSE;
 	}
 
 	return CHGrunt::CheckRangeAttack2(flDot, flDist);
@@ -4492,10 +4598,13 @@ Schedule_t *CMonsterGangster::GetSchedule()
 		}
 
 		// Aynekko: make taunt sounds during combat (20% chance)
-		if( RANDOM_LONG( 0, 100 ) < 20 && FOkToSpeak() )
+		if( !bMerc )
 		{
-			SENTENCEG_PlayRndSz( ENT( pev ), "GANG_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
-			JustSpoke();
+			if( RANDOM_LONG( 0, 100 ) < 20 && FOkToSpeak() )
+			{
+				SENTENCEG_PlayRndSz( ENT( pev ), "GANG_TAUNT", HGRUNT_SENTENCE_VOLUME, GRUNT_ATTN, 0, m_voicePitch );
+				JustSpoke();
+			}
 		}
 
 		// new enemy
@@ -4583,6 +4692,11 @@ Schedule_t *CMonsterGangster::GetSchedule()
 		else if( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
 		{
 			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+		}
+		// can shoot
+		else if( (bMercFrogman || bMercGrenadier) && HasConditions( bits_COND_CAN_RANGE_ATTACK2 ) )
+		{
+			return GetScheduleOfType( SCHED_RANGE_ATTACK2 );
 		}
 		// can shoot
 		else if( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
@@ -4843,7 +4957,7 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		{
 			DropItem( "weapon_mp54", vecGunPos, vecGunAngles );
 		}
-		if( FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) )
+		if( !bMercGrenadier && FBitSet( pev->weapons, HGRUNT_GRENADELAUNCHER ) )
 		{
 			DropItem( "ammo_ARgrenades", BodyTarget( pev->origin ), vecGunAngles );
 		}
@@ -4888,7 +5002,10 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 
 	case HGRUNT_AE_GREN_LAUNCH:
 	{
-		EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/glauncher.wav", 0.8, ATTN_NORM );
+		if( bMercGrenadier )
+			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/grenadelauncher.wav", 0.8, ATTN_NORM );
+		else
+			EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/glauncher.wav", 0.8, ATTN_NORM );
 		//LRC: firing due to a script?
 		if( m_pCine )
 		{
@@ -4901,15 +5018,29 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 				UTIL_MakeVectors( pev->angles );
 				vecToss = (gpGlobals->v_forward * 0.5 + gpGlobals->v_up * 0.5).Normalize() * gSkillData.hgruntGrenadeSpeed;
 			}
-			CGrenade::ShootContact( pev, GetGunPosition(), vecToss );
+			CGrenade *pGrenade = CGrenade::ShootContact( pev, GetGunPosition(), vecToss );
+			if( bMercGrenadier )
+				pGrenade->pev->dmg = gSkillData.mercDmgGrenade;
 		}
 		else
-			CGrenade::ShootContact( pev, GetGunPosition(), m_vecTossVelocity );
+		{
+			CGrenade *pGrenade = CGrenade::ShootContact( pev, GetGunPosition(), m_vecTossVelocity );
+			if( bMercGrenadier )
+				pGrenade->pev->dmg = gSkillData.mercDmgGrenade;
+		}
 		m_fThrowGrenade = FALSE;
-		if( g_iSkillLevel == SKILL_HARD )
-			m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2, 5 );// wait a random amount of time before shooting again
+		if( bMercGrenadier )
+		{
+			m_flNextGrenadeCheck = gpGlobals->time + gSkillData.mercGrenadeCheck;
+			m_cAmmoLoaded--;
+		}
 		else
-			m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+		{
+			if( g_iSkillLevel == SKILL_HARD )
+				m_flNextGrenadeCheck = gpGlobals->time + RANDOM_FLOAT( 2, 5 );// wait a random amount of time before shooting again
+			else
+				m_flNextGrenadeCheck = gpGlobals->time + 6;// wait six seconds before even looking again to see if a grenade can be thrown.
+		}
 	}
 	break;
 
@@ -5073,17 +5204,32 @@ void CMonsterGangster::Spear( void )
 {
 	SetBodygroup(GUN_GROUP_TLG, SPEARGUN_EMPTY);
 	
-	if (m_cAmmoLoaded <= 0)
+	if( m_cAmmoLoaded <= 0 )
 		return;
 	
-	m_cAmmoLoaded--;// take away a bullet!
-	
-	//undone
+	Vector vecStart, angleGun;
+	GetAttachment( 0, vecStart, angleGun );
+	Vector vecShootDir = ShootAtEnemy( vecStart );
+	Vector vecShootAngles = UTIL_VecToAngles( vecShootDir );
+
+	CSpearProjectile *pSpear = (CSpearProjectile*)Create( "spear_projectile", vecStart, vecShootAngles, edict() );
+
+	if( !pSpear )
+		return;
+
+	EMIT_SOUND( ENT( pev ), CHAN_WEAPON, "weapons/speargun.wav", 1, 0.4 );
+
+	m_cAmmoLoaded--; // take away a spear!
+
+	pSpear->pev->velocity = vecShootDir * 2000;
 }
 
 void CMonsterGangster::MonsterThink()
 {
 	CSquadMonster::MonsterThink();
+
+	if( bMercFrogman || bMercGrenadier )
+		return;
 
 	if (pev->health <= 0)
 	{
@@ -5093,11 +5239,9 @@ void CMonsterGangster::MonsterThink()
 
 	if (m_hEnemy && !HasConditions(bits_COND_ENEMY_OCCLUDED) && m_cAmmoLoaded > 0)
 	{
-
 		float ang;
 		Vector forward, enemy;
 		Vector dist = m_hEnemy->pev->origin - pev->origin;
-
 
 		dist = dist.Normalize();
 		VectorAngles(dist, enemy);
