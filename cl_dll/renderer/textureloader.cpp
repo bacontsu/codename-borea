@@ -63,13 +63,6 @@ void CTextureLoader::VidInit(void)
 	m_pTextures.clear();
 
 	m_pEngineTextures.clear();
-
-	for (int i = 0; i < m_iNumWADDecals; i++)
-		delete m_pWAD_Decals[i].texinfo;
-
-	memset(m_pWAD_Decals, 0, sizeof(m_pWAD_Decals));
-
-	m_iNumWADDecals = 0;
 }
 
 /*

@@ -66,6 +66,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define HGRUNT_GRENADELAUNCHER		( 1 << 2)
 #define HGRUNT_SHOTGUN				( 1 << 3)
 #define HGRUNT_PISTOL				( 1 << 4) // Aynekko: for gangster only
+#define HGRUNT_SPEARGUN				( 1 << 5) // salsatobias: for frogman only
 
 #define HEAD_GROUP_TLG				0
 #define HEAD_GROUP					1
@@ -79,6 +80,9 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define GUN_MP5						0
 #define GUN_SHOTGUN					1
 #define GUN_NONE					1 // Aynekko: for gangsters.
+
+#define SPEARGUN_READY	0 //salsatobias: the frogman's GUN_GROUP_TLG slot should switch to this after reloading (or after the FROGMAN_AE_SPEAROFF event has fired)
+#define SPEARGUN_EMPTY	2 //salsatobias: the frogman's GUN_GROUP_TLG slot should switch to this after firing
 
 //=========================================================
 // Monster's Anim Events Go Here
@@ -94,6 +98,10 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 #define		HGRUNT_AE_CAUGHT_ENEMY	( 10) // grunt established sight with an enemy (player only) that had previously eluded the squad.
 #define		HGRUNT_AE_DROP_GUN		( 11) // grunt (probably dead) is dropping his mp5.
 #define		HGRUNT_AE_VICTORYDANCE (12)
+
+#define		FROGMAN_AE_SPEARON (13) //spawn spear in bro's left hand
+#define		FROGMAN_AE_SPEAROFF (14) //despawn spear from bro's left hand
+#define		FROGMAN_AE_SPEARSHOOT (15) //shoot bro's spear
 
 #define ROCK_THROW_SPEED 800
 #define ROCK_THROW_GRAVITY 0.8
@@ -207,8 +215,14 @@ public:
 	bool bGangPistol;
 	bool bGangShotgun;
 	bool bGangSMG;
+	
 	bool bMercSMG;
 	bool bMercShotgun;
+	bool bMercFrogman;
+	bool bMercGrenadier;
+	
+	bool bMerc;
+	
 	bool bThugPipe;
 	bool bThugWrench;
 	bool bThugCrowbar;
@@ -266,8 +280,13 @@ void CHGrunt::Distinguish( void )
 	bGangShotgun = FClassnameIs( pev, "monster_gangster_shotgun" );
 	bGangSMG = FClassnameIs( pev, "monster_gangster_smg" );
 	bGangPistol = FClassnameIs( pev, "monster_gangster_pistol" );
+	
 	bMercShotgun = FClassnameIs( pev, "monster_mercenary_shotgun" );
 	bMercSMG = FClassnameIs( pev, "monster_mercenary_smg" );
+	bMercFrogman = FClassnameIs( pev, "monster_mercenary_frogman" );
+	bMercGrenadier = FClassnameIs( pev, "monster_mercenary_grenadier" );
+	
+	bMerc = bMercShotgun || bMercSMG || bMercFrogman || bMercGrenadier;
 }
 
 //=========================================================
@@ -3808,6 +3827,10 @@ public:
 	Schedule_t *GetScheduleOfType( int Type ) override;
 	void HandleAnimEvent( MonsterEvent_t *pEvent ) override;
 	float CoverRadius() override { return 1500; }
+	
+	//for the special mercenaries
+	BOOL CheckRangeAttack2( float flDot, float flDist ) override; 
+	void SetActivity ( Activity NewActivity ) override;
 
 	void StartTask( Task_t *pTask ) override;
 	void RunTask( Task_t *pTask ) override;
@@ -3819,6 +3842,8 @@ public:
 	float m_flLerpedTurn;
 
 	void Pistol( void );
+	
+	void Spear( void );
 
 	void MonsterThink() override;
 
@@ -3830,6 +3855,8 @@ LINK_ENTITY_TO_CLASS( monster_gangster_smg, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_gangster_pistol, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_mercenary_shotgun, CMonsterGangster );
 LINK_ENTITY_TO_CLASS( monster_mercenary_smg, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_frogman, CMonsterGangster );
+LINK_ENTITY_TO_CLASS( monster_mercenary_grenadier, CMonsterGangster );
 
 const char *CMonsterGangster::pGangsterSentences[] =
 {
@@ -3863,6 +3890,10 @@ void CMonsterGangster::Precache()
 			PRECACHE_MODEL( "models/mercenary02.mdl" );
 		else if( bMercSMG )
 			PRECACHE_MODEL( "models/mercenary01.mdl" );
+		else if( bMercFrogman )
+			PRECACHE_MODEL( "models/mercenary03.mdl" );
+		else if( bMercGrenadier )
+			PRECACHE_MODEL( "models/mercenary04.mdl" );
 	}
 
 	PRECACHE_SOUND( "weapons/dryfire1.wav" ); //LRC
@@ -3916,9 +3947,13 @@ void CMonsterGangster::Spawn()
 			SET_MODEL( ENT( pev ), "models/mercenary02.mdl" );
 		else if( bMercSMG )
 			SET_MODEL( ENT( pev ), "models/mercenary01.mdl" );
+		else if( bMercFrogman )
+			SET_MODEL( ENT( pev ), "models/mercenary03.mdl" );
+		else if( bMercGrenadier )
+			SET_MODEL( ENT( pev ), "models/mercenary04.mdl" );
 	}
 
-	if( bMercShotgun || bMercSMG )
+	if( bMerc )
 		pev->spawnflags |= SF_MONSTER_GAG; // mute
 
 	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
@@ -3931,7 +3966,7 @@ void CMonsterGangster::Spawn()
 	pev->effects = 0;
 	if( !pev->health )
 	{
-		if( bMercShotgun || bMercSMG )
+		if( bMerc )
 			pev->health = gSkillData.mercHealth;
 		else // gangsters
 			pev->health = gSkillData.gangHealth;
@@ -3973,12 +4008,75 @@ void CMonsterGangster::Spawn()
 		pev->weapons |= HGRUNT_PISTOL;
 		m_cClipSize = 12;
 	}
+	else if( bMercFrogman )
+	{
+		pev->weapons |= HGRUNT_SPEARGUN;
+		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+			pev->weapons |= HGRUNT_HANDGRENADE;
+		m_cClipSize = 1;
+	}
+	else if( bMercGrenadier )
+	{
+		pev->weapons |= HGRUNT_GRENADELAUNCHER;
+		if( !(pev->spawnflags & SF_MONSTER_DONT_USE_DYNAMITE) )
+			pev->weapons |= HGRUNT_HANDGRENADE;
+		m_cClipSize = 1;
+	}
 
 	m_cAmmoLoaded = m_cClipSize;
 
 	CTalkMonster::g_talkWaitTime = 0;
 
 	MonsterInit();
+}
+
+BOOL CMonsterGangster::CheckRangeAttack2( float flDot, float flDist )
+{
+	if(bMercFrogman || bMercGrenadier)
+	{
+		if (m_cAmmoLoaded > 0)
+			return CheckRangeAttack1(flDot, flDist);
+	}
+
+	return CHGrunt::CheckRangeAttack2(flDot, flDist);
+}
+
+void CMonsterGangster::SetActivity ( Activity NewActivity )
+{
+	int iSequence;
+	switch(NewActivity)
+	{
+	case ACT_RANGE_ATTACK2:
+		if(bMercFrogman || bMercGrenadier)
+		{
+			if (m_cAmmoLoaded <= 0)
+			{
+				if(pev->weapons & HGRUNT_HANDGRENADE)
+					iSequence = LookupSequence( "throwgrenade" );
+			}
+			else
+			{
+				if(bMercGrenadier)
+					iSequence = LookupSequence( "standing_grenlauncher" );
+				else
+					iSequence = LookupSequence( "standing_speargun" );
+			}
+			
+			m_Activity = NewActivity; // Go ahead and set this so it doesn't keep trying when the anim is not present
+
+			// Set to the desired anim
+			if ( pev->sequence != iSequence || !m_fSequenceLoops )
+			{
+				pev->frame = 0;
+			}
+		
+			pev->sequence		= iSequence;	// Set to the reset anim (if it's there)
+			ResetSequenceInfo( );
+			SetYawSpeed();
+			return;
+		}
+	}
+	CHGrunt::SetActivity(NewActivity);
 }
 
 void CMonsterGangster::SpeakSentence()
@@ -4893,6 +4991,23 @@ void CMonsterGangster::HandleAnimEvent( MonsterEvent_t *pEvent )
 		}
 	}
 	break;
+	
+	case FROGMAN_AE_SPEARON:
+	{
+		SetBodygroup(2, 1);
+		break;
+	}
+	case FROGMAN_AE_SPEAROFF:
+	{
+		SetBodygroup(2, 0);
+		SetBodygroup(GUN_GROUP_TLG, SPEARGUN_READY);
+		break;
+	}
+	case FROGMAN_AE_SPEARSHOOT:
+	{
+		Spear();
+		break;
+	}
 
 	case HGRUNT_AE_CAUGHT_ENEMY:
 	{
@@ -4952,6 +5067,18 @@ void CMonsterGangster::Pistol( void )
 	// Teh_Freak: World Lighting!
 	FranUtils::EmitDlight( pev->origin, 4, { 255, 255, 160 }, 0.05f, 0 );
 	// Teh_Freak: World Lighting!
+}
+
+void CMonsterGangster::Spear( void )
+{
+	SetBodygroup(GUN_GROUP_TLG, SPEARGUN_EMPTY);
+	
+	if (m_cAmmoLoaded <= 0)
+		return;
+	
+	m_cAmmoLoaded--;// take away a bullet!
+	
+	//undone
 }
 
 void CMonsterGangster::MonsterThink()

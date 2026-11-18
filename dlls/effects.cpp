@@ -4094,7 +4094,7 @@ void CEnvDecal::Spawn( )
 	pev->effects = EF_NODRAW;
 
 	if ( FStringNull( pev->targetname ) )
-		return;
+		m_bActive = TRUE;
 
 	strcpy(m_szDecalName, STRING(pev->message));
 
@@ -4150,8 +4150,10 @@ void CEnvDecal::SendInitMessage( CBasePlayer *player )
 		WRITE_COORD( m_vImpactNormal.x );
 		WRITE_COORD( m_vImpactNormal.y );
 		WRITE_COORD( m_vImpactNormal.z );
-		WRITE_BYTE( TRUE );
 		WRITE_STRING( m_szDecalName );
+		WRITE_BYTE(1); // persistent
+		WRITE_BYTE(0); // from wad
+		WRITE_COORD(pev->angles.x); // NEW!! : decal rotation
 	MESSAGE_END();
 }
 void CEnvDecal :: KeyValue( KeyValueData *pkvd )

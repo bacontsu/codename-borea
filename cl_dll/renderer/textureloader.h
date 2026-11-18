@@ -172,9 +172,6 @@ public:
 
 	wadfile_t m_pWADFiles[MAX_WADFILES];
 	int m_iNumWADFiles;
-
-	waddecals_t m_pWAD_Decals[512];
-	int m_iNumWADDecals;
 };
 extern CTextureLoader gTextureLoader;
 #endif

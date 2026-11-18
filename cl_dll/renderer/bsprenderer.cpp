@@ -3230,61 +3230,6 @@ void CBSPRenderer::LoadDecals(void)
 
 getout:
 	gEngfuncs.Con_Printf("BSP Renderer: %d decal groups created\n", counter);
-
-	// load decals.wad
-
-
-	cl_texture_t* pTexture = nullptr;
-	for (int i = 0; i < gTextureLoader.m_iNumWADFiles; i++)
-	{
-		if (!stricmp(gTextureLoader.m_pWADFiles[i].wadname, "decals.wad"))
-		{
-			byte* pFile = (byte*)gTextureLoader.m_pWADFiles[i].wadfile.data();
-			wadinfo_t* pInfo = gTextureLoader.m_pWADFiles[i].info;
-			for (int j = 0; j < pInfo->numlumps; j++)
-			{
-				lumpinfo_t* pLump = &gTextureLoader.m_pWADFiles[i].lumps[j];
-				if (pLump->type != 0 && !(pLump->type & 0x43))
-					continue;
-
-				strLower(pLump->name);
-
-				pTexture = new cl_texture_t{};
-
-				// Fill in data
-				strcpy(pTexture->szName, pLump->name);
-				pTexture->iWidth = ByteToUInt(pFile + pLump->filepos + 16);
-				pTexture->iHeight = ByteToUInt(pFile + pLump->filepos + 20);
-				pTexture->iBpp = 4;
-
-				// Get offsets
-				int iIndexOffset = ByteToUInt(pFile + pLump->filepos + 24);
-				int iMip3Offset = ByteToUInt(pFile + pLump->filepos + 36);
-
-				byte* pPalette;
-				if (pLump->type & 0x43)
-					pPalette = pFile + pLump->filepos + iMip3Offset + ((pTexture->iWidth / 8) * (pTexture->iHeight / 8)) + 2;
-				else
-					pPalette = pFile + pLump->filepos + iIndexOffset + (pTexture->iWidth * pTexture->iHeight) + 2;
-
-				byte* pPixels = pFile + pLump->filepos + iIndexOffset;
-				gTextureLoader.LoadPallettedTexture(pPixels, pPalette, pTexture, true);
-
-				auto& waddecal = gTextureLoader.m_pWAD_Decals[gTextureLoader.m_iNumWADDecals];
-
-				strcpy(waddecal.name, pLump->name);
-				waddecal.texinfo = new decalgroupentry_t;
-				strcpy(waddecal.texinfo->szName, pLump->name);
-				waddecal.texinfo->gl_texid = pTexture->iIndex;
-				waddecal.texinfo->xsize = pTexture->iWidth / 2;
-				waddecal.texinfo->ysize = pTexture->iHeight / 2;
-				waddecal.texinfo->group = nullptr; // unused
-
-				gTextureLoader.m_iNumWADDecals++;
-				gTextureLoader.m_pTextures.push_back(pTexture);
-			}
-		}
-	}
 };
 
 /*
@@ -3431,7 +3376,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 	Vector decalpos, decalnormal;
 	decalgroupentry_t* pDecalTex;
 
-	if (!engine_cl->worldmodel || (fromwad && gTextureLoader.m_iNumWADDecals == 0))
+	if (!engine_cl->worldmodel || m_pDecalGroups.empty())
 	{
 		if (m_pMsgCache.size() >= MAX_DECAL_MSG_CACHE)
 			return;
@@ -3445,126 +3390,6 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		msgcache->fromwad = fromwad;
 		msgcache->angle = angle;
 		m_pMsgCache.push_back(std::move(msgcache));
-		return;
-	}
-
-	if (fromwad)
-	{
-		char lowername[128];
-		strcpy(lowername, name);
-		strLower(lowername);
-
-		customdecal_t* pDecal = NULL;
-		for (int i = 0; i < gTextureLoader.m_iNumWADDecals; i++)
-		{
-			if (!strcmp(gTextureLoader.m_pWAD_Decals[i].texinfo->szName, lowername))
-			{
-				pDecal = AllocDecal();
-				pDecal->texinfo = gTextureLoader.m_pWAD_Decals[i].texinfo;
-				VectorCopy(endpos, pDecal->position);
-				VectorCopy(pnormal, pDecal->normal);
-				float radius = (pDecal->texinfo->xsize > pDecal->texinfo->ysize) ? pDecal->texinfo->xsize : pDecal->texinfo->ysize;
-
-				m_vDecalMins[0] = endpos[0] - radius;
-				m_vDecalMins[1] = endpos[1] - radius;
-				m_vDecalMins[2] = endpos[2] - radius;
-				m_vDecalMaxs[0] = endpos[0] + radius;
-				m_vDecalMaxs[1] = endpos[1] + radius;
-				m_vDecalMaxs[2] = endpos[2] + radius;
-
-				RecursiveCreateDecal(engine_cl->worldmodel->nodes, gTextureLoader.m_pWAD_Decals[i].texinfo, pDecal, endpos, pnormal, angle);
-
-
-				for (int j = 1; j < MAXRENDERENTS; j++)
-				{
-					cl_entity_t* pEntity = gEngfuncs.GetEntityByIndex(j);
-
-					if (!pEntity)
-						break;
-
-					if (!pEntity->model)
-						continue;
-
-					if (pEntity->model->type != mod_brush)
-						continue;
-
-					if (pEntity->curstate.solid == SOLID_NOT)
-						continue;
-
-					if (pEntity->angles[0] || pEntity->angles[1] || pEntity->angles[2])
-					{
-						mins[0] = pEntity->origin[0] - pEntity->model->radius;
-						mins[1] = pEntity->origin[1] - pEntity->model->radius;
-						mins[2] = pEntity->origin[2] - pEntity->model->radius;
-						maxs[0] = pEntity->origin[0] + pEntity->model->radius;
-						maxs[1] = pEntity->origin[1] + pEntity->model->radius;
-						maxs[2] = pEntity->origin[2] + pEntity->model->radius;
-					}
-					else
-					{
-						mins = pEntity->origin + pEntity->model->mins;
-						maxs = pEntity->origin + pEntity->model->maxs;
-					}
-
-					if (CullDecalBBox(mins, maxs))
-						continue;
-
-					if (pEntity->origin[0] || pEntity->origin[1] || pEntity->origin[2])
-					{
-						VectorSubtract(endpos, pEntity->origin, decalpos);
-						if (pEntity->angles[0] || pEntity->angles[1] || pEntity->angles[2])
-						{
-							Vector temp, forward, right, up;
-							AngleVectors(pEntity->angles, &forward, &right, &up);
-
-							VectorCopy(decalpos, temp);
-							decalpos[0] = DotProduct(temp, forward);
-							decalpos[1] = -DotProduct(temp, right);
-							decalpos[2] = DotProduct(temp, up);
-
-							VectorCopy(pnormal, temp);
-							decalnormal[0] = DotProduct(temp, forward);
-							decalnormal[1] = -DotProduct(temp, right);
-							decalnormal[2] = DotProduct(temp, up);
-						}
-						else
-						{
-							VectorSubtract(endpos, pEntity->origin, decalpos);
-							VectorCopy(pnormal, decalnormal);
-						}
-					}
-					else
-					{
-						VectorCopy(pnormal, decalnormal);
-						VectorCopy(endpos, decalpos);
-					}
-
-					clientmsurface_t* surf = &BSPWorld_Model::m_pWorldSurfaces[pEntity->model->firstmodelsurface];
-					for (int k = 0; k < pEntity->model->nummodelsurfaces; k++, surf++)
-					{
-						float dot;
-						mplane_t* pplane = surf->plane;
-						DotProductSub(&dot, &decalpos, &pplane->normal, &pplane->dist);
-
-						if (dot < 0)
-							dot *= -1;
-
-						if (dot < radius)
-						{
-							Vector normal = pplane->normal;
-
-							if (surf->flags & SURF_PLANEBACK)
-								VectorInverse(normal);
-
-							if (DotProduct(normal, decalnormal) < 0.01)
-								continue;
-
-							DecalSurface(surf, gTextureLoader.m_pWAD_Decals[i].texinfo, pEntity, pDecal, decalpos, decalnormal);
-						}
-					}
-				}
-			}
-		}
 		return;
 	}
 
@@ -4054,6 +3879,10 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal, std::vector<Default3DTe
 	}
 }
 
+static int decals_lastdecalvertbuffersize = 0;
+static int decals_lastdecalvertbuffersize_trans = 0;
+static bool decals_needsbufferupdate = false;
+
 /*
 ====================
 DrawDecals
@@ -4071,12 +3900,18 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 
 	std::unordered_map<GLuint, std::vector<Default3DTextureVert_t>> decalbatch;
 
-	bool needsbufferupdate = false;
 	for (int i = 0; i < m_pDecals.size(); i++)
 	{
 		std::vector<Default3DTextureVert_t> decalvertlist;
-		DrawSingleDecal(m_pDecals[i].get(), decalvertlist, m_bTransPass, &needsbufferupdate);
+		DrawSingleDecal(m_pDecals[i].get(), decalvertlist, m_bTransPass, &decals_needsbufferupdate);
 		auto& row = decalbatch[m_pDecals[i].get()->texinfo->gl_texid];
+		row.insert(row.end(), std::begin(decalvertlist), std::end(decalvertlist));
+	}
+	for (int i = 0; i < m_pStaticDecals.size(); i++)
+	{
+		std::vector<Default3DTextureVert_t> decalvertlist;
+		DrawSingleDecal(m_pStaticDecals[i].get(), decalvertlist, m_bTransPass, &decals_needsbufferupdate);
+		auto& row = decalbatch[m_pStaticDecals[i].get()->texinfo->gl_texid];
 		row.insert(row.end(), std::begin(decalvertlist), std::end(decalvertlist));
 	}
 	if (decalbatch.empty())
@@ -4093,15 +3928,12 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 	s_pDecalMeshBuffer->BindMesh();
 
 	static bool updated_base_buffer = false; //this is so ugly
-
-	static int lastdecalvertbuffersize = 0;
-	static int lastdecalvertbuffersize_trans = 0;
 	if(!m_bTransPass)
 	{
-		if (lastdecalvertbuffersize != decalvertlist_buffer.size() || needsbufferupdate)
+		if (decals_lastdecalvertbuffersize != decalvertlist_buffer.size() || decals_needsbufferupdate)
 		{
 			updated_base_buffer = true;
-			lastdecalvertbuffersize = decalvertlist_buffer.size();
+			decals_lastdecalvertbuffersize = decalvertlist_buffer.size();
 			s_pDecalMeshBuffer->ModifyMesh(decalvertlist_buffer.data(), decalvertlist_buffer.size(), 0);
 		}
 	}
@@ -4109,11 +3941,11 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 	{
 		if (!decalvertlist_buffer.empty())
 		{
-			if (lastdecalvertbuffersize_trans != decalvertlist_buffer.size() || needsbufferupdate || updated_base_buffer)
+			if (decals_lastdecalvertbuffersize_trans != decalvertlist_buffer.size() || decals_needsbufferupdate || updated_base_buffer)
 			{
 				updated_base_buffer = false;
-				lastdecalvertbuffersize_trans = decalvertlist_buffer.size();
-				s_pDecalMeshBuffer->ModifyMesh(decalvertlist_buffer.data(), decalvertlist_buffer.size(), lastdecalvertbuffersize);
+				decals_lastdecalvertbuffersize_trans = decalvertlist_buffer.size();
+				s_pDecalMeshBuffer->ModifyMesh(decalvertlist_buffer.data(), decalvertlist_buffer.size(), decals_lastdecalvertbuffersize);
 			}
 		}
 	}
@@ -4135,7 +3967,7 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 
 	int bufferoffset = 0;
 	if (m_bTransPass)
-		bufferoffset = lastdecalvertbuffersize;
+		bufferoffset = decals_lastdecalvertbuffersize;
 	for (auto texture : decalbatch)
 	{
 		BindGLTexture(GL_TEXTURE0, texture.first);
@@ -4166,6 +3998,8 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 	g_GlobalGLState.SetPolygonOffsetFill(false);
 
 	GL_Mesh::UnbindMesh();
+
+	decals_needsbufferupdate = false;
 
 }
 
@@ -4224,6 +4058,9 @@ void CBSPRenderer::DeleteDecals(void)
 
 	// Clear array completely
 	m_pStaticDecals.clear();
+
+	decals_lastdecalvertbuffersize = decals_lastdecalvertbuffersize_trans = 0;
+	decals_needsbufferupdate = true;
 }
 
 /*
