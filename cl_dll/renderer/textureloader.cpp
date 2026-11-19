@@ -773,7 +773,7 @@ LoadPallettedTexture
 void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* pTexture, bool isdecal)
 {
 	int row1[1024], row2[1024], col1[1024], col2[1024];
-	byte *pix1, *pix2, *pix3, *pix4;
+	byte* pix1, * pix2, * pix3, * pix4;
 	byte alpha1, alpha2, alpha3, alpha4;
 
 	// convert texture to power of 2
@@ -789,7 +789,7 @@ void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* p
 	if (outheight > 1024)
 		outheight = 1024;
 
-	byte *out, *tex;
+	byte* out, * tex;
 	tex = out = new byte[outwidth * outheight * 4];
 
 	for (int i = 0; i < outwidth; i++)
@@ -808,16 +808,22 @@ void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* p
 	{
 		for (int i = 0; i < outheight; i++)
 		{
-			for (int j = 0; j < outwidth; j++, out += 4)
+			for (int j = outwidth - 1; j >= 0; j--, out += 4)
 			{
 				byte index = data[row1[i] + col1[j]];
 
 				byte* pix = &pal[index * 3];
 				byte r = pix[0], g = pix[1], b = pix[2];
 
-				float luminance = (0.30f * r + 0.59f * g + 0.11f * b);
+				byte alpha = (int(r) + int(g) + int(b)) / 3;
 
-				byte alpha = 255 - static_cast<byte>(luminance);
+				byte alpha_factor = pal[0];
+
+				if (alpha_factor == 0)
+					alpha = alpha - alpha_factor;
+				else
+					alpha = alpha_factor - alpha;
+
 				pix = &pal[255 * 3];
 
 				out[0] = pix[0];
@@ -908,6 +914,7 @@ void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* p
 
 	delete[] tex;
 }
+
 
 /*
 ====================

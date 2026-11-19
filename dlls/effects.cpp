@@ -4078,6 +4078,7 @@ TYPEDESCRIPTION	CEnvDecal::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CEnvDecal, CBaseEntity );
 
 LINK_ENTITY_TO_CLASS( env_decal, CEnvDecal );
+LINK_ENTITY_TO_CLASS( infodecal, CEnvDecal);
 
 void CEnvDecal::Spawn( )
 {
@@ -4097,6 +4098,8 @@ void CEnvDecal::Spawn( )
 		m_bActive = TRUE;
 
 	strcpy(m_szDecalName, STRING(pev->message));
+	if (strlen(m_szDecalOrigName) != NULL)
+		strcpy(m_szDecalName, m_szDecalOrigName);
 
 	if(strlen(m_szDecalName) == NULL)
 		UTIL_Remove(this);
@@ -4152,7 +4155,7 @@ void CEnvDecal::SendInitMessage( CBasePlayer *player )
 		WRITE_COORD( m_vImpactNormal.z );
 		WRITE_STRING( m_szDecalName );
 		WRITE_BYTE(1); // persistent
-		WRITE_BYTE(0); // from wad
+		WRITE_BYTE(FClassnameIs(pev, "infodecal")); // from wad
 		WRITE_COORD(pev->angles.x); // NEW!! : decal rotation
 	MESSAGE_END();
 }

@@ -191,6 +191,7 @@ GL_END_ATTRIBLIST()
 GL_BEGIN_ATTRIBLIST(Default3DTextureVert_t)
 	GL_DEFINE_ATTRIB(GL_ShaderProgram::ShaderAttribs::VertexPos, 3, GL_FLOAT, pos)
 	GL_DEFINE_ATTRIB(GL_ShaderProgram::ShaderAttribs::TexCoord, 2, GL_FLOAT, texcoord)
+	GL_DEFINE_ATTRIB(GL_ShaderProgram::ShaderAttribs::LightMap_TexCoord, 2, GL_FLOAT, lmcoord)
 GL_END_ATTRIBLIST()
 
 
@@ -403,7 +404,8 @@ void CBSPRenderer::Init(void)
 	s_SkyboxShader.Uniform1i(s_SkyboxShader.GetUniformLoc("texture0"), 0);
 
 	s_DecalShader.Bind();
-	s_DecalShader.Uniform1i(s_DecalShader.GetUniformLoc("texture0"), 0);
+	s_DecalShader.Uniform1i(s_DecalShader.GetUniformLoc("lmtexture"), 0);
+	s_DecalShader.Uniform1i(s_DecalShader.GetUniformLoc("texture0"), 1);
 
 	m_FilterShader.Bind();
 	m_FilterShader.Uniform1i(m_FilterShader.GetUniformLoc("texture_"), 0);
@@ -3203,6 +3205,7 @@ void CBSPRenderer::LoadDecals(void)
 			tempentries[numtemp].gl_texid = pTexture->iIndex;
 			tempentries[numtemp].xsize = atof(sz_xsize) / 2;
 			tempentries[numtemp].ysize = atof(sz_ysize) / 2;
+			tempentries[numtemp].flags = 0;
 			numtemp++;
 		}
 
@@ -3230,6 +3233,61 @@ void CBSPRenderer::LoadDecals(void)
 
 getout:
 	gEngfuncs.Con_Printf("BSP Renderer: %d decal groups created\n", counter);
+
+	// load decals.wad
+
+	m_WADDecals.clear();
+
+	cl_texture_t* pTexture = nullptr;
+	for (int i = 0; i < gTextureLoader.m_iNumWADFiles; i++)
+	{
+		if (!stricmp(gTextureLoader.m_pWADFiles[i].wadname, "decals.wad"))
+		{
+			byte* pFile = (byte*)gTextureLoader.m_pWADFiles[i].wadfile.data();
+			wadinfo_t* pInfo = gTextureLoader.m_pWADFiles[i].info;
+			for (int j = 0; j < pInfo->numlumps; j++)
+			{
+				lumpinfo_t* pLump = &gTextureLoader.m_pWADFiles[i].lumps[j];
+				if (pLump->type != 0 && !(pLump->type & 0x43))
+					continue;
+
+				strLower(pLump->name);
+
+				pTexture = new cl_texture_t{};
+
+				// Fill in data
+				strcpy(pTexture->szName, pLump->name);
+				pTexture->iWidth = ByteToUInt(pFile + pLump->filepos + 16);
+				pTexture->iHeight = ByteToUInt(pFile + pLump->filepos + 20);
+				pTexture->iBpp = 4;
+
+				// Get offsets
+				int iIndexOffset = ByteToUInt(pFile + pLump->filepos + 24);
+				int iMip3Offset = ByteToUInt(pFile + pLump->filepos + 36);
+
+				byte* pPalette;
+				if (pLump->type & 0x43)
+					pPalette = pFile + pLump->filepos + iMip3Offset + ((pTexture->iWidth / 8) * (pTexture->iHeight / 8)) + 2;
+				else
+					pPalette = pFile + pLump->filepos + iIndexOffset + (pTexture->iWidth * pTexture->iHeight) + 2;
+
+				byte* pPixels = pFile + pLump->filepos + iIndexOffset;
+				gTextureLoader.LoadPallettedTexture(pPixels, pPalette, pTexture, true);
+
+				decalgroupentry_t waddecal;
+
+				strcpy(waddecal.szName, pLump->name);
+				waddecal.gl_texid = pTexture->iIndex;
+				waddecal.xsize = pTexture->iWidth / 2;
+				waddecal.ysize = pTexture->iHeight / 2;
+				waddecal.group = nullptr; // unused
+				waddecal.flags = DECALFLAG_TRANSDECAL;
+
+				m_WADDecals.push_back(waddecal);
+				gTextureLoader.m_pTextures.push_back(pTexture);
+			}
+		}
+	}
 };
 
 /*
@@ -3374,7 +3432,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 {
 	Vector mins, maxs;
 	Vector decalpos, decalnormal;
-	decalgroupentry_t* pDecalTex;
+	decalgroupentry_t* pDecalTex = nullptr;
 
 	if (!engine_cl->worldmodel || m_pDecalGroups.empty())
 	{
@@ -3393,7 +3451,18 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		return;
 	}
 
-	if (!persistent)
+	if (fromwad)
+	{
+		for (int i  = 0; i < m_WADDecals.size(); i++)
+		{
+			if (!strcmpi(m_WADDecals[i].szName, name))
+			{
+				pDecalTex = &m_WADDecals[i];
+				break;
+			}
+		}
+	}
+	else if (!persistent)
 	{
 		decalgroup_t* pGroup = FindGroup(name);
 
@@ -3651,6 +3720,39 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 	RecursiveCreateDecal(node->children[!side], texptr, pDecal, endpos, pnormal, angle);
 }
 
+// Generate lightmap coordinates at each vertex for decal vertices v[] on surface psurf
+static void DecalVertsLight(customdecalpoly_t* p, clientmsurface_t* psurf)
+{
+	int j;
+	float s, t;
+	mtexinfo_t* tex = psurf->texinfo;
+
+	for (j = 0; j < p->numverts; j++)
+	{
+		customdecalvert_t* v = &p->pverts[j];
+		s = DotProduct(v->position, tex->vecs[0]) + tex->vecs[0][3];
+		s -= psurf->texturemins[0];
+
+		assert(s <= psurf->extents[0]);
+
+		s += psurf->light_s * 16;
+		s += 8;
+		s /= LIGHTMAP_RESOLUTION * 16;
+
+		t = DotProduct(v->position, tex->vecs[1]) + tex->vecs[1][3];
+		t -= psurf->texturemins[1];
+
+		assert(t <= psurf->extents[1]);
+
+		t += psurf->light_t * 16;
+		t += 8;
+		t /= LIGHTMAP_RESOLUTION * 16;
+
+		v->lmcoord[0] = s;
+		v->lmcoord[1] = t;
+	}
+}
+
 /*
 ====================
 DecalSurface
@@ -3758,6 +3860,8 @@ void CBSPRenderer::DecalSurface(clientmsurface_t* surf, decalgroupentry_t* texpt
 		pPoly->pverts[j].texcoord[0] = (texc_x + 1) / 2;
 		pPoly->pverts[j].texcoord[1] = (texc_y + 1) / 2;
 		pPoly->pverts[j].position = dverts1[j];
+
+		DecalVertsLight(pPoly, surf);
 	}
 
 	pPoly->surface = surf;
@@ -3865,12 +3969,15 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal, std::vector<Default3DTe
 
 			v0.pos = Vector(pos1.x, pos1.y, pos1.z);
 			memcpy(v0.texcoord, ppoly->pverts[0].texcoord, sizeof(float) * 2);
+			memcpy(v0.lmcoord, ppoly->pverts[0].lmcoord, sizeof(float) * 2);
 
 			v1.pos = Vector(pos2.x, pos2.y, pos2.z);
 			memcpy(v1.texcoord, ppoly->pverts[k].texcoord, sizeof(float) * 2);
+			memcpy(v1.lmcoord, ppoly->pverts[k].lmcoord, sizeof(float) * 2);
 
 			v2.pos = Vector(pos3.x, pos3.y, pos3.z);
 			memcpy(v2.texcoord, ppoly->pverts[k + 1].texcoord, sizeof(float) * 2);
+			memcpy(v2.lmcoord, ppoly->pverts[k + 1].lmcoord, sizeof(float) * 2);
 
 			decalvertlist.push_back(v0);
 			decalvertlist.push_back(v1);
@@ -3882,6 +3989,56 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal, std::vector<Default3DTe
 static int decals_lastdecalvertbuffersize = 0;
 static int decals_lastdecalvertbuffersize_trans = 0;
 static bool decals_needsbufferupdate = false;
+
+struct texturebatchhash_t
+{
+	GLuint texindex;
+	bool transdecal;
+	bool operator==(const texturebatchhash_t& other) const
+	{
+		return (texindex == other.texindex
+			&& transdecal == other.transdecal);
+	}
+};
+
+template <>
+struct std::hash<texturebatchhash_t>
+{
+	std::size_t operator()(const texturebatchhash_t& k) const
+	{
+		// Compute individual hash values for first,
+		// second and third and combine them using XOR
+		// and bit shifting:
+
+		return ((std::hash<GLuint>()(k.texindex)
+			^ (std::hash<bool>()(k.transdecal) << 1)));
+	}
+};
+
+static void RenderRetroDecal(const std::pair<const texturebatchhash_t, std::vector<Default3DTextureVert_t>>& info,
+	int bufferoffset){
+
+	//todo : make these decals react to dynamic lights..
+	//maybe switching to deferred rendering can help with this
+
+	gBSPRenderer.BindGLTexture(LIGHTMAP_TEXUNIT, gBSPRenderer.m_iEngineLightmapIndex);
+	gBSPRenderer.BindGLTexture(SURFTEXTURE_TEXUNIT, info.first.texindex);
+
+	s_DecalShader.Uniform1i(s_DecalShader.GetUniformLoc("retrodecal"), 1);
+
+	g_GlobalGLState.SetBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	s_pDecalMeshBuffer->DrawArrays(bufferoffset, info.second.size());
+	g_GlobalGLState.SetBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+
+
+	s_DecalShader.Uniform1i(s_DecalShader.GetUniformLoc("retrodecal"), 0);
+}
+static void RenderNewDecal(const std::pair<const texturebatchhash_t, std::vector<Default3DTextureVert_t>>& info,
+	int bufferoffset) {
+	gBSPRenderer.BindGLTexture(SURFTEXTURE_TEXUNIT, info.first.texindex);
+
+	s_pDecalMeshBuffer->DrawArrays(bufferoffset, info.second.size());
+}
 
 /*
 ====================
@@ -3898,20 +4055,24 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 		return;
 	}
 
-	std::unordered_map<GLuint, std::vector<Default3DTextureVert_t>> decalbatch;
+	std::unordered_map<texturebatchhash_t, std::vector<Default3DTextureVert_t>, std::hash<texturebatchhash_t>, std::equal_to<texturebatchhash_t>> decalbatch;
 
 	for (int i = 0; i < m_pDecals.size(); i++)
 	{
 		std::vector<Default3DTextureVert_t> decalvertlist;
 		DrawSingleDecal(m_pDecals[i].get(), decalvertlist, m_bTransPass, &decals_needsbufferupdate);
-		auto& row = decalbatch[m_pDecals[i].get()->texinfo->gl_texid];
+		customdecal_t* decal = m_pDecals[i].get();
+		texturebatchhash_t hash { decal->texinfo->gl_texid, decal->texinfo->flags & DECALFLAG_TRANSDECAL };
+		auto& row = decalbatch[hash];
 		row.insert(row.end(), std::begin(decalvertlist), std::end(decalvertlist));
 	}
 	for (int i = 0; i < m_pStaticDecals.size(); i++)
 	{
 		std::vector<Default3DTextureVert_t> decalvertlist;
 		DrawSingleDecal(m_pStaticDecals[i].get(), decalvertlist, m_bTransPass, &decals_needsbufferupdate);
-		auto& row = decalbatch[m_pStaticDecals[i].get()->texinfo->gl_texid];
+		customdecal_t* decal = m_pStaticDecals[i].get();
+		texturebatchhash_t hash{ decal->texinfo->gl_texid, decal->texinfo->flags & DECALFLAG_TRANSDECAL };
+		auto& row = decalbatch[hash];
 		row.insert(row.end(), std::begin(decalvertlist), std::end(decalvertlist));
 	}
 	if (decalbatch.empty())
@@ -3970,9 +4131,11 @@ void CBSPRenderer::DrawDecals(bool m_bTransPass)
 		bufferoffset = decals_lastdecalvertbuffersize;
 	for (auto texture : decalbatch)
 	{
-		BindGLTexture(GL_TEXTURE0, texture.first);
+		if (texture.first.transdecal)
+			RenderRetroDecal(texture, bufferoffset);
+		else
+			RenderNewDecal(texture, bufferoffset);
 
-		s_pDecalMeshBuffer->DrawArrays(bufferoffset, texture.second.size());
 		bufferoffset += texture.second.size();
 	}
 

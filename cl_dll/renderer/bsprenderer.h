@@ -119,6 +119,7 @@ struct Default3DTextureVert_t
 {
 	Vector pos;
 	float texcoord[2];
+	float lmcoord[2];
 	byte _padding[12];
 
 	GL_DECLARE_ATTRIBLIST();
@@ -159,11 +160,13 @@ struct brushface_t
 	Vector t_tangent;
 };
 
+#define DECALFLAG_TRANSDECAL (1 << 0)
 struct decalgroupentry_t
 {
 	char szName[64];
 	int gl_texid;
 	int xsize, ysize;
+	int flags;
 	struct decalgroup_t* group;
 };
 struct decalgroup_t
@@ -177,6 +180,7 @@ typedef struct customdecalvert_s
 {
 	Vector position;
 	float texcoord[2];
+	float lmcoord[2];
 } customdecalvert_t;
 
 typedef struct customdecalpoly_s
@@ -543,7 +547,6 @@ public:
 	int m_iNumTextures;
 
 
-	GL_ShaderProgram *m_DecalShader;
 	GL_ShaderProgram *m_SimpleSkyboxShader;
 	static GL_ShaderProgram m_FilterShader;
 	static GL_ShaderProgram m_BlacknwhiteShader;
@@ -558,6 +561,7 @@ public:
 	std::vector<std::unique_ptr<customdecal_t>> m_pStaticDecals;
 	std::vector<std::unique_ptr<decal_msg_cache>> m_pMsgCache;
 	std::vector<std::unique_ptr<decalgroup_t>> m_pDecalGroups;
+	std::vector<decalgroupentry_t> m_WADDecals;
 
 	Vector m_vDecalMins;
 	Vector m_vDecalMaxs;
