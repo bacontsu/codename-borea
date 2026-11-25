@@ -287,6 +287,10 @@ void CHGrunt::Distinguish( void )
 	bMercGrenadier = FClassnameIs( pev, "monster_mercenary_grenade" );
 	
 	bMerc = bMercShotgun || bMercSMG || bMercFrogman || bMercGrenadier;
+
+	// do not drop any weapons, ever
+	if( bMercFrogman || bMercGrenadier )
+		pev->spawnflags |= SF_MONSTER_NO_WPN_DROP;
 }
 
 //=========================================================
