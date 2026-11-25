@@ -405,6 +405,9 @@
     <ClCompile Include="..\..\dlls\ctf\CTFSpawn.cpp">
       <Filter>Source Files\dlls\ctf</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\spear_projectile.cpp">
+      <Filter>Source Files\dlls\TLG_monsters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\dlls\doors.h">
