@@ -2907,57 +2907,63 @@ void CMonsterThug::MonsterThink()
 	}
 
 	CSquadMonster::MonsterThink();
-	if(m_hEnemy)
+
+	// Aynekko: without this check, thugs simply teleport into screipted_sequences, when RUN mode is set
+	// I'm not sure what exactly causes this, but it's this code
+	if( !m_pCine )
 	{
-		if(m_hEnemy->IsAlive())
+		if( m_hEnemy )
 		{
-
-
-			Vector2D vec2LOS;
-			float flDot;
-			float flDist = (m_hEnemy->pev->origin - pev->origin).Length();
-
-			UTIL_MakeVectors(pev->angles);
-
-			vec2LOS = (m_hEnemy->pev->origin - pev->origin).Make2D();
-			vec2LOS = vec2LOS.Normalize();
-
-			flDot = DotProduct(vec2LOS, gpGlobals->v_forward.Make2D());
-
-			bool shouldwehithim = CheckMeleeAttack1(flDot, flDist);
-
-			if (!HasConditions(bits_COND_ENEMY_OCCLUDED) && !shouldwehithim && flDist < 64 &&
-				m_hEnemy->pev->velocity.Length2D() > 6 && m_Activity == ACT_RUN && m_fSwingTime < gpGlobals->time)
+			if( m_hEnemy->IsAlive() )
 			{
-				SetActivity(ACT_RUN_SCARED);
-				m_IdealActivity = ACT_RUN_SCARED;
-				m_movementActivity = ACT_RUN_SCARED;
-				m_fSwingTime = gpGlobals->time + 0.5667;
-			}
-			else if (pev->sequence == LookupActivity(ACT_RUN_SCARED))
-			{
-				if (m_fSequenceFinished)
+
+
+				Vector2D vec2LOS;
+				float flDot;
+				float flDist = (m_hEnemy->pev->origin - pev->origin).Length();
+
+				UTIL_MakeVectors( pev->angles );
+
+				vec2LOS = (m_hEnemy->pev->origin - pev->origin).Make2D();
+				vec2LOS = vec2LOS.Normalize();
+
+				flDot = DotProduct( vec2LOS, gpGlobals->v_forward.Make2D() );
+
+				bool shouldwehithim = CheckMeleeAttack1( flDot, flDist );
+
+				if( !HasConditions( bits_COND_ENEMY_OCCLUDED ) && !shouldwehithim && flDist < 64 &&
+					m_hEnemy->pev->velocity.Length2D() > 6 && m_Activity == ACT_RUN && m_fSwingTime < gpGlobals->time )
 				{
-					SetActivity(ACT_RUN);
+					SetActivity( ACT_RUN_SCARED );
+					m_IdealActivity = ACT_RUN_SCARED;
+					m_movementActivity = ACT_RUN_SCARED;
+					m_fSwingTime = gpGlobals->time + 0.5667;
 				}
-				else
+				else if( pev->sequence == LookupActivity( ACT_RUN_SCARED ) )
 				{
-					MakeIdealYaw(pev->origin + m_vecTossVelocity * 64);
-					ChangeYaw(pev->yaw_speed);
-					m_Route[m_iRouteIndex].vecLocation = m_hEnemy->pev->origin;
-					m_flGroundSpeed *= 1.1;
+					if( m_fSequenceFinished )
+					{
+						SetActivity( ACT_RUN );
+					}
+					else
+					{
+						MakeIdealYaw( pev->origin + m_vecTossVelocity * 64 );
+						ChangeYaw( pev->yaw_speed );
+						m_Route[m_iRouteIndex].vecLocation = m_hEnemy->pev->origin;
+						m_flGroundSpeed *= 1.1;
+					}
 				}
 			}
 		}
-	}
 
-	if ((pev->sequence == LookupActivity(ACT_RUN_SCARED) || pev->sequence == LookupActivity(ACT_RUN)) && (!m_hEnemy || !m_hEnemy->IsAlive()))
-	{
-		SetActivity(ACT_RESET);
-		m_movementActivity = ACT_IDLE;
-		m_Route[m_iRouteIndex].vecLocation = pev->origin;
-		TaskComplete();
-		pev->sequence = LookupActivity(ACT_IDLE);
+		if( (pev->sequence == LookupActivity( ACT_RUN_SCARED ) || pev->sequence == LookupActivity( ACT_RUN )) && (!m_hEnemy || !m_hEnemy->IsAlive()) )
+		{
+			SetActivity( ACT_RESET );
+			m_movementActivity = ACT_IDLE;
+			m_Route[m_iRouteIndex].vecLocation = pev->origin;
+			TaskComplete();
+			pev->sequence = LookupActivity( ACT_IDLE );
+		}
 	}
 }
 
